@@ -1,3 +1,6 @@
+.env
+m2-docker/
+
 ### Vert.x ###
 .vertx/
 

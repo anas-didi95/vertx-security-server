@@ -1,7 +1,7 @@
 package com.anasdidi.security;
 
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.reactivex.core.AbstractVerticle;
 
 public class MainVerticle extends AbstractVerticle {
 

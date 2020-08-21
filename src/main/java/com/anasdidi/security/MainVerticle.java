@@ -10,7 +10,7 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
     Router router = Router.router(vertx);
-    router.get("/api/user").handler(routingContext -> {
+    router.get("/api/users").handler(routingContext -> {
       routingContext.response()//
           .putHeader("Accept", "application/json")//
           .putHeader("Content-Type", "application/json")//

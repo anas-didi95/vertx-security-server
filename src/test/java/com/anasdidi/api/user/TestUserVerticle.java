@@ -26,7 +26,7 @@ public class TestUserVerticle {
 
   @Test
   void testCanRouteToUser(Vertx vertx, VertxTestContext testContext) {
-    webClient.get(5000, "localhost", "/api/user").rxSend().subscribe(response -> {
+    webClient.get(5000, "localhost", "/api/users").rxSend().subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));

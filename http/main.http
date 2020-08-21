@@ -1,0 +1,7 @@
+@host = localhost
+@port = 5000
+
+### Initial
+http://{{host}}:{{port}}/
+Accept: application/json
+Content-Type: application/json

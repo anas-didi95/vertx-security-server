@@ -1,8 +1,10 @@
 package com.anasdidi.security.api.user;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.reactivex.Single;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.AbstractVerticle;
@@ -55,16 +57,43 @@ public class UserVerticle extends AbstractVerticle {
   }
 
   void create(RoutingContext routingContext) {
-    routingContext.response()//
-        .putHeader("Accept", "application/json")//
-        .putHeader("Content-Type", "application/json")//
-        .setStatusCode(201)//
-        .end(new JsonObject()//
-            .put("status", new JsonObject()//
-                .put("isSuccess", true)//
-                .put("message", "Record successfully created."))//
-            .put("data", new JsonObject()//
-                .put("id", "id"))//
-            .encode());
+    Single.fromCallable(() -> {
+      System.out.println("create:" + routingContext.getBodyAsJson().encodePrettily());
+      return routingContext.getBodyAsJson();
+    }).map(json -> {
+      System.out.println("create:map toVO");
+      return UserUtils.toVO(json);
+    }).flatMap(vo -> {
+      System.out.println("create:flatmap rxsave");
+      vo.id = UUID.randomUUID().toString().replace("-", "").toUpperCase();
+      vo.version = Long.valueOf(0);
+      return mongoClient.rxSave("users", UserUtils.toMongoDocument(vo))//
+          .defaultIfEmpty(vo.id)//
+          .toSingle();
+    }).subscribe(id -> {
+      System.out.println("create:send response");
+      routingContext.response()//
+          .putHeader("Accept", "application/json")//
+          .putHeader("Content-Type", "application/json")//
+          .setStatusCode(201)//
+          .end(new JsonObject()//
+              .put("status", new JsonObject()//
+                  .put("isSuccess", true)//
+                  .put("message", "Record successfully created."))//
+              .put("data", new JsonObject()//
+                  .put("id", id))//
+              .encode());
+    }, e -> {
+      routingContext.response()//
+          .putHeader("Accept", "application/json")//
+          .putHeader("Content-Type", "application/json")//
+          .setStatusCode(200)//
+          .end(new JsonObject()//
+              .put("status", new JsonObject()//
+                  .put("isSuccess", false)//
+                  .put("message", "Request failed!"))
+              .put("error", e.getMessage())//
+              .encode());
+    });
   }
 }

@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
+import io.vertx.reactivex.ext.web.handler.BodyHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -21,6 +22,7 @@ public class MainVerticle extends AbstractVerticle {
         .put("db_name", "security"));
 
     Router router = Router.router(vertx);
+    router.route().handler(BodyHandler.create());
 
     vertx.deployVerticle(new UserVerticle(router, mongoClient));
 

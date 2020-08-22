@@ -1,4 +1,4 @@
-package com.anasdidi.api.user;
+package com.anasdidi.security.api.user;
 
 import com.anasdidi.security.MainVerticle;
 

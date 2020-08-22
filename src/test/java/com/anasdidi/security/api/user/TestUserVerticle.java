@@ -21,7 +21,7 @@ public class TestUserVerticle {
   @BeforeEach
   void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
     webClient = WebClient.create(vertx);
-    vertx.deployVerticle(new MainVerticle(), testContext.succeeding(id -> testContext.completeNow()));
+    vertx.deployVerticle(new MainVerticle(true), testContext.succeeding(id -> testContext.completeNow()));
   }
 
   @Test

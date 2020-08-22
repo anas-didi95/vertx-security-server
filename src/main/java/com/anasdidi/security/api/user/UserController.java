@@ -1,20 +1,17 @@
 package com.anasdidi.security.api.user;
 
-import java.util.UUID;
-
 import com.anasdidi.security.common.CommonController;
 
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 public class UserController extends CommonController {
 
-  private final MongoClient mongoClient;
+  private final UserService userService;
 
-  UserController(MongoClient mongoClient) {
-    this.mongoClient = mongoClient;
+  UserController(UserService userService) {
+    this.userService = userService;
   }
 
   void create(RoutingContext routingContext) {
@@ -26,11 +23,7 @@ public class UserController extends CommonController {
       return UserUtils.toVO(json);
     }).flatMap(vo -> {
       System.out.println("create:flatmap rxsave");
-      vo.id = UUID.randomUUID().toString().replace("-", "").toUpperCase();
-      vo.version = Long.valueOf(0);
-      return mongoClient.rxSave("users", UserUtils.toMongoDocument(vo))//
-          .defaultIfEmpty(vo.id)//
-          .toSingle();
+      return userService.create(vo);
     }).map(id -> {
       System.out.println("create:construct response data");
       return new JsonObject().put("id", id);

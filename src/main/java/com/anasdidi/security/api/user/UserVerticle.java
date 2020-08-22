@@ -16,12 +16,14 @@ public class UserVerticle extends AbstractVerticle {
 
   private final Router mainRouter;
   private final MongoClient mongoClient;
+  private final UserService userService;
   private final UserController userController;
 
   public UserVerticle(Router mainRouter, MongoClient mongoClient) {
     this.mainRouter = mainRouter;
     this.mongoClient = mongoClient;
-    this.userController = new UserController(mongoClient);
+    this.userService = new UserService(mongoClient);
+    this.userController = new UserController(userService);
   }
 
   @Override

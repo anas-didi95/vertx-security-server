@@ -45,7 +45,12 @@ public class TestMainVerticle {
         Assertions.assertNotNull(cfg.getString("MONGO_USERNAME"));
         Assertions.assertNotNull(cfg.getString("MONGO_PASSWORD"));
         Assertions.assertNotNull(cfg.getString("MONGO_AUTH_SOURCE"));
-        Assertions.assertNotNull(cfg.getString("MONGO_DB_NAME"));
+
+        Assertions.assertNotNull(cfg.getString("TEST_MONGO_HOST"));
+        Assertions.assertNotNull(cfg.getInteger("TEST_MONGO_PORT"));
+        Assertions.assertNotNull(cfg.getString("TEST_MONGO_USERNAME"));
+        Assertions.assertNotNull(cfg.getString("TEST_MONGO_PASSWORD"));
+        Assertions.assertNotNull(cfg.getString("TEST_MONGO_AUTH_SOURCE"));
 
         testContext.completeNow();
       });
@@ -64,7 +69,7 @@ public class TestMainVerticle {
           .put("username", cfg.getString("MONGO_USERNAME"))//
           .put("password", cfg.getString("MONGO_PASSWORD"))//
           .put("authSource", cfg.getString("MONGO_AUTH_SOURCE"))//
-          .put("db_name", cfg.getString("MONGO_DB_NAME")));
+          .put("db_name", "security"));
 
       mongoClient.rxCreateCollection(collectionName).subscribe(() -> {
         mongoClient.rxDropCollection(collectionName).subscribe(() -> {

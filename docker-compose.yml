@@ -26,8 +26,8 @@ services:
     image: mongo:4.2.8
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: mongotest
-      MONGO_INITDB_ROOT_PASSWORD: mongotest
+      MONGO_INITDB_ROOT_USERNAME: ${TEST_MONGO_USERNAME:?Required}
+      MONGO_INITDB_ROOT_PASSWORD: ${TEST_MONGO_PASSWORD:?Required}
 
   mongo-express:
     image: mongo-express:0.54.0

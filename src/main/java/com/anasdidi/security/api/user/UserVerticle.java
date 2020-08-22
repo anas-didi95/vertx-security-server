@@ -34,6 +34,8 @@ public class UserVerticle extends AbstractVerticle {
             .put("status", new JsonObject()//
                 .put("isSuccess", true)//
                 .put("message", "Record successfully created."))//
+            .put("data", new JsonObject()//
+                .put("id", "id"))//
             .encode());
   }
 }

@@ -1,5 +1,6 @@
 .env
 m2-docker/
+mongo-data/
 
 ### Vert.x ###
 .vertx/

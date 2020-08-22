@@ -40,26 +40,26 @@ public class UserVerticle extends AbstractVerticle {
   }
 
   void configureMongoCollection(Promise<Void> startPromise) {
-    String collectionName = "users";
-
     mongoClient.getCollections(collectionList -> {
       if (collectionList.succeeded()) {
         List<String> resultList = collectionList.result().stream()//
-            .filter(collection -> collection.equals(collectionName))//
+            .filter(collection -> collection.equals(UserConstants.COLLECTION_NAME))//
             .collect(Collectors.toList());
 
         if (resultList.isEmpty()) {
-          mongoClient.createCollection(collectionName, (result) -> {
+          mongoClient.createCollection(UserConstants.COLLECTION_NAME, result -> {
             if (result.succeeded()) {
-              System.out.println("[UserVerticle:start] Mongo create collection 'users' succeed.");
+              System.out.println(
+                  "[UserVerticle:start] Mongo create collection '" + UserConstants.COLLECTION_NAME + "' succeed.");
             } else {
-              System.err.println("[UserVerticle:start] Mongo create collection 'users' failed.");
+              System.err.println(
+                  "[UserVerticle:start] Mongo create collection '" + UserConstants.COLLECTION_NAME + "' failed.");
               startPromise.fail(result.cause());
             }
           });
         }
 
-        configureMongoCollectionIndexes(startPromise, collectionName);
+        configureMongoCollectionIndexes(startPromise);
       } else {
         System.err.println("[UserVerticle:start] Mongo get collection list failed!");
         startPromise.fail(collectionList.cause());
@@ -67,18 +67,19 @@ public class UserVerticle extends AbstractVerticle {
     });
   }
 
-  void configureMongoCollectionIndexes(Promise<Void> startPromise, String collectionName) {
-    mongoClient.listIndexes(collectionName, indexList -> {
+  void configureMongoCollectionIndexes(Promise<Void> startPromise) {
+    mongoClient.listIndexes(UserConstants.COLLECTION_NAME, indexList -> {
       if (indexList.succeeded()) {
         @SuppressWarnings({ "unchecked" })
         Set<String> indexSet = new HashSet<>(indexList.result().getList());
 
-        if (!indexSet.contains("idx_username")) {
+        String idx1 = "idx_username";
+        if (!indexSet.contains(idx1)) {
           mongoClient.rxCreateIndexWithOptions(//
-              collectionName, //
+              UserConstants.COLLECTION_NAME, //
               new JsonObject().put("username", 1), //
-              new IndexOptions().name("idx_username").unique(true))//
-              .subscribe(() -> System.out.println("[UserVerticle:start] Mongo create index 'idx_username' succeed."));
+              new IndexOptions().name(idx1).unique(true))//
+              .subscribe(() -> System.out.println("[UserVerticle:start] Mongo create index '" + idx1 + "' succeed."));
         }
       } else {
         System.err.println("[UserVerticle:start] Mongo get index list failed!");

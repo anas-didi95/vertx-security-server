@@ -17,8 +17,8 @@ services:
     image: mongo:4.2.8
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: mongo
-      MONGO_INITDB_ROOT_PASSWORD: mongo
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:?Required}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Required}
     volumes:
       - mongodata:/data/db
 
@@ -26,8 +26,8 @@ services:
     image: mongo:4.2.8
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: mongotest
-      MONGO_INITDB_ROOT_PASSWORD: mongotest
+      MONGO_INITDB_ROOT_USERNAME: ${TEST_MONGO_USERNAME:?Required}
+      MONGO_INITDB_ROOT_PASSWORD: ${TEST_MONGO_PASSWORD:?Required}
 
   mongo-express:
     image: mongo-express:0.54.0
@@ -35,10 +35,10 @@ services:
     ports:
       - "10000:8081"
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: mongo
-      ME_CONFIG_MONGODB_ADMINPASSWORD: mongo
-      ME_CONFIG_MONGODB_SERVER: mongo
-      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME:?Required}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD:?Required}
+      ME_CONFIG_MONGODB_SERVER: ${MONGO_HOST:?Required}
+      ME_CONFIG_MONGODB_PORT: ${MONGO_PORT:?Required}
     depends_on:
       - mongo
 

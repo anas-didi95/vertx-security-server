@@ -17,7 +17,7 @@ public class UserService {
     vo.id = CommonUtils.generateId();
     vo.version = Long.valueOf(0);
 
-    return mongoClient.rxSave("users", UserUtils.toMongoDocument(vo))//
+    return mongoClient.rxSave(UserConstants.COLLECTION_NAME, UserUtils.toMongoDocument(vo))//
         .defaultIfEmpty(vo.id)//
         .toSingle();
   }

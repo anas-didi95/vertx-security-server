@@ -2,6 +2,7 @@ package com.anasdidi.security;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -17,40 +18,26 @@ import io.vertx.reactivex.ext.mongo.MongoClient;
 @ExtendWith(VertxExtension.class)
 public class TestMainVerticle {
 
+  private ConfigRetriever configRetriever;
+
   @BeforeEach
   void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
+    this.configRetriever = ConfigRetriever.create(vertx, new ConfigRetrieverOptions()//
+        .addStore(new ConfigStoreOptions()//
+            .setType("env")));
+
     vertx.deployVerticle(new MainVerticle(), testContext.succeeding(id -> testContext.completeNow()));
   }
 
   @Test
+  @Order(1)
   void verticle_deployed(Vertx vertx, VertxTestContext testContext) throws Throwable {
     testContext.completeNow();
   }
 
   @Test
-  void testMongoConfigureSuccess(Vertx vertx, VertxTestContext testContext) {
-    String collectionName = "TestCollection";
-    MongoClient mongoClient = MongoClient.createShared(vertx, new JsonObject()//
-        .put("host", "mongo")//
-        .put("port", 27017)//
-        .put("username", "mongo")//
-        .put("password", "mongo")//
-        .put("authSource", "admin")//
-        .put("db_name", "security"));
-
-    mongoClient.rxCreateCollection(collectionName).subscribe(() -> {
-      mongoClient.rxDropCollection(collectionName).subscribe(() -> {
-        testContext.completeNow();
-      }, e -> testContext.failNow(e));
-    }, e -> testContext.failNow(e));
-  }
-
-  @Test
+  @Order(2)
   void testConfigEnvironmentVariable(Vertx vertx, VertxTestContext testContext) {
-    ConfigRetriever configRetriever = ConfigRetriever.create(vertx, new ConfigRetrieverOptions()//
-        .addStore(new ConfigStoreOptions()//
-            .setType("env")));
-
     configRetriever.rxGetConfig().subscribe(cfg -> {
       testContext.verify(() -> {
         Assertions.assertNotNull(cfg.getString("MONGO_HOST"));
@@ -64,4 +51,27 @@ public class TestMainVerticle {
       });
     }, e -> testContext.failNow(e));
   }
+
+  @Test
+  @Order(3)
+  void testMongoConfigureSuccess(Vertx vertx, VertxTestContext testContext) {
+    String collectionName = "TestCollection";
+
+    configRetriever.rxGetConfig().subscribe(cfg -> {
+      MongoClient mongoClient = MongoClient.createShared(vertx, new JsonObject()//
+          .put("host", cfg.getString("MONGO_HOST"))//
+          .put("port", cfg.getInteger("MONGO_PORT"))//
+          .put("username", cfg.getString("MONGO_USERNAME"))//
+          .put("password", cfg.getString("MONGO_PASSWORD"))//
+          .put("authSource", cfg.getString("MONGO_AUTH_SOURCE"))//
+          .put("db_name", cfg.getString("MONGO_DB_NAME")));
+
+      mongoClient.rxCreateCollection(collectionName).subscribe(() -> {
+        mongoClient.rxDropCollection(collectionName).subscribe(() -> {
+          testContext.completeNow();
+        }, e -> testContext.failNow(e));
+      }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
+
 }

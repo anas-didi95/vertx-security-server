@@ -31,6 +31,9 @@ public class UserVerticle extends AbstractVerticle {
         .putHeader("Content-Type", "application/json")//
         .setStatusCode(201)//
         .end(new JsonObject()//
-            .put("data", "Hello world").encode());
+            .put("status", new JsonObject()//
+                .put("isSuccess", true)//
+                .put("message", "Record successfully created."))//
+            .encode());
   }
 }

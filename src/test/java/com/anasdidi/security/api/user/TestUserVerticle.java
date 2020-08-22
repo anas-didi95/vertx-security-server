@@ -35,6 +35,11 @@ public class TestUserVerticle {
         JsonObject responseBody = response.bodyAsJsonObject();
         Assertions.assertNotNull(responseBody);
 
+        JsonObject status = responseBody.getJsonObject("status");
+        Assertions.assertNotNull(status);
+        Assertions.assertEquals(true, status.getBoolean("isSuccess"));
+        Assertions.assertEquals("Record successfully created.", status.getString("message"));
+
         testContext.completeNow();
       });
     }, e -> testContext.failNow(e));

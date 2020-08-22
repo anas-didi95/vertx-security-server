@@ -10,8 +10,8 @@ public abstract class CommonController {
       String message) {
     subscriber.subscribe(data -> {
       routingContext.response()//
-          .putHeader("Accept", "application/json")//
-          .putHeader("Content-Type", "application/json")//
+          .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//
+          .putHeader(CommonConstants.Header.CONTENT_TYPE.value, CommonConstants.MediaType.APP_JSON.value)//
           .setStatusCode(statusCode)//
           .end(new JsonObject()//
               .put("status", new JsonObject()//
@@ -21,8 +21,8 @@ public abstract class CommonController {
               .encode());
     }, e -> {
       routingContext.response()//
-          .putHeader("Accept", "application/json")//
-          .putHeader("Content-Type", "application/json")//
+          .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//
+          .putHeader(CommonConstants.Header.CONTENT_TYPE.value, CommonConstants.MediaType.APP_JSON.value)//
           .setStatusCode(200)//
           .end(new JsonObject()//
               .put("status", new JsonObject()//

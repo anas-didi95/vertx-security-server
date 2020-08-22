@@ -76,8 +76,7 @@ public class UserVerticle extends AbstractVerticle {
               collectionName, //
               new JsonObject().put("username", 1), //
               new IndexOptions().name("idx_username").unique(true))//
-              .subscribe();
-          System.out.println("[UserVerticle:start] Mongo create index 'idx_username' succeed.");
+              .subscribe(() -> System.out.println("[UserVerticle:start] Mongo create index 'idx_username' succeed."));
         }
       } else {
         System.err.println("[UserVerticle:start] Mongo get index list failed!");

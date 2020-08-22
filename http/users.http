@@ -3,6 +3,13 @@
 @hostname = {{host}}:{{port}}
 
 ### Sample
-http://{{hostname}}/api/users
+POST http://{{hostname}}/api/users
 Accept: application/json
 Content-Type: application/json
+
+{
+  "username": "superadmin",
+  "password": "password",
+  "fullName": "superadmin",
+  "email": "anas.didi95@gmail.com"
+}

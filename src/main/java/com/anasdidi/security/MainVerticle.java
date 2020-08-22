@@ -3,16 +3,28 @@ package com.anasdidi.security;
 import com.anasdidi.security.api.user.UserVerticle;
 
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.AbstractVerticle;
+import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
+import io.vertx.reactivex.ext.web.handler.BodyHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
-    Router router = Router.router(vertx);
+    MongoClient mongoClient = MongoClient.createShared(vertx, new JsonObject()//
+        .put("host", "mongo")//
+        .put("port", 27017)//
+        .put("username", "mongo")//
+        .put("password", "mongo")//
+        .put("authSource", "admin")//
+        .put("db_name", "security"));
 
-    vertx.deployVerticle(new UserVerticle(router));
+    Router router = Router.router(vertx);
+    router.route().handler(BodyHandler.create());
+
+    vertx.deployVerticle(new UserVerticle(router, mongoClient));
 
     vertx.createHttpServer().requestHandler(router).listen(5000, "localhost", http -> {
       if (http.succeeded()) {

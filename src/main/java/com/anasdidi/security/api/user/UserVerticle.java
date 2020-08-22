@@ -1,12 +1,15 @@
 package com.anasdidi.security.api.user;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import io.reactivex.Single;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
@@ -38,6 +41,25 @@ public class UserVerticle extends AbstractVerticle {
             } else {
               System.err.println("[UserVerticle:start] Mongo create collection 'users' failed.");
               startPromise.fail(result.cause());
+            }
+          });
+
+          mongoClient.listIndexes(collectionName, indexList -> {
+            if (indexList.succeeded()) {
+              @SuppressWarnings({ "unchecked" })
+              Set<String> indexSet = new HashSet<>(indexList.result().getList());
+
+              if (!indexSet.contains("idx_username")) {
+                mongoClient.rxCreateIndexWithOptions(//
+                    collectionName, //
+                    new JsonObject().put("username", 1), //
+                    new IndexOptions().name("idx_username").unique(true))//
+                    .subscribe();
+                System.out.println("[UserVerticle:start] Mongo create index 'idx_username' succeed.");
+              }
+            } else {
+              System.err.println("[UserVerticle:start] Mongo get index list failed!");
+              startPromise.fail(collectionList.cause());
             }
           });
         }

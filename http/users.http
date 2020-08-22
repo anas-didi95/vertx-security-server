@@ -1,7 +1,8 @@
 @host = localhost
 @port = 5000
+@hostname = {{host}}:{{port}}
 
 ### Sample
-http://{{host}}:{{port}}/api/users
+http://{{hostname}}/api/users
 Accept: application/json
 Content-Type: application/json

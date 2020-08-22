@@ -1,6 +1,6 @@
 package com.anasdidi.security.api.user;
 
-import java.util.UUID;
+import com.anasdidi.security.common.CommonUtils;
 
 import io.reactivex.Single;
 import io.vertx.reactivex.ext.mongo.MongoClient;
@@ -14,7 +14,7 @@ public class UserService {
   }
 
   Single<String> create(UserVO vo) {
-    vo.id = UUID.randomUUID().toString().replace("-", "").toUpperCase();
+    vo.id = CommonUtils.generateId();
     vo.version = Long.valueOf(0);
 
     return mongoClient.rxSave("users", UserUtils.toMongoDocument(vo))//

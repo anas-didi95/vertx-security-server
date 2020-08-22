@@ -25,22 +25,18 @@ public class TestUserVerticle {
   }
 
   @Test
-  void testCanRouteToUser(Vertx vertx, VertxTestContext testContext) {
-    webClient.get(5000, "localhost", "/api/users").rxSend().subscribe(response -> {
+  void testCanCreateUser(Vertx vertx, VertxTestContext testContext) {
+    webClient.post(5000, "localhost", "/api/users").rxSend().subscribe(response -> {
       testContext.verify(() -> {
-        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals(201, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
         JsonObject responseBody = response.bodyAsJsonObject();
         Assertions.assertNotNull(responseBody);
 
-        String body = responseBody.getString("data");
-        Assertions.assertEquals("Hello world", body);
-
         testContext.completeNow();
       });
     }, e -> testContext.failNow(e));
   }
-
 }

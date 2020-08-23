@@ -1,6 +1,7 @@
 package com.anasdidi.security;
 
 import com.anasdidi.security.api.user.UserVerticle;
+import com.anasdidi.security.common.CommonUtils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +15,7 @@ import io.vertx.reactivex.config.ConfigRetriever;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
+import io.vertx.reactivex.ext.web.RoutingContext;
 import io.vertx.reactivex.ext.web.handler.BodyHandler;
 
 public class MainVerticle extends AbstractVerticle {
@@ -47,6 +49,7 @@ public class MainVerticle extends AbstractVerticle {
 
       Router router = Router.router(vertx);
       router.route().handler(BodyHandler.create());
+      router.route().handler(this::generateRequestId);
 
       vertx.deployVerticle(new UserVerticle(router, mongoClient));
 
@@ -60,5 +63,10 @@ public class MainVerticle extends AbstractVerticle {
         }
       });
     }, e -> startPromise.fail(e));
+  }
+
+  void generateRequestId(RoutingContext routingContext) {
+    routingContext.put("requestId", CommonUtils.generateId());
+    routingContext.next();
   }
 }

@@ -8,7 +8,7 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "username": "superadmin",
+  "username": "superadmin2",
   "password": "password",
   "fullName": "superadmin",
   "email": "anas.didi95@gmail.com"

@@ -2,10 +2,14 @@ package com.anasdidi.security;
 
 import com.anasdidi.security.api.user.UserVerticle;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Log4j2LogDelegateFactory;
 import io.vertx.reactivex.config.ConfigRetriever;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.ext.mongo.MongoClient;
@@ -15,12 +19,15 @@ import io.vertx.reactivex.ext.web.handler.BodyHandler;
 public class MainVerticle extends AbstractVerticle {
 
   private final boolean isTest;
+  private Logger logger = LogManager.getLogger(MainVerticle.class);
 
   public MainVerticle(boolean isTest) {
+    System.setProperty("vertx.logger-delegate-factory-class-name", Log4j2LogDelegateFactory.class.getName());
     this.isTest = isTest;
   }
 
   public MainVerticle() {
+    System.setProperty("vertx.logger-delegate-factory-class-name", Log4j2LogDelegateFactory.class.getName());
     this.isTest = false;
   }
 
@@ -45,6 +52,7 @@ public class MainVerticle extends AbstractVerticle {
 
       vertx.createHttpServer().requestHandler(router).listen(5000, "localhost", http -> {
         if (http.succeeded()) {
+          logger.info("Log to console");
           System.out.println("HTTP server started on port 5000");
           startPromise.complete();
         } else {

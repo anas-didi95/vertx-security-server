@@ -1,5 +1,7 @@
 package com.anasdidi.security.api.user;
 
+import io.vertx.core.json.JsonObject;
+
 public class UserVO {
 
   String id;
@@ -10,5 +12,17 @@ public class UserVO {
   Long version;
 
   UserVO() {
+  }
+
+  @Override
+  public String toString() {
+    return new JsonObject()//
+        .put("id", id)//
+        .put("username", username)//
+        .put("password", (password != null ? "***" : ""))//
+        .put("fullName", fullName)//
+        .put("email", email)//
+        .put("version", version)//
+        .encodePrettily();
   }
 }

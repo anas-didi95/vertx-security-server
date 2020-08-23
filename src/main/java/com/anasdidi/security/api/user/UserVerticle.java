@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.IndexOptions;
@@ -14,6 +17,7 @@ import io.vertx.reactivex.ext.web.Router;
 
 public class UserVerticle extends AbstractVerticle {
 
+  private final Logger logger = LogManager.getLogger(UserVerticle.class);
   private final Router mainRouter;
   private final MongoClient mongoClient;
   private final UserService userService;
@@ -35,7 +39,7 @@ public class UserVerticle extends AbstractVerticle {
 
     mainRouter.mountSubRouter("/api/users", router);
 
-    System.out.println("[UserVerticle:start] Deployed success");
+    logger.info("[start] Deployed success");
     startPromise.complete();
   }
 
@@ -49,11 +53,11 @@ public class UserVerticle extends AbstractVerticle {
         if (resultList.isEmpty()) {
           mongoClient.createCollection(UserConstants.COLLECTION_NAME, result -> {
             if (result.succeeded()) {
-              System.out.println(
-                  "[UserVerticle:start] Mongo create collection '" + UserConstants.COLLECTION_NAME + "' succeed.");
+              logger.info("[configureMongoCollection] Mongo create collection '{}' succeed.",
+                  UserConstants.COLLECTION_NAME);
             } else {
-              System.err.println(
-                  "[UserVerticle:start] Mongo create collection '" + UserConstants.COLLECTION_NAME + "' failed.");
+              logger.error("[configureMongoCollection] Mongo create collection '{}' failed!",
+                  UserConstants.COLLECTION_NAME);
               startPromise.fail(result.cause());
             }
           });
@@ -61,7 +65,7 @@ public class UserVerticle extends AbstractVerticle {
 
         configureMongoCollectionIndexes(startPromise);
       } else {
-        System.err.println("[UserVerticle:start] Mongo get collection list failed!");
+        logger.error("[configureMongoCollection] Mongo get collection list failed!");
         startPromise.fail(collectionList.cause());
       }
     });
@@ -79,10 +83,10 @@ public class UserVerticle extends AbstractVerticle {
               UserConstants.COLLECTION_NAME, //
               new JsonObject().put("username", 1), //
               new IndexOptions().name(idx1).unique(true))//
-              .subscribe(() -> System.out.println("[UserVerticle:start] Mongo create index '" + idx1 + "' succeed."));
+              .subscribe(() -> logger.info("[configureMongoCollectionIndexes] Mongo create index '{}' succeed.", idx1));
         }
       } else {
-        System.err.println("[UserVerticle:start] Mongo get index list failed!");
+        logger.error("[configureMongoCollectionIndexes] Mongo get index list failed!");
         startPromise.fail(indexList.cause());
       }
     });

@@ -65,7 +65,7 @@ public class TestUserVerticle {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
-        Assertions.assertEquals("application/json", response.getHeader("Content"));
+        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
         JsonObject responseBody = response.bodyAsJsonObject();
         Assertions.assertNotNull(responseBody);

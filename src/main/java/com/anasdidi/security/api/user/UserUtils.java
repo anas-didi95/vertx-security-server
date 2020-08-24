@@ -2,7 +2,7 @@ package com.anasdidi.security.api.user;
 
 import io.vertx.core.json.JsonObject;
 
-public class UserUtils {
+class UserUtils {
 
   static UserVO toVO(JsonObject json) {
     UserVO vo = new UserVO();

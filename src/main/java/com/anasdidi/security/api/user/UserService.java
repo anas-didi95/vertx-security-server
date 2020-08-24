@@ -8,7 +8,7 @@ import org.apache.logging.log4j.Logger;
 import io.reactivex.Single;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 
-public class UserService {
+class UserService {
 
   private final Logger logger = LogManager.getLogger(UserService.class);
   private final MongoClient mongoClient;

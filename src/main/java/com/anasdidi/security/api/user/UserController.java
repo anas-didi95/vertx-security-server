@@ -9,12 +9,14 @@ import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
-public class UserController extends CommonController {
+class UserController extends CommonController {
 
   private final Logger logger = LogManager.getLogger(UserController.class);
+  private final UserValidator userValidator;
   private final UserService userService;
 
-  UserController(UserService userService) {
+  UserController(UserValidator userValidator, UserService userService) {
+    this.userValidator = userValidator;
     this.userService = userService;
   }
 
@@ -28,6 +30,10 @@ public class UserController extends CommonController {
     }).map(json -> {
       logger.info("[{}:{}] Convert request body to vo", tag, requestId);
       return UserUtils.toVO(json);
+    }).map(vo -> {
+      logger.info("[{}:{}] Validate vo", tag, requestId);
+      userValidator.validate(UserValidator.Validate.CREATE, vo);
+      return vo;
     }).flatMap(vo -> {
       logger.info("[{}:{}] Save vo to database", tag, requestId);
       return userService.create(requestId, vo);

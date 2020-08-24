@@ -2,7 +2,7 @@ package com.anasdidi.security.api.user;
 
 import io.vertx.core.json.JsonObject;
 
-public class UserVO {
+class UserVO {
 
   String id;
   String username;

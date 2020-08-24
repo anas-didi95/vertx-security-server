@@ -3,13 +3,25 @@ package com.anasdidi.security.api.user;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 class UserValidator {
 
+  private final Logger logger = LogManager.getLogger(UserValidator.class);
+
   enum Validate {
-    CREATE
+    CREATE("CREATE");
+
+    String value;
+
+    Validate(String value) {
+      this.value = value;
+    }
   }
 
-  void validate(Validate val, UserVO vo) throws Exception {
+  void validate(String requestId, Validate val, UserVO vo) throws Exception {
+    String tag = "validate";
     List<String> errorList = new ArrayList<>();
 
     switch (val) {
@@ -19,6 +31,7 @@ class UserValidator {
     }
 
     if (!errorList.isEmpty()) {
+      logger.error("[{}:{}] Validation error! validate={}\n{}", tag, requestId, val.value, vo.toString());
       throw new Exception("Validation error!");
     }
   }

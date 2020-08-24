@@ -32,7 +32,7 @@ class UserController extends CommonController {
       return UserUtils.toVO(json);
     }).map(vo -> {
       logger.info("[{}:{}] Validate vo", tag, requestId);
-      userValidator.validate(UserValidator.Validate.CREATE, vo);
+      userValidator.validate(requestId, UserValidator.Validate.CREATE, vo);
       return vo;
     }).flatMap(vo -> {
       logger.info("[{}:{}] Save vo to database", tag, requestId);

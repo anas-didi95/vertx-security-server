@@ -3,8 +3,12 @@ package com.anasdidi.security.api.user;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.anasdidi.security.common.ApplicationException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import io.vertx.core.json.JsonArray;
 
 class UserValidator {
 
@@ -32,7 +36,7 @@ class UserValidator {
 
     if (!errorList.isEmpty()) {
       logger.error("[{}:{}] Validation error! validate={}\n{}", tag, requestId, val.value, vo.toString());
-      throw new Exception("Validation error!");
+      throw new ApplicationException("Validation error!", requestId, new JsonArray(errorList));
     }
   }
 

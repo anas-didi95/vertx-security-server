@@ -25,6 +25,9 @@ public class ApplicationException extends Exception {
         .put("status", new JsonObject()//
             .put("isSuccess", false)//
             .put("message", message))//
+        .put("data", new JsonObject()//
+            .put("requestId", requestId)//
+            .put("errorList", errorList))
         .encode();
   }
 }

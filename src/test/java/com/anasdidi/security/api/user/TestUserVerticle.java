@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -73,6 +74,16 @@ public class TestUserVerticle {
         Assertions.assertNotNull(status);
         Assertions.assertEquals(false, status.getBoolean("isSuccess"));
         Assertions.assertEquals("Validation error!", status.getString("message"));
+
+        JsonObject data = responseBody.getJsonObject("data");
+        Assertions.assertNotNull(data);
+
+        String requestId = data.getString("requestId");
+        Assertions.assertNotNull(requestId);
+
+        JsonArray errorList = data.getJsonArray("errorList");
+        Assertions.assertNotNull(errorList);
+        Assertions.assertTrue(!errorList.isEmpty());
 
         testContext.completeNow();
       });

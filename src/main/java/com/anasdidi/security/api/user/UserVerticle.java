@@ -20,14 +20,16 @@ public class UserVerticle extends AbstractVerticle {
   private final Logger logger = LogManager.getLogger(UserVerticle.class);
   private final Router mainRouter;
   private final MongoClient mongoClient;
+  private final UserValidator userValidator;
   private final UserService userService;
   private final UserController userController;
 
   public UserVerticle(Router mainRouter, MongoClient mongoClient) {
     this.mainRouter = mainRouter;
     this.mongoClient = mongoClient;
+    this.userValidator = new UserValidator();
     this.userService = new UserService(mongoClient);
-    this.userController = new UserController(userService);
+    this.userController = new UserController(userValidator, userService);
   }
 
   @Override

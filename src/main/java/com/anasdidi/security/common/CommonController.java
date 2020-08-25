@@ -24,12 +24,12 @@ public abstract class CommonController {
           .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//
           .putHeader(CommonConstants.Header.CONTENT_TYPE.value, CommonConstants.MediaType.APP_JSON.value)//
           .setStatusCode(200)//
-          .end(new JsonObject()//
-              .put("status", new JsonObject()//
-                  .put("isSuccess", false)//
-                  .put("message", "Request failed!"))
-              .put("error", e.getMessage())//
-              .encode());
+          .end(e.getMessage());
+      /*
+       * .end(new JsonObject()// .put("status", new JsonObject()// .put("isSuccess",
+       * false)// .put("message", e.getMessage())) .put("error", e.getMessage())//
+       * .encode());
+       */
     });
   }
 }

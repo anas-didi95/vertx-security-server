@@ -20,6 +20,7 @@ public abstract class CommonController {
               .put("data", data)//
               .encode());
     }, e -> {
+      System.err.println("HERE:" + e.getMessage());
       routingContext.response()//
           .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//
           .putHeader(CommonConstants.Header.CONTENT_TYPE.value, CommonConstants.MediaType.APP_JSON.value)//

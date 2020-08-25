@@ -20,6 +20,13 @@ public class ApplicationException extends Exception {
     this.errorList = errorList;
   }
 
+  public ApplicationException(String message, String requestId, String error) {
+    super();
+    this.message = message;
+    this.requestId = requestId;
+    this.errorList = new JsonArray();
+  }
+
   public String getMessage() {
     return new JsonObject()//
         .put("status", new JsonObject()//

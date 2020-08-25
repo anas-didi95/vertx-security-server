@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.user;
 
+import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonUtils;
 
 import org.apache.logging.log4j.LogManager;
@@ -23,7 +24,10 @@ class UserService {
     vo.version = Long.valueOf(0);
 
     return mongoClient.rxSave(UserConstants.COLLECTION_NAME, UserUtils.toMongoDocument(vo))//
-        .doOnError(e -> logger.error("[{}:{}] {}\n{}", tag, requestId, e.getMessage(), vo.toString()))//
+        .doOnError(e -> logger.error("[{}:{}] {}\n{}", tag, requestId, e.getMessage(), vo.toString())).onErrorComplete()
+        .doOnComplete(() -> {
+          throw new ApplicationException("User creation failed!", requestId, "");
+        })//
         .defaultIfEmpty(vo.id)//
         .toSingle();
   }

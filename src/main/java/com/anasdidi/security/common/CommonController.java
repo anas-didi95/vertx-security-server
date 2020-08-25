@@ -20,17 +20,19 @@ public abstract class CommonController {
               .put("data", data)//
               .encode());
     }, e -> {
-      System.err.println("HERE:" + e.getMessage());
+      String responseBody = e.getMessage();
+      if (e.getSuppressed().length > 0) {
+        for (Throwable t : e.getSuppressed()) {
+          if (t instanceof ApplicationException) {
+            responseBody = t.getMessage();
+          }
+        }
+      }
       routingContext.response()//
           .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//
           .putHeader(CommonConstants.Header.CONTENT_TYPE.value, CommonConstants.MediaType.APP_JSON.value)//
           .setStatusCode(200)//
-          .end(e.getMessage());
-      /*
-       * .end(new JsonObject()// .put("status", new JsonObject()// .put("isSuccess",
-       * false)// .put("message", e.getMessage())) .put("error", e.getMessage())//
-       * .encode());
-       */
+          .end(responseBody);
     });
   }
 }

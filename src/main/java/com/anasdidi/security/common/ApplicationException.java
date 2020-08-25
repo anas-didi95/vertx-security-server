@@ -20,11 +20,11 @@ public class ApplicationException extends Exception {
     this.errorList = errorList;
   }
 
-  public ApplicationException(String message, String requestId, String error) {
-    super();
+  public ApplicationException(String message, String requestId, Throwable e) {
+    super(e);
     this.message = message;
     this.requestId = requestId;
-    this.errorList = new JsonArray();
+    this.errorList = new JsonArray().add(e.getMessage());
   }
 
   public String getMessage() {

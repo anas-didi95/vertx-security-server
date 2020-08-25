@@ -24,9 +24,9 @@ class UserService {
     vo.version = Long.valueOf(0);
 
     return mongoClient.rxSave(UserConstants.COLLECTION_NAME, UserUtils.toMongoDocument(vo))//
-        .doOnError(e -> logger.error("[{}:{}] {}\n{}", tag, requestId, e.getMessage(), vo.toString())).onErrorComplete()
-        .doOnComplete(() -> {
-          throw new ApplicationException("User creation failed!", requestId, "");
+        .doOnError(e -> {
+          logger.error("[{}:{}] {}\n{}", tag, requestId, e.getMessage(), vo.toString());
+          e.addSuppressed(new ApplicationException("User creation failed!", requestId, e));
         })//
         .defaultIfEmpty(vo.id)//
         .toSingle();

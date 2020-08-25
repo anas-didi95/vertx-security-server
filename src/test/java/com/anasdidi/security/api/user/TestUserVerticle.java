@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.user;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import com.anasdidi.security.MainVerticle;
@@ -105,11 +106,13 @@ public class TestUserVerticle {
         JsonObject responseBody = response.bodyAsJsonObject();
         Assertions.assertNotNull(responseBody);
 
+        // status
         JsonObject status = responseBody.getJsonObject("status");
         Assertions.assertNotNull(status);
         Assertions.assertEquals(false, status.getBoolean("isSuccess"));
         Assertions.assertEquals("Validation error!", status.getString("message"));
 
+        // data
         JsonObject data = responseBody.getJsonObject("data");
         Assertions.assertNotNull(data);
 
@@ -119,6 +122,9 @@ public class TestUserVerticle {
         JsonArray errorList = data.getJsonArray("errorList");
         Assertions.assertNotNull(errorList);
         Assertions.assertTrue(!errorList.isEmpty());
+
+        Instant instant = data.getInstant("instant");
+        Assertions.assertNotNull(instant);
 
         testContext.completeNow();
       });
@@ -151,6 +157,9 @@ public class TestUserVerticle {
 
         JsonArray errorList = data.getJsonArray("errorList");
         Assertions.assertTrue(!errorList.isEmpty());
+
+        Instant instant = data.getInstant("instant");
+        Assertions.assertNotNull(instant);
 
         testContext.completeNow();
       });

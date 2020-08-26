@@ -1,6 +1,7 @@
 package com.anasdidi.security.api.user;
 
 import com.anasdidi.security.common.ApplicationException;
+import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonController;
 
 import org.apache.logging.log4j.LogManager;
@@ -32,7 +33,8 @@ class UserController extends CommonController {
 
       JsonObject requestBody = routingContext.getBodyAsJson();
       if (requestBody == null || requestBody.isEmpty()) {
-        throw new ApplicationException("Request failed!", requestId, "Request body is empty!");
+        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
+            CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
       }
 
       if (logger.isDebugEnabled()) {
@@ -63,7 +65,8 @@ class UserController extends CommonController {
       return new JsonObject().put("id", id);
     });
 
-    sendResponse(requestId, subscriber, routingContext, 201, "Record successfully created.");
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_CREATED,
+        CommonConstants.MSG_OK_RECORD_CREATED);
   }
 
   void update(RoutingContext routingContext) {
@@ -79,7 +82,8 @@ class UserController extends CommonController {
 
       JsonObject requestBody = routingContext.getBodyAsJson();
       if (requestBody == null || requestBody.isEmpty()) {
-        throw new ApplicationException("Request failed!", requestId, "Request body is empty!");
+        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
+            CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
       } else {
         requestBody.put("id", paramId);
       }
@@ -112,6 +116,7 @@ class UserController extends CommonController {
       return new JsonObject().put("id", id);
     });
 
-    sendResponse(requestId, subscriber, routingContext, 200, "Record successfully updated.");
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
+        CommonConstants.MSG_OK_RECORD_UPDATE);
   }
 }

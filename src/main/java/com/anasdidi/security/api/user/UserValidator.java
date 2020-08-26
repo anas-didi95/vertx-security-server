@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.anasdidi.security.common.ApplicationException;
+import com.anasdidi.security.common.CommonConstants;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,8 +33,9 @@ class UserValidator {
     }
 
     if (!errorList.isEmpty()) {
-      logger.error("[{}:{}] Validation error! validate={}\n{}", tag, requestId, val, vo.toString());
-      throw new ApplicationException("Validation error!", requestId, new JsonArray(errorList));
+      logger.error("[{}:{}] {} validate={}\n{}", tag, requestId, CommonConstants.MSG_ERR_VALIDATE_ERROR, val,
+          vo.toString());
+      throw new ApplicationException(CommonConstants.MSG_ERR_VALIDATE_ERROR, requestId, new JsonArray(errorList));
     }
   }
 
@@ -44,19 +46,19 @@ class UserValidator {
     String email = vo.email;
 
     if (username == null || username.isBlank()) {
-      errorList.add("Username field is mandatory!");
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Username"));
     }
 
     if (password == null || password.isBlank()) {
-      errorList.add("Password field is mandatory!");
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Password"));
     }
 
     if (fullName == null || fullName.isBlank()) {
-      errorList.add("Full Name field is mandatory!");
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Full Name"));
     }
 
     if (email == null || email.isBlank()) {
-      errorList.add("Email field is mandatory!");
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Email"));
     }
 
     return errorList;
@@ -69,19 +71,19 @@ class UserValidator {
     Long version = vo.version;
 
     if (id == null || id.isBlank()) {
-      errorList.add("Id field is mandatory!");
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Id"));
     }
 
     if (fullName == null || fullName.isBlank()) {
-      errorList.add("Full Name field is mandatory!");
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Full Name"));
     }
 
     if (email == null || email.isBlank()) {
-      errorList.add("Email field is mandatory!");
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Email"));
     }
 
     if (version == null) {
-      errorList.add("Version field is mandatory!");
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Version"));
     }
 
     return errorList;

@@ -170,6 +170,35 @@ public class TestUserVerticle {
   }
 
   @Test
+  void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
+    webClient.post(5000, "localhost", "/api/users").rxSend().subscribe(response -> {
+      testContext.verify(() -> {
+        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals("application/json", response.getHeader("Accept"));
+        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+
+        JsonObject responseBody = response.bodyAsJsonObject();
+        Assertions.assertNotNull(responseBody);
+
+        // status
+        JsonObject status = responseBody.getJsonObject("status");
+        Assertions.assertNotNull(status);
+        Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+        Assertions.assertEquals("Request failed!", status.getString("message"));
+
+        JsonObject data = responseBody.getJsonObject("data");
+        Assertions.assertNotNull(data);
+        Assertions.assertNotNull(data.getString("requestid"));
+        Assertions.assertNotNull(data.getInstant("instant"));
+        Assertions.assertNotNull(data.getJsonArray("errorList"));
+        Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+
+        testContext.completeNow();
+      });
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
   void testUserUpdateSuccess(Vertx vertx, VertxTestContext testContext) {
     webClient.put(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
         .subscribe(response -> {

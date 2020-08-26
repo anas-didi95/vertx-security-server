@@ -54,12 +54,15 @@ public class TestUserVerticle {
 
       String uuid = UUID.randomUUID().toString().replace("-", "");
       createdBody = new JsonObject()//
+          .put("_id", uuid)//
           .put("username", uuid)//
           .put("password", uuid)//
           .put("fullName", uuid)//
-          .put("email", uuid);
+          .put("email", uuid)//
+          .put("version", 0);
 
-      mongoClient.rxSave("users", createdBody).subscribe(docId -> {
+      mongoClient.rxSave("users", createdBody).defaultIfEmpty(uuid).subscribe(docId -> {
+        createdBody.put("id", docId);
         vertx.deployVerticle(new MainVerticle(true), testContext.succeeding(id -> testContext.completeNow()));
       }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
@@ -160,6 +163,33 @@ public class TestUserVerticle {
 
         Instant instant = data.getInstant("instant");
         Assertions.assertNotNull(instant);
+
+        testContext.completeNow();
+      });
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testUpdateUserSuccess(Vertx vertx, VertxTestContext testContext) {
+    webClient.put(5000, "localhost", "/api/users").rxSendJsonObject(createdBody).subscribe(response -> {
+      testContext.verify(() -> {
+        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals("application/json", response.getHeader("Accept"));
+        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+
+        JsonObject responseBody = response.bodyAsJsonObject();
+        Assertions.assertNotNull(responseBody);
+
+        // status
+        JsonObject status = responseBody.getJsonObject("status");
+        Assertions.assertNotNull(status);
+        Assertions.assertEquals(true, status.getBoolean("isSuccess"));
+        Assertions.assertEquals("Record successfully updated.", status.getString("message"));
+
+        // data
+        JsonObject data = responseBody.getJsonObject("data");
+        Assertions.assertNotNull(data);
+        Assertions.assertEquals(createdBody.getString("id"), data.getString("id"));
 
         testContext.completeNow();
       });

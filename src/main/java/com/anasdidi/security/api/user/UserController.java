@@ -25,23 +25,66 @@ class UserController extends CommonController {
     String requestId = routingContext.get("requestId");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      logger.info("[{}:{}] Get request body", tag, requestId);
-      return routingContext.getBodyAsJson();
+      JsonObject requestBody = routingContext.getBodyAsJson();
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Get request body", tag, requestId);
+        logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
+      }
+      return requestBody;
     }).map(json -> {
-      logger.info("[{}:{}] Convert request body to vo", tag, requestId);
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Convert to vo", tag, requestId);
+      }
       return UserUtils.toVO(json);
     }).map(vo -> {
-      logger.info("[{}:{}] Validate vo", tag, requestId);
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Validate vo", tag, requestId);
+      }
       userValidator.validate(requestId, UserValidator.Validate.CREATE, vo);
       return vo;
     }).flatMap(vo -> {
-      logger.info("[{}:{}] Save vo to database", tag, requestId);
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Save vo to database", tag, requestId);
+      }
       return userService.create(requestId, vo);
     }).map(id -> {
-      logger.info("[{}:{}] Construct response data", tag, requestId);
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Construct response data", tag, requestId);
+      }
       return new JsonObject().put("id", id);
     });
 
-    sendResponse(subscriber, routingContext, 201, "Record successfully created.");
+    sendResponse(requestId, subscriber, routingContext, 201, "Record successfully created.");
+  }
+
+  void update(RoutingContext routingContext) {
+    String tag = "update";
+    String requestId = routingContext.get("requestId");
+
+    Single<JsonObject> subscriber = Single.fromCallable(() -> {
+      JsonObject requestBody = routingContext.getBodyAsJson();
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Get request body", tag, requestId);
+        logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
+      }
+      return routingContext.getBodyAsJson();
+    }).map(json -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Convert to vo", tag, requestId);
+      }
+      return UserUtils.toVO(json);
+    }).flatMap(vo -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Update vo to database", tag, requestId);
+      }
+      return userService.update(requestId, vo);
+    }).map(id -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Construct response body", tag, requestId);
+      }
+      return new JsonObject().put("id", id);
+    });
+
+    sendResponse(requestId, subscriber, routingContext, 200, "Record successfully updated.");
   }
 }

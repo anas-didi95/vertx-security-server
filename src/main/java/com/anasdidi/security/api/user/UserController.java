@@ -26,14 +26,16 @@ class UserController extends CommonController {
     String requestId = routingContext.get("requestId");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      JsonObject requestBody = routingContext.getBodyAsJson();
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Get request body", tag, requestId);
+      }
 
+      JsonObject requestBody = routingContext.getBodyAsJson();
       if (requestBody == null || requestBody.isEmpty()) {
         throw new ApplicationException("Request failed!", requestId, "Request body is empty!");
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Get request body", tag, requestId);
         logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
       }
 
@@ -71,12 +73,21 @@ class UserController extends CommonController {
     String paramId = routingContext.request().getParam("id");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      JsonObject requestBody = routingContext.getBodyAsJson();
-      requestBody.put("id", paramId);
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Get request body", tag, requestId);
+      }
+
+      JsonObject requestBody = routingContext.getBodyAsJson();
+      if (requestBody == null || requestBody.isEmpty()) {
+        throw new ApplicationException("Request failed!", requestId, "Request body is empty!");
+      } else {
+        requestBody.put("id", paramId);
+      }
+
+      if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
       }
+
       return routingContext.getBodyAsJson();
     }).map(json -> {
       if (logger.isDebugEnabled()) {

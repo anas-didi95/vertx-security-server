@@ -312,7 +312,7 @@ public class TestUserVerticle {
         // data
         JsonObject data = responseBody.getJsonObject("data");
         Assertions.assertNotNull(data);
-        Assertions.assertNotNull(data.getString("requestid"));
+        Assertions.assertNotNull(data.getString("requestId"));
         Assertions.assertNotNull(data.getInstant("instant"));
         Assertions.assertNotNull(data.getJsonArray("errorList"));
         Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());

@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.user;
 
+import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonController;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,15 +25,20 @@ class UserController extends CommonController {
     String tag = "create";
     String requestId = routingContext.get("requestId");
 
-    String paramId = routingContext.request().getParam("id");
-
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      JsonObject requestBody = routingContext.getBodyAsJson();
-      requestBody.put("id", paramId);
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Get request body", tag, requestId);
+      }
+
+      JsonObject requestBody = routingContext.getBodyAsJson();
+      if (requestBody == null || requestBody.isEmpty()) {
+        throw new ApplicationException("Request failed!", requestId, "Request body is empty!");
+      }
+
+      if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
       }
+
       return requestBody;
     }).map(json -> {
       if (logger.isDebugEnabled()) {
@@ -64,12 +70,24 @@ class UserController extends CommonController {
     String tag = "update";
     String requestId = routingContext.get("requestId");
 
+    String paramId = routingContext.request().getParam("id");
+
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      JsonObject requestBody = routingContext.getBodyAsJson();
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Get request body", tag, requestId);
+      }
+
+      JsonObject requestBody = routingContext.getBodyAsJson();
+      if (requestBody == null || requestBody.isEmpty()) {
+        throw new ApplicationException("Request failed!", requestId, "Request body is empty!");
+      } else {
+        requestBody.put("id", paramId);
+      }
+
+      if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
       }
+
       return routingContext.getBodyAsJson();
     }).map(json -> {
       if (logger.isDebugEnabled()) {

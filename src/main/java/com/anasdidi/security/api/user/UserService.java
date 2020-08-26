@@ -23,10 +23,16 @@ class UserService {
     String tag = "create";
     vo.id = CommonUtils.generateId();
     vo.version = Long.valueOf(0);
+    JsonObject document = UserUtils.toMongoDocument(vo);
 
-    return mongoClient.rxSave(UserConstants.COLLECTION_NAME, UserUtils.toMongoDocument(vo))//
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] document\n{}", tag, requestId, document.encodePrettily());
+    }
+
+    return mongoClient.rxSave(UserConstants.COLLECTION_NAME, document)//
         .doOnError(e -> {
-          logger.error("[{}:{}] {}\n{}", tag, requestId, e.getMessage(), vo.toString());
+          logger.error("[{}:{}] {}\n{}", tag, requestId, e.getMessage());
+          logger.error("[{}:{}] document\n{}", tag, requestId, document.encodePrettily());
           e.addSuppressed(new ApplicationException("User creation failed!", requestId, e));
         })//
         .defaultIfEmpty(vo.id)//

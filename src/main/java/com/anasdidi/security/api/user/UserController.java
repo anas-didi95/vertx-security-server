@@ -73,6 +73,12 @@ class UserController extends CommonController {
         logger.debug("[{}:{}] Convert to vo", tag, requestId);
       }
       return UserUtils.toVO(json);
+    }).map(vo -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Validate vo", tag, requestId);
+      }
+      userValidator.validate(requestId, UserValidator.Validate.UPDATE, vo);
+      return vo;
     }).flatMap(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Update vo to database", tag, requestId);

@@ -14,6 +14,8 @@ public abstract class CommonController {
   protected void sendResponse(String requestId, Single<JsonObject> subscriber, RoutingContext routingContext,
       int statusCode, String message) {
     String tag = "sendResponse";
+    long timeTaken = System.currentTimeMillis() - (long) routingContext.get("startTime");
+
     subscriber.subscribe(data -> {
       String responseBody = new JsonObject()//
           .put("status", new JsonObject()//
@@ -22,7 +24,7 @@ public abstract class CommonController {
           .put("data", data)//
           .encode();
 
-      logger.info("[{}:{}] onSuccess : responseBody={}", tag, requestId, responseBody);
+      logger.info("[{}:{}] onSuccess : timeTaken={}ms, responseBody={}", tag, requestId, timeTaken, responseBody);
 
       routingContext.response()//
           .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//
@@ -39,7 +41,7 @@ public abstract class CommonController {
         }
       }
 
-      logger.error("[{}:{}] onError : responseBody={}", tag, requestId, responseBody);
+      logger.error("[{}:{}] onError : timeTaken={}ms, responseBody={}", tag, requestId, timeTaken, responseBody);
 
       routingContext.response()//
           .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//

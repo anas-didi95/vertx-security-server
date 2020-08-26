@@ -69,7 +69,7 @@ public class TestUserVerticle {
   }
 
   @Test
-  void testCreateUserSuccess(Vertx vertx, VertxTestContext testContext) {
+  void testUserCreateSuccess(Vertx vertx, VertxTestContext testContext) {
     JsonObject requestBody = generateRequestBody();
 
     webClient.post(5000, "localhost", "/api/users").rxSendJsonObject(requestBody).subscribe(response -> {
@@ -96,7 +96,7 @@ public class TestUserVerticle {
   }
 
   @Test
-  void testCreateUserValidationError(Vertx vertx, VertxTestContext testContext) {
+  void testUserCreateValidationError(Vertx vertx, VertxTestContext testContext) {
     JsonObject requestBody = generateRequestBody();
     requestBody.put("fullName", "").put("email", "");
 
@@ -135,7 +135,7 @@ public class TestUserVerticle {
   }
 
   @Test
-  void testCreateUserServiceError(Vertx vertx, VertxTestContext testContext) {
+  void testUserCreateServiceError(Vertx vertx, VertxTestContext testContext) {
     webClient.post(5000, "localhost", "/api/users").rxSendJsonObject(createdBody).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
@@ -170,7 +170,7 @@ public class TestUserVerticle {
   }
 
   @Test
-  void testUpdateUserSuccess(Vertx vertx, VertxTestContext testContext) {
+  void testUserUpdateSuccess(Vertx vertx, VertxTestContext testContext) {
     webClient.put(5000, "localhost", "/api/users").rxSendJsonObject(createdBody).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
@@ -214,6 +214,38 @@ public class TestUserVerticle {
         Assertions.assertNotNull(status);
         Assertions.assertEquals(false, status.getBoolean("isSuccess"));
         Assertions.assertEquals("Validation error!", status.getString("message"));
+
+        // data
+        JsonObject data = responseBody.getJsonObject("data");
+        Assertions.assertNotNull(data);
+        Assertions.assertNotNull(data.getString("requestId"));
+        Assertions.assertNotNull(data.getInstant("instant"));
+        Assertions.assertNotNull(data.getJsonArray("errorList"));
+        Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+
+        testContext.completeNow();
+      });
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testUserUpdateNotFoundError(Vertx vertx, VertxTestContext testContext) {
+    createdBody.put("version", -1);
+
+    webClient.put(5000, "localhost", "/api/users").rxSendJsonObject(createdBody).subscribe(response -> {
+      testContext.verify(() -> {
+        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals("application/json", response.getHeader("Accept"));
+        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+
+        JsonObject responseBody = response.bodyAsJsonObject();
+        Assertions.assertNotNull(responseBody);
+
+        // status
+        JsonObject status = responseBody.getJsonObject("status");
+        Assertions.assertNotNull(status);
+        Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+        Assertions.assertEquals("User update failed!", status.getString("message"));
 
         // data
         JsonObject data = responseBody.getJsonObject("data");

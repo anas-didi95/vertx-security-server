@@ -2,5 +2,9 @@ package com.anasdidi.security.api.user;
 
 class UserConstants {
 
-  static String COLLECTION_NAME = "users";
+  static final String COLLECTION_NAME = "users";
+
+  static final String MSG_ERR_USER_CREATE_FAILED = "User creation failed!";
+  static final String MSG_ERR_USER_UPDATE_FAILED = "User update failed!";
+  static final String MSG_ERR_USER_RECORD_NOT_FOUND = "User record not found!";
 }

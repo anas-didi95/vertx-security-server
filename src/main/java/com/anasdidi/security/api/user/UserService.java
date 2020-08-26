@@ -33,7 +33,7 @@ class UserService {
         .doOnError(e -> {
           logger.error("[{}:{}] {}", tag, requestId, e.getMessage());
           logger.error("[{}:{}] document\n{}", tag, requestId, document.encodePrettily());
-          e.addSuppressed(new ApplicationException("User creation failed!", requestId, e));
+          e.addSuppressed(new ApplicationException(UserConstants.MSG_ERR_USER_CREATE_FAILED, requestId, e));
         })//
         .defaultIfEmpty(vo.id)//
         .toSingle();
@@ -57,10 +57,11 @@ class UserService {
 
     return mongoClient.rxFindOneAndUpdate(UserConstants.COLLECTION_NAME, query, update)//
         .doOnComplete(() -> {
-          logger.error("[{}:{}] Record not found!", tag, requestId);
+          logger.error("[{}:{}] {}", tag, requestId, UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
           logger.error("[{}:{}] query\n{}", tag, requestId, query.encodePrettily());
           logger.error("[{}:{}] update\n{}", tag, requestId, update.encodePrettily());
-          throw new ApplicationException("User update failed!", requestId, "Record not found!");
+          throw new ApplicationException(UserConstants.MSG_ERR_USER_UPDATE_FAILED, requestId,
+              UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
         })//
         .map(doc -> doc.getString("_id"))//
         .toSingle();

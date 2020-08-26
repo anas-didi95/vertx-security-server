@@ -27,8 +27,8 @@ public abstract class CommonController {
       logger.info("[{}:{}] onSuccess : timeTaken={}ms, responseBody={}", tag, requestId, timeTaken, responseBody);
 
       routingContext.response()//
-          .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//
-          .putHeader(CommonConstants.Header.CONTENT_TYPE.value, CommonConstants.MediaType.APP_JSON.value)//
+          .putHeader(CommonConstants.HEADER_ACCEPT, CommonConstants.MEDIA_TYPE_APP_JSON)//
+          .putHeader(CommonConstants.HEADER_CONTENT_TYPE, CommonConstants.MEDIA_TYPE_APP_JSON)//
           .setStatusCode(statusCode)//
           .end(responseBody);
     }, e -> {
@@ -44,8 +44,8 @@ public abstract class CommonController {
       logger.error("[{}:{}] onError : timeTaken={}ms, responseBody={}", tag, requestId, timeTaken, responseBody);
 
       routingContext.response()//
-          .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//
-          .putHeader(CommonConstants.Header.CONTENT_TYPE.value, CommonConstants.MediaType.APP_JSON.value)//
+          .putHeader(CommonConstants.HEADER_ACCEPT, CommonConstants.MEDIA_TYPE_APP_JSON)//
+          .putHeader(CommonConstants.HEADER_CONTENT_TYPE, CommonConstants.MEDIA_TYPE_APP_JSON)//
           .setStatusCode(200)//
           .end(responseBody);
     });

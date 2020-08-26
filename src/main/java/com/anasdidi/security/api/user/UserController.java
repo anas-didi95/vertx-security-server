@@ -24,8 +24,11 @@ class UserController extends CommonController {
     String tag = "create";
     String requestId = routingContext.get("requestId");
 
+    String paramId = routingContext.request().getParam("id");
+
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
+      requestBody.put("id", paramId);
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Get request body", tag, requestId);
         logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());

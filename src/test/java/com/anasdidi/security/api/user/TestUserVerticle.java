@@ -54,15 +54,15 @@ public class TestUserVerticle {
 
       String uuid = UUID.randomUUID().toString().replace("-", "");
       createdBody = new JsonObject()//
+          .put("_id", uuid)//
           .put("username", uuid)//
           .put("password", uuid)//
           .put("fullName", uuid)//
-          .put("email", uuid);
+          .put("email", uuid)//
+          .put("version", 0);
 
-      mongoClient.rxSave("users", createdBody).subscribe(docId -> {
-        createdBody//
-            .put("id", docId)//
-            .put("version", 0);
+      mongoClient.rxSave("users", createdBody).defaultIfEmpty(uuid).subscribe(docId -> {
+        createdBody.put("id", docId);
         vertx.deployVerticle(new MainVerticle(true), testContext.succeeding(id -> testContext.completeNow()));
       }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));

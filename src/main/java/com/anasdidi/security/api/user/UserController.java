@@ -25,23 +25,44 @@ class UserController extends CommonController {
     String requestId = routingContext.get("requestId");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      logger.info("[{}:{}] Get request body", tag, requestId);
+      logger.debug("[{}:{}] Get request body", tag, requestId);
       return routingContext.getBodyAsJson();
     }).map(json -> {
-      logger.info("[{}:{}] Convert request body to vo", tag, requestId);
+      logger.debug("[{}:{}] Convert request body to vo", tag, requestId);
       return UserUtils.toVO(json);
     }).map(vo -> {
-      logger.info("[{}:{}] Validate vo", tag, requestId);
+      logger.debug("[{}:{}] Validate vo", tag, requestId);
       userValidator.validate(requestId, UserValidator.Validate.CREATE, vo);
       return vo;
     }).flatMap(vo -> {
-      logger.info("[{}:{}] Save vo to database", tag, requestId);
+      logger.debug("[{}:{}] Save vo to database", tag, requestId);
       return userService.create(requestId, vo);
     }).map(id -> {
-      logger.info("[{}:{}] Construct response data", tag, requestId);
+      logger.debug("[{}:{}] Construct response data", tag, requestId);
       return new JsonObject().put("id", id);
     });
 
     sendResponse(subscriber, routingContext, 201, "Record successfully created.");
+  }
+
+  void update(RoutingContext routingContext) {
+    String tag = "update";
+    String requestId = routingContext.get("requestId");
+
+    Single<JsonObject> subscriber = Single.fromCallable(() -> {
+      logger.debug("[{}:{}] Get request body", tag, requestId);
+      return routingContext.getBodyAsJson();
+    }).map(json -> {
+      logger.debug("[{}:{}] Convert to vo", tag, requestId);
+      return UserUtils.toVO(json);
+    }).flatMap(vo -> {
+      logger.debug("[{}:{}] Update vo to database", tag, requestId);
+      return userService.update(requestId, vo);
+    }).map(id -> {
+      logger.debug("[{}:{}] Construct response body 111", tag, requestId);
+      return new JsonObject().put("id", id);
+    });
+
+    sendResponse(subscriber, routingContext, 200, "Record successfully updated.");
   }
 }

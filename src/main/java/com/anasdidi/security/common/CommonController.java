@@ -1,24 +1,33 @@
 package com.anasdidi.security.common;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 public abstract class CommonController {
 
+  private final Logger logger = LogManager.getLogger(CommonController.class);
+
   protected void sendResponse(Single<JsonObject> subscriber, RoutingContext routingContext, int statusCode,
       String message) {
     subscriber.subscribe(data -> {
+      String responseBody = new JsonObject()//
+          .put("status", new JsonObject()//
+              .put("isSuccess", true)//
+              .put("message", message))//
+          .put("data", data)//
+          .encode();
+
+      logger.debug("OK. responseBody={}", responseBody);
+
       routingContext.response()//
           .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//
           .putHeader(CommonConstants.Header.CONTENT_TYPE.value, CommonConstants.MediaType.APP_JSON.value)//
           .setStatusCode(statusCode)//
-          .end(new JsonObject()//
-              .put("status", new JsonObject()//
-                  .put("isSuccess", true)//
-                  .put("message", message))
-              .put("data", data)//
-              .encode());
+          .end(responseBody);
     }, e -> {
       String responseBody = e.getMessage();
       if (e.getSuppressed().length > 0) {
@@ -28,6 +37,9 @@ public abstract class CommonController {
           }
         }
       }
+
+      logger.error("ERROR! responseBody={}", responseBody);
+
       routingContext.response()//
           .putHeader(CommonConstants.Header.ACCEPT.value, CommonConstants.MediaType.APP_JSON.value)//
           .putHeader(CommonConstants.Header.CONTENT_TYPE.value, CommonConstants.MediaType.APP_JSON.value)//

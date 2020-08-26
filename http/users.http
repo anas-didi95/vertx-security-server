@@ -2,7 +2,7 @@
 @port = 5000
 @hostname = {{host}}:{{port}}
 
-### Sample
+### Create
 POST http://{{hostname}}/api/users
 Accept: application/json
 Content-Type: application/json
@@ -12,4 +12,18 @@ Content-Type: application/json
   "password": "password",
   "fullName": "superadmin",
   "email": "anas.didi95@gmail.com"
+}
+
+### Update
+PUT http://{{hostname}}/api/users
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": "F5E8EFCC56224DDC9AAA6D578EBF6DD4",
+  "username": "superadmin",
+  "password": "password",
+  "fullName": "superadmin",
+  "email": "anas.didi95@gmail.com1",
+  "version": 0
 }

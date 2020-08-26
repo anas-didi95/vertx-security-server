@@ -15,16 +15,10 @@ class UserValidator {
   private final Logger logger = LogManager.getLogger(UserValidator.class);
 
   enum Validate {
-    CREATE("CREATE");
-
-    String value;
-
-    Validate(String value) {
-      this.value = value;
-    }
+    CREATE, UPDATE;
   }
 
-  void validate(String requestId, Validate val, UserVO vo) throws Exception {
+  void validate(String requestId, Validate val, UserVO vo) throws ApplicationException {
     String tag = "validate";
     List<String> errorList = new ArrayList<>();
 
@@ -32,10 +26,13 @@ class UserValidator {
       case CREATE:
         errorList = validateCreate(vo, errorList);
         break;
+      case UPDATE:
+        errorList = validateUpdate(vo, errorList);
+        break;
     }
 
     if (!errorList.isEmpty()) {
-      logger.error("[{}:{}] Validation error! validate={}\n{}", tag, requestId, val.value, vo.toString());
+      logger.error("[{}:{}] Validation error! validate={}\n{}", tag, requestId, val, vo.toString());
       throw new ApplicationException("Validation error!", requestId, new JsonArray(errorList));
     }
   }
@@ -60,6 +57,31 @@ class UserValidator {
 
     if (email == null || email.isBlank()) {
       errorList.add("Email field is mandatory!");
+    }
+
+    return errorList;
+  }
+
+  private List<String> validateUpdate(UserVO vo, List<String> errorList) {
+    String id = vo.id;
+    String fullName = vo.fullName;
+    String email = vo.email;
+    Long version = vo.version;
+
+    if (id == null || id.isBlank()) {
+      errorList.add("Id field is mandatory!");
+    }
+
+    if (fullName == null || fullName.isBlank()) {
+      errorList.add("Full Name field is mandatory!");
+    }
+
+    if (email == null || email.isBlank()) {
+      errorList.add("Email field is mandatory!");
+    }
+
+    if (version == null) {
+      errorList.add("Version field is mandatory!");
     }
 
     return errorList;

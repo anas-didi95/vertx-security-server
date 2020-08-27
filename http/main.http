@@ -1,7 +1,7 @@
 @host = localhost
 @port = 5000
 
-### Initial
-http://{{host}}:{{port}}/
+### Health check
+GET http://{{host}}:{{port}}/ping
 Accept: application/json
 Content-Type: application/json

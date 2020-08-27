@@ -11,8 +11,10 @@ import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Log4j2LogDelegateFactory;
+import io.vertx.ext.healthchecks.Status;
 import io.vertx.reactivex.config.ConfigRetriever;
 import io.vertx.reactivex.core.AbstractVerticle;
+import io.vertx.reactivex.ext.healthchecks.HealthCheckHandler;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.RoutingContext;
@@ -39,19 +41,24 @@ public class MainVerticle extends AbstractVerticle {
         new ConfigRetrieverOptions().addStore(new ConfigStoreOptions().setType("env")));
 
     configRetriever.rxGetConfig().subscribe(cfg -> {
-      MongoClient mongoClient = MongoClient.createShared(vertx, new JsonObject()//
+      JsonObject mongoConfig = new JsonObject()
           .put("host", isTest ? cfg.getString("TEST_MONGO_HOST") : cfg.getString("MONGO_HOST"))//
           .put("port", isTest ? cfg.getInteger("TEST_MONGO_PORT") : cfg.getInteger("MONGO_PORT"))//
           .put("username", isTest ? cfg.getString("TEST_MONGO_USERNAME") : cfg.getString("MONGO_USERNAME"))//
           .put("password", isTest ? cfg.getString("TEST_MONGO_PASSWORD") : cfg.getString("MONGO_PASSWORD"))//
           .put("authSource", isTest ? cfg.getString("TEST_MONGO_AUTH_SOURCE") : cfg.getString("MONGO_AUTH_SOURCE"))//
-          .put("db_name", "security"));
+          .put("db_name", "security");
+      MongoClient mongoClient = MongoClient.createShared(vertx, mongoConfig);//
 
       Router router = Router.router(vertx);
       router.route().handler(BodyHandler.create());
       router.route().handler(this::generateRequestId);
 
       vertx.deployVerticle(new UserVerticle(router, mongoClient));
+
+      HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
+      setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);
+      router.get("/ping").handler(healthCheckHandler);
 
       vertx.createHttpServer().requestHandler(router).listen(5000, "localhost", http -> {
         if (http.succeeded()) {
@@ -68,5 +75,25 @@ public class MainVerticle extends AbstractVerticle {
     routingContext.put("requestId", CommonUtils.generateId());
     routingContext.put("startTime", System.currentTimeMillis());
     routingContext.next();
+  }
+
+  void setupHealthCheck(HealthCheckHandler healthCheckHandler, MongoClient mongoClient, JsonObject mongoConfig) {
+    healthCheckHandler.register("check-mongo-connection", promise -> {
+      JsonObject data = new JsonObject()//
+          .put("host", mongoConfig.getString("host"))//
+          .put("port", mongoConfig.getInteger("port"))//
+          .put("db_name", mongoConfig.getString("db_name"));
+      mongoClient.rxGetCollections().subscribe(resultList -> {
+        if (!resultList.isEmpty()) {
+          promise.complete(Status.OK(data));
+        } else {
+          promise.complete(Status.KO(data//
+              .put("error", "Collection list is empty!")));
+        }
+      }, e -> {
+        promise.complete(Status.KO(data//
+            .put("error", e.getMessage())));
+      });
+    });
   }
 }

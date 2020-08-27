@@ -81,7 +81,8 @@ class UserService {
         .doOnComplete(() -> {
           logger.error("[{}:{}] {}", tag, requestId, UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
           logger.error("[{}:{}] query\n", tag, requestId, query.encodePrettily());
-          throw new ApplicationException("User delete failed!", requestId, UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
+          throw new ApplicationException(UserConstants.MSG_ERR_USER_DELETE_FAILED, requestId,
+              UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
         })//
         .map(doc -> doc.getString("_id"))//
         .toSingle();

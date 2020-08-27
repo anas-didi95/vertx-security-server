@@ -42,8 +42,7 @@ public abstract class CommonController {
         }
       }
 
-      logger.error("[{}:{}] onError : timeTaken={}ms, statusCode={}, responseBody={}", tag, requestId, timeTaken,
-          statusCode, responseBody);
+      logger.error("[{}:{}] onError : timeTaken={}ms, responseBody={}", tag, requestId, timeTaken, responseBody);
 
       routingContext.response()//
           .putHeader(CommonConstants.HEADER_ACCEPT, CommonConstants.MEDIA_TYPE_APP_JSON)//

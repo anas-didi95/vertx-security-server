@@ -16,7 +16,7 @@ class UserValidator {
   private final Logger logger = LogManager.getLogger(UserValidator.class);
 
   enum Validate {
-    CREATE, UPDATE;
+    CREATE, UPDATE, DELETE;
   }
 
   void validate(String requestId, Validate val, UserVO vo) throws ApplicationException {
@@ -29,6 +29,9 @@ class UserValidator {
         break;
       case UPDATE:
         errorList = validateUpdate(vo, errorList);
+        break;
+      case DELETE:
+        errorList = validateDelete(vo, errorList);
         break;
     }
 
@@ -80,6 +83,21 @@ class UserValidator {
 
     if (email == null || email.isBlank()) {
       errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Email"));
+    }
+
+    if (version == null) {
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Version"));
+    }
+
+    return errorList;
+  }
+
+  private List<String> validateDelete(UserVO vo, List<String> errorList) {
+    String id = vo.id;
+    Long version = vo.version;
+
+    if (id == null || id.isBlank()) {
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Id"));
     }
 
     if (version == null) {

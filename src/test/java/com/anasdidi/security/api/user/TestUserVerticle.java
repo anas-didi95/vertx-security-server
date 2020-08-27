@@ -321,4 +321,32 @@ public class TestUserVerticle {
       });
     }, e -> testContext.failNow(e));
   }
+
+  @Test
+  void testUserDeleteSuccess(Vertx vertx, VertxTestContext testContext) {
+    webClient.delete(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
+        .subscribe(response -> {
+          testContext.verify(() -> {
+            Assertions.assertEquals(200, response.statusCode());
+            Assertions.assertEquals("application/json", response.getHeader("Accept"));
+            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
+
+            // status
+            JsonObject status = responseBody.getJsonObject("status");
+            Assertions.assertNotNull(status);
+            Assertions.assertEquals(true, status.getBoolean("isSuccess"));
+            Assertions.assertEquals("User successfully deleted.", status.getString("message"));
+
+            // data
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
+            Assertions.assertEquals(createdBody.getString("id"), data.getString("id"));
+
+            testContext.completeNow();
+          });
+        }, e -> testContext.failNow(e));
+  }
 }

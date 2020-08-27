@@ -119,4 +119,35 @@ class UserController extends CommonController {
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_RECORD_UPDATE);
   }
+
+  void delete(RoutingContext routingContext) {
+    String tag = "delete";
+    String requestId = routingContext.get("requestId");
+
+    Single<JsonObject> subscriber = Single.fromCallable(() -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Get request body", tag, requestId);
+      }
+
+      JsonObject requestBody = routingContext.getBodyAsJson();
+      return requestBody;
+    }).map(json -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Convert to vo", tag, requestId);
+      }
+      return UserUtils.toVO(json);
+    }).flatMap(vo -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Delete vo from database", tag, requestId);
+      }
+      return userService.delete(requestId, vo);
+    }).map(id -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Construct response body", tag, requestId);
+      }
+      return new JsonObject().put("id", id);
+    });
+
+    sendResponse(requestId, subscriber, routingContext, 200, "User successfully deleted.");
+  }
 }

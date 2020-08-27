@@ -24,7 +24,8 @@ public abstract class CommonController {
           .put("data", data)//
           .encode();
 
-      logger.info("[{}:{}] onSuccess : timeTaken={}ms, responseBody={}", tag, requestId, timeTaken, responseBody);
+      logger.info("[{}:{}] onSuccess : timeTaken={}ms, statusCode={}, responseBody={}", tag, requestId, timeTaken,
+          statusCode, responseBody);
 
       routingContext.response()//
           .putHeader(CommonConstants.HEADER_ACCEPT, CommonConstants.MEDIA_TYPE_APP_JSON)//
@@ -41,7 +42,8 @@ public abstract class CommonController {
         }
       }
 
-      logger.error("[{}:{}] onError : timeTaken={}ms, responseBody={}", tag, requestId, timeTaken, responseBody);
+      logger.error("[{}:{}] onError : timeTaken={}ms, statusCode={}, responseBody={}", tag, requestId, timeTaken,
+          statusCode, responseBody);
 
       routingContext.response()//
           .putHeader(CommonConstants.HEADER_ACCEPT, CommonConstants.MEDIA_TYPE_APP_JSON)//

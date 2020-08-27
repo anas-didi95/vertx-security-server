@@ -124,18 +124,32 @@ class UserController extends CommonController {
     String tag = "delete";
     String requestId = routingContext.get("requestId");
 
+    String paramId = routingContext.request().getParam("id");
+
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Get request body", tag, requestId);
       }
 
       JsonObject requestBody = routingContext.getBodyAsJson();
+      requestBody.put("id", paramId);
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
+      }
+
       return requestBody;
     }).map(json -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Convert to vo", tag, requestId);
       }
       return UserUtils.toVO(json);
+    }).map(vo -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Validate vo", tag, requestId);
+      }
+      userValidator.validate(requestId, UserValidator.Validate.DELETE, vo);
+      return vo;
     }).flatMap(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Delete vo from database", tag, requestId);

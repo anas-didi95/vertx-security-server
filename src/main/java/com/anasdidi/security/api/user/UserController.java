@@ -148,6 +148,6 @@ class UserController extends CommonController {
       return new JsonObject().put("id", id);
     });
 
-    sendResponse(requestId, subscriber, routingContext, 204, "User successfully deleted.");
+    sendResponse(requestId, subscriber, routingContext, 200, "User successfully deleted.");
   }
 }

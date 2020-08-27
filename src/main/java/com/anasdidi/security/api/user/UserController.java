@@ -6,6 +6,7 @@ import com.anasdidi.security.common.CommonController;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.mindrot.jbcrypt.BCrypt;
 
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
@@ -53,6 +54,12 @@ class UserController extends CommonController {
       }
       userValidator.validate(requestId, UserValidator.Validate.CREATE, vo);
       return vo;
+    }).map(vo -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Encrypt password", tag, requestId);
+      }
+      vo.password = BCrypt.hashpw(vo.password, BCrypt.gensalt());
+      return vo;
     }).flatMap(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Save vo to database", tag, requestId);
@@ -92,7 +99,7 @@ class UserController extends CommonController {
         logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
       }
 
-      return routingContext.getBodyAsJson();
+      return requestBody;
     }).map(json -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Convert to vo", tag, requestId);

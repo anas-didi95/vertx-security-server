@@ -132,7 +132,12 @@ class UserController extends CommonController {
       }
 
       JsonObject requestBody = routingContext.getBodyAsJson();
-      requestBody.put("id", paramId);
+      if (requestBody == null || requestBody.isEmpty()) {
+        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
+            CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
+      } else {
+        requestBody.put("id", paramId);
+      }
 
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
@@ -162,6 +167,7 @@ class UserController extends CommonController {
       return new JsonObject().put("id", id);
     });
 
-    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK, CommonConstants.MSG_OK_RECORD_DELETE);
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
+        CommonConstants.MSG_OK_RECORD_DELETE);
   }
 }

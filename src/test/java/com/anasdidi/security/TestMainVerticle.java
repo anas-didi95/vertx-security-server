@@ -40,6 +40,8 @@ public class TestMainVerticle {
   void testConfigEnvironmentVariable(Vertx vertx, VertxTestContext testContext) {
     configRetriever.rxGetConfig().subscribe(cfg -> {
       testContext.verify(() -> {
+        Assertions.assertNotNull(cfg.getInteger("APP_PORT"));
+
         Assertions.assertNotNull(cfg.getString("MONGO_HOST"));
         Assertions.assertNotNull(cfg.getInteger("MONGO_PORT"));
         Assertions.assertNotNull(cfg.getString("MONGO_USERNAME"));

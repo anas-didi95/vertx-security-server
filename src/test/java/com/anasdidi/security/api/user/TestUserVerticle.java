@@ -352,7 +352,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserDeleteValidationError(Vertx vertx, VertxTestContext testContext) {
-    JsonObject requestBody = new JsonObject();
+    JsonObject requestBody = new JsonObject().put("dummy", "");
 
     webClient.delete(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSendJsonObject(requestBody)
         .subscribe(response -> {

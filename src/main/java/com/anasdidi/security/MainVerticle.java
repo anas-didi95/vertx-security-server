@@ -60,9 +60,11 @@ public class MainVerticle extends AbstractVerticle {
       setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);
       router.get("/ping").handler(healthCheckHandler);
 
-      vertx.createHttpServer().requestHandler(router).listen(5000, "localhost", http -> {
+      int port = cfg.getInteger("APP_PORT");
+      String host = "localhost";
+      vertx.createHttpServer().requestHandler(router).listen(port, host, http -> {
         if (http.succeeded()) {
-          logger.info("HTTP server started on port 5000");
+          logger.info("HTTP server started on port {}", port);
           startPromise.complete();
         } else {
           startPromise.fail(http.cause());

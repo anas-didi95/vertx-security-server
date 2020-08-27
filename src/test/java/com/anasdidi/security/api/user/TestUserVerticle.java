@@ -24,6 +24,9 @@ import io.vertx.reactivex.ext.web.client.WebClient;
 @ExtendWith(VertxExtension.class)
 public class TestUserVerticle {
 
+  private int port;
+  private String host = "localhost";
+  private String requestURI = "/api/users/";
   private JsonObject createdBody;
   private WebClient webClient;
   private MongoClient mongoClient;
@@ -42,6 +45,7 @@ public class TestUserVerticle {
         new ConfigRetrieverOptions().addStore(new ConfigStoreOptions().setType("env")));
 
     config.rxGetConfig().subscribe(cfg -> {
+      port = cfg.getInteger("APP_PORT");
       webClient = WebClient.create(vertx);
 
       mongoClient = MongoClient.createShared(vertx, new JsonObject()//
@@ -72,7 +76,7 @@ public class TestUserVerticle {
   void testUserCreateSuccess(Vertx vertx, VertxTestContext testContext) {
     JsonObject requestBody = generateRequestBody();
 
-    webClient.post(5000, "localhost", "/api/users").rxSendJsonObject(requestBody).subscribe(response -> {
+    webClient.post(port, host, requestURI).rxSendJsonObject(requestBody).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(201, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -100,7 +104,7 @@ public class TestUserVerticle {
     JsonObject requestBody = generateRequestBody();
     requestBody.put("fullName", "").put("email", "");
 
-    webClient.post(5000, "localhost", "/api/users").rxSendJsonObject(requestBody).subscribe(response -> {
+    webClient.post(port, host, requestURI).rxSendJsonObject(requestBody).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -136,7 +140,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserCreateServiceError(Vertx vertx, VertxTestContext testContext) {
-    webClient.post(5000, "localhost", "/api/users").rxSendJsonObject(createdBody).subscribe(response -> {
+    webClient.post(port, host, requestURI).rxSendJsonObject(createdBody).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -171,7 +175,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
-    webClient.post(5000, "localhost", "/api/users").rxSend().subscribe(response -> {
+    webClient.post(port, host, requestURI).rxSend().subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -200,7 +204,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserUpdateSuccess(Vertx vertx, VertxTestContext testContext) {
-    webClient.put(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
+    webClient.put(port, host, requestURI + createdBody.getString("id")).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
@@ -230,7 +234,7 @@ public class TestUserVerticle {
   void testUserUpdateValidationError(Vertx vertx, VertxTestContext testContext) {
     createdBody.put("fullName", "").put("email", "");
 
-    webClient.put(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
+    webClient.put(port, host, requestURI + createdBody.getString("id")).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
@@ -263,7 +267,7 @@ public class TestUserVerticle {
   void testUserUpdateNotFoundError(Vertx vertx, VertxTestContext testContext) {
     createdBody.put("version", -1);
 
-    webClient.put(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
+    webClient.put(port, host, requestURI + createdBody.getString("id")).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
@@ -294,7 +298,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserUpdateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
-    webClient.put(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSend().subscribe(response -> {
+    webClient.put(port, host, requestURI + createdBody.getString("id")).rxSend().subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -324,7 +328,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserDeleteSuccess(Vertx vertx, VertxTestContext testContext) {
-    webClient.delete(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
+    webClient.delete(port, host, requestURI + createdBody.getString("id")).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
@@ -354,7 +358,7 @@ public class TestUserVerticle {
   void testUserDeleteValidationError(Vertx vertx, VertxTestContext testContext) {
     JsonObject requestBody = new JsonObject().put("dummy", "");
 
-    webClient.delete(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSendJsonObject(requestBody)
+    webClient.delete(port, host, requestURI + createdBody.getString("id")).rxSendJsonObject(requestBody)
         .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
@@ -387,7 +391,7 @@ public class TestUserVerticle {
   void testUserDeleteNotFoundError(Vertx vertx, VertxTestContext testContext) {
     createdBody.put("version", -1);
 
-    webClient.delete(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
+    webClient.delete(port, host, requestURI + createdBody.getString("id")).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
@@ -418,7 +422,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserDeleteRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
-    webClient.delete(5000, "localhost", "/api/users/" + createdBody.getString("id")).rxSend().subscribe(response -> {
+    webClient.delete(port, host, requestURI + createdBody.getString("id")).rxSend().subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));

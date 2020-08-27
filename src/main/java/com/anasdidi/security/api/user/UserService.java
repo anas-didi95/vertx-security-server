@@ -66,4 +66,19 @@ class UserService {
         .map(doc -> doc.getString("_id"))//
         .toSingle();
   }
+
+  Single<String> delete(String requestId, UserVO vo) {
+    String tag = "delete";
+    JsonObject query = new JsonObject()//
+        .put("_id", vo.id)//
+        .put("version", vo.version);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] query\n", tag, requestId, query.encodePrettily());
+    }
+
+    return mongoClient.rxFindOneAndDelete(UserConstants.COLLECTION_NAME, query)//
+        .map(doc -> doc.getString("_id"))//
+        .toSingle();
+  }
 }

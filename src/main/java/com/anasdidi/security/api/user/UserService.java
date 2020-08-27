@@ -78,6 +78,12 @@ class UserService {
     }
 
     return mongoClient.rxFindOneAndDelete(UserConstants.COLLECTION_NAME, query)//
+        .doOnComplete(() -> {
+          logger.error("[{}:{}] {}", tag, requestId, UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
+          logger.error("[{}:{}] query\n", tag, requestId, query.encodePrettily());
+          throw new ApplicationException(UserConstants.MSG_ERR_USER_DELETE_FAILED, requestId,
+              UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
+        })//
         .map(doc -> doc.getString("_id"))//
         .toSingle();
   }

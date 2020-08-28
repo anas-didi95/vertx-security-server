@@ -52,7 +52,7 @@ public class TestJwtVerticle {
           .put("password", BCrypt.hashpw(uuid, BCrypt.gensalt()));
 
       mongoClient.rxSave("users", user).subscribe(docId -> {
-        user.put("id", docId);
+        user.put("id", docId).put("password", uuid);
         vertx.deployVerticle(new MainVerticle(true), testContext.succeeding(id -> testContext.completeNow()));
       }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));

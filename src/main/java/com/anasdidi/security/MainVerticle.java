@@ -70,7 +70,7 @@ public class MainVerticle extends AbstractVerticle {
               .setSymmetric(true)));
 
       vertx.deployVerticle(new UserVerticle(router, mongoClient));
-      vertx.deployVerticle(new JwtVerticle(router));
+      vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth));
 
       HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
       setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);

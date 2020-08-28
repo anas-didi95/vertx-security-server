@@ -1,7 +1,9 @@
 @host = localhost
 @port = 5000
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5jb20ifQ.VViCHxuk-TnuXAWVK3CzqwYYwTNIq3obY92VGn3KmHg
 
 ### Health check
 GET http://{{host}}:{{port}}/ping
 Accept: application/json
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}

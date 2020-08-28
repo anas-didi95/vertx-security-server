@@ -10,6 +10,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.core.eventbus.Message;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 class UserController extends CommonController {
@@ -39,7 +40,8 @@ class UserController extends CommonController {
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
+        logger.debug("[{}:{}] requestBody\n{}", tag, requestId,
+            requestBody.copy().put("password", "-").encodePrettily());
       }
 
       return requestBody;
@@ -176,5 +178,31 @@ class UserController extends CommonController {
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_RECORD_DELETE);
+  }
+
+  void doUserReadUsername(Message<Object> message) {
+    String tag = "doUserReadUsername";
+    JsonObject body = new JsonObject((String) message.body());
+    String requestId = body.getString("requestId");
+
+    Single.just(body)//
+        .map(json -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] Convent body to vo", tag, requestId);
+          }
+          return UserUtils.toVO(json);
+        }).flatMap(vo -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] Get user by username", tag, requestId);
+          }
+          return userService.readByUsername(vo);
+        }).map(vo -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] Convert vo to reply message", tag, requestId);
+          }
+          return UserUtils.toJson(vo).encode();
+        }).subscribe(reply -> {
+          message.reply(reply);
+        });
   }
 }

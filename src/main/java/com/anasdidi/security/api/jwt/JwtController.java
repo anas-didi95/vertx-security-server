@@ -2,7 +2,6 @@ package com.anasdidi.security.api.jwt;
 
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonController;
-import com.anasdidi.security.common.CommonUtils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,7 +27,8 @@ class JwtController extends CommonController {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Construct response body", tag, requestId);
       }
-      return new JsonObject().put("accessToken", CommonUtils.generateId());
+      return new JsonObject().put("accessToken",
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5jb20ifQ.VViCHxuk-TnuXAWVK3CzqwYYwTNIq3obY92VGn3KmHg");
     });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,

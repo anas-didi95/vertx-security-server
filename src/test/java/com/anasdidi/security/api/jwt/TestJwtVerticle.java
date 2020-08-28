@@ -80,7 +80,13 @@ public class TestJwtVerticle {
         Assertions.assertNotNull(data);
         Assertions.assertNotNull(data.getString("accessToken"));
 
-        testContext.completeNow();
+        webClient.get(port, host, "/ping").putHeader("Authorization", "Bearer " + data.getString("accessToken"))
+            .rxSend().subscribe(ping -> {
+              testContext.verify(() -> {
+                Assertions.assertNotNull(ping.bodyAsJsonObject());
+                testContext.completeNow();
+              });
+            }, e -> testContext.failNow(e));
       });
     }, e -> testContext.failNow(e));
   }

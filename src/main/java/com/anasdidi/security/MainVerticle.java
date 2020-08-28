@@ -12,14 +12,19 @@ import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Log4j2LogDelegateFactory;
+import io.vertx.ext.auth.JWTOptions;
+import io.vertx.ext.auth.PubSecKeyOptions;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.healthchecks.Status;
 import io.vertx.reactivex.config.ConfigRetriever;
 import io.vertx.reactivex.core.AbstractVerticle;
+import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
 import io.vertx.reactivex.ext.healthchecks.HealthCheckHandler;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import io.vertx.reactivex.ext.web.handler.BodyHandler;
+import io.vertx.reactivex.ext.web.handler.JWTAuthHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -55,11 +60,21 @@ public class MainVerticle extends AbstractVerticle {
       router.route().handler(BodyHandler.create());
       router.route().handler(this::generateRequestId);
 
+      @SuppressWarnings("deprecation")
+      JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()//
+          .setJWTOptions(new JWTOptions()//
+              .setIssuer("anasdidi.com"))//
+          .addPubSecKey(new PubSecKeyOptions()//
+              .setAlgorithm("HS256")//
+              .setPublicKey("secret")//
+              .setSymmetric(true)));
+
       vertx.deployVerticle(new UserVerticle(router, mongoClient));
       vertx.deployVerticle(new JwtVerticle(router));
 
       HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
       setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);
+      router.route("/ping").handler(JWTAuthHandler.create(jwtAuth));
       router.get("/ping").handler(healthCheckHandler);
 
       int port = cfg.getInteger("APP_PORT");

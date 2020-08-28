@@ -1,5 +1,6 @@
 package com.anasdidi.security;
 
+import com.anasdidi.security.api.jwt.JwtVerticle;
 import com.anasdidi.security.api.user.UserVerticle;
 import com.anasdidi.security.common.CommonUtils;
 
@@ -55,6 +56,7 @@ public class MainVerticle extends AbstractVerticle {
       router.route().handler(this::generateRequestId);
 
       vertx.deployVerticle(new UserVerticle(router, mongoClient));
+      vertx.deployVerticle(new JwtVerticle(router));
 
       HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
       setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);

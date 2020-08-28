@@ -39,7 +39,9 @@ class JwtController extends CommonController {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Request event to get user", tag, requestId);
       }
-      JsonObject message = new JsonObject().put("username", json.getString("username"));
+      JsonObject message = new JsonObject()//
+          .put("requestId", requestId)//
+          .put("username", json.getString("username"));
       return eventBus.rxRequest("user-read-username", message.encode());
     }).map(msg -> {
       if (logger.isDebugEnabled()) {

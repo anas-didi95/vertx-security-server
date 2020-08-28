@@ -1,5 +1,7 @@
 package com.anasdidi.security.api.jwt;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 
 import io.reactivex.Single;
@@ -9,6 +11,7 @@ import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
 
 class JwtService {
 
+  private final Logger logger = LogManager.getLogger(JwtService.class);
   private final JWTAuth jwtAuth;
 
   JwtService(JWTAuth jwtAuth) {

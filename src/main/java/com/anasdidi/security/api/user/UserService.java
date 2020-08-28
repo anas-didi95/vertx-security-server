@@ -87,4 +87,14 @@ class UserService {
         .map(doc -> doc.getString("_id"))//
         .toSingle();
   }
+
+  Single<UserVO> readByUsername(UserVO vo) {
+    JsonObject query = new JsonObject()//
+        .put("username", vo.username);
+    JsonObject fields = new JsonObject();
+
+    return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields)//
+        .map(json -> UserUtils.toVO(json))//
+        .toSingle();
+  }
 }

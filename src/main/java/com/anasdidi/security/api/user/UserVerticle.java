@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.anasdidi.security.common.CommonConstants;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,7 +44,7 @@ public class UserVerticle extends AbstractVerticle {
     router.delete("/:id").handler(userController::delete);
     mainRouter.mountSubRouter("/api/users", router);
 
-    vertx.eventBus().consumer("user-read-username", userController::doUserReadUsername);
+    vertx.eventBus().consumer(CommonConstants.EVT_USER_READ_USERNAME, userController::doUserReadUsername);
 
     logger.info("[start] Deployed success");
     startPromise.complete();

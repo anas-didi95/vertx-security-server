@@ -1,7 +1,5 @@
 package com.anasdidi.security.api.jwt;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 
 import io.reactivex.Single;
@@ -11,7 +9,6 @@ import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
 
 class JwtService {
 
-  private final Logger logger = LogManager.getLogger(JwtService.class);
   private final JWTAuth jwtAuth;
 
   JwtService(JWTAuth jwtAuth) {
@@ -24,7 +21,8 @@ class JwtService {
       boolean result2 = BCrypt.checkpw(password, user.getString("password"));
 
       if (result1 && result2) {
-        JsonObject claims = new JsonObject();
+        JsonObject claims = new JsonObject()//
+            .put("username", username);
         return jwtAuth.generateToken(claims, new JWTOptions()//
             .setSubject(user.getString("id"))//
             .setIssuer("anasdidi.com")//

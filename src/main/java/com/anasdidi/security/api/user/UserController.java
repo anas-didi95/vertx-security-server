@@ -40,7 +40,8 @@ class UserController extends CommonController {
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
+        logger.debug("[{}:{}] requestBody\n{}", tag, requestId,
+            requestBody.copy().put("password", "-").encodePrettily());
       }
 
       return requestBody;

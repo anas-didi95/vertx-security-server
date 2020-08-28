@@ -20,4 +20,6 @@ public class CommonConstants {
   public static final String MSG_OK_USER_VALIDATE = "User successfully validated.";
 
   public static final String TMPT_FIELD_IS_MANDATORY = "%s field is mandatory!";
+
+  public static final String EVT_USER_READ_USERNAME = "user-read-username";
 }

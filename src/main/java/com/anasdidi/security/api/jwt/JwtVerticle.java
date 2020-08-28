@@ -26,11 +26,9 @@ public class JwtVerticle extends AbstractVerticle {
   public void start(Promise<Void> startPromise) throws Exception {
     Router router = Router.router(vertx);
     router.post("/validate").handler(jwtController::validate);
-
     mainRouter.mountSubRouter("/jwt", router);
 
     logger.info("[start] Deployed success");
     startPromise.complete();
-
   }
 }

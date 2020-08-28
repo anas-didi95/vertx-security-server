@@ -34,21 +34,26 @@ class JwtController extends CommonController {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Get request body", tag, requestId);
       }
-      return routingContext.getBodyAsJson();
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] requestBody\n{}", tag, requestId,
+            requestBody.copy().put("password", "-").encodePrettily());
+      }
+
+      return requestBody;
     }).flatMap(json -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Request event to get user", tag, requestId);
       }
-      JsonObject message = new JsonObject()//
+      return eventBus.rxRequest(CommonConstants.EVT_USER_READ_USERNAME, new JsonObject()//
           .put("requestId", requestId)//
-          .put("username", json.getString("username"));
-      return eventBus.rxRequest("user-read-username", message.encode());
+          .put("username", json.getString("username"))//
+          .encode());
     }).map(msg -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Get reply from event", tag, requestId);
       }
-      JsonObject user = new JsonObject((String) msg.body());
-      return user;
+      return new JsonObject((String) msg.body());
     }).flatMap(user -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Validate user", tag, requestId);

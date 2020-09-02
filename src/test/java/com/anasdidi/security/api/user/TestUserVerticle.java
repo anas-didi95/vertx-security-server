@@ -107,7 +107,7 @@ public class TestUserVerticle {
 
     webClient.post(port, host, requestURI).rxSendJsonObject(requestBody).subscribe(response -> {
       testContext.verify(() -> {
-        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals(400, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
@@ -143,7 +143,7 @@ public class TestUserVerticle {
   void testUserCreateServiceError(Vertx vertx, VertxTestContext testContext) {
     webClient.post(port, host, requestURI).rxSendJsonObject(createdBody).subscribe(response -> {
       testContext.verify(() -> {
-        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals(400, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
@@ -178,7 +178,7 @@ public class TestUserVerticle {
   void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
     webClient.post(port, host, requestURI).rxSend().subscribe(response -> {
       testContext.verify(() -> {
-        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals(400, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
@@ -238,7 +238,7 @@ public class TestUserVerticle {
     webClient.put(port, host, requestURI + createdBody.getString("id")).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(200, response.statusCode());
+            Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
@@ -271,7 +271,7 @@ public class TestUserVerticle {
     webClient.put(port, host, requestURI + createdBody.getString("id")).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(200, response.statusCode());
+            Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
@@ -301,7 +301,7 @@ public class TestUserVerticle {
   void testUserUpdateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
     webClient.put(port, host, requestURI + createdBody.getString("id")).rxSend().subscribe(response -> {
       testContext.verify(() -> {
-        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals(400, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
@@ -362,7 +362,7 @@ public class TestUserVerticle {
     webClient.delete(port, host, requestURI + createdBody.getString("id")).rxSendJsonObject(requestBody)
         .subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(200, response.statusCode());
+            Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
@@ -395,7 +395,7 @@ public class TestUserVerticle {
     webClient.delete(port, host, requestURI + createdBody.getString("id")).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(200, response.statusCode());
+            Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
@@ -425,7 +425,7 @@ public class TestUserVerticle {
   void testUserDeleteRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
     webClient.delete(port, host, requestURI + createdBody.getString("id")).rxSend().subscribe(response -> {
       testContext.verify(() -> {
-        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals(400, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 

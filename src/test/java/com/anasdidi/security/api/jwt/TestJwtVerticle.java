@@ -99,7 +99,7 @@ public class TestJwtVerticle {
 
     webClient.post(port, host, requestURI + "/validate").rxSendJsonObject(user).subscribe(response -> {
       testContext.verify(() -> {
-        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals(400, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 

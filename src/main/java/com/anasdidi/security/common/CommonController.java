@@ -47,7 +47,7 @@ public abstract class CommonController {
       routingContext.response()//
           .putHeader(CommonConstants.HEADER_ACCEPT, CommonConstants.MEDIA_TYPE_APP_JSON)//
           .putHeader(CommonConstants.HEADER_CONTENT_TYPE, CommonConstants.MEDIA_TYPE_APP_JSON)//
-          .setStatusCode(200)//
+          .setStatusCode(CommonConstants.STATUS_CODE_BAD_REQUEST)//
           .end(responseBody);
     });
   }

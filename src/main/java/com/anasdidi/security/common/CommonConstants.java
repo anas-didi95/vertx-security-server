@@ -4,6 +4,7 @@ public class CommonConstants {
 
   public static final int STATUS_CODE_OK = 200;
   public static final int STATUS_CODE_CREATED = 201;
+  public static final int STATUS_CODE_BAD_REQUEST = 400;
 
   public static final String HEADER_ACCEPT = "Accept";
   public static final String HEADER_CONTENT_TYPE = "Content-Type";

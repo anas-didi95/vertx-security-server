@@ -16,13 +16,15 @@ public class JwtVerticle extends AbstractVerticle {
   private final Router mainRouter;
   private final JWTAuth jwtAuth;
   private final JwtService jwtService;
+  private final JwtValidator jwtValidator;
   private final JwtController jwtController;
 
   public JwtVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth) {
     this.mainRouter = mainRouter;
     this.jwtAuth = jwtAuth;
     this.jwtService = new JwtService(jwtAuth);
-    this.jwtController = new JwtController(eventBus, jwtService);
+    this.jwtValidator = new JwtValidator();
+    this.jwtController = new JwtController(eventBus, jwtService, jwtValidator);
   }
 
   @Override

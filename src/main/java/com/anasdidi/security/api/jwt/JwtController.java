@@ -69,4 +69,18 @@ class JwtController extends CommonController {
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_USER_VALIDATE);
   }
+
+  void check(RoutingContext routingContext) {
+    String tag = "check";
+    String requestId = routingContext.get("requestId");
+
+    Single<JsonObject> subscriber = Single.fromCallable(() -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] principal={}", tag, requestId, routingContext.user() == null);
+      }
+      return new JsonObject();
+    });
+
+    sendResponse(requestId, subscriber, routingContext, 200, "Ok");
+  }
 }

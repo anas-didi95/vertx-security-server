@@ -24,8 +24,8 @@ import io.vertx.reactivex.ext.web.client.WebClient;
 public class TestJwtVerticle {
 
   private int port;
-  private String host = "localhost";
-  private String requestURI = "/jwt/validate/";
+  private String host;
+  private String requestURI = "/jwt";
   private WebClient webClient;
   private JsonObject user;
 
@@ -36,7 +36,8 @@ public class TestJwtVerticle {
             .setType("env")));
 
     configRetriever.rxGetConfig().subscribe(cfg -> {
-      port = cfg.getInteger("APP_PORT");
+      port = cfg.getInteger("APP_PORT", 5000);
+      host = cfg.getString("APP_HOST", "localhost");
       webClient = WebClient.create(vertx);
       MongoClient mongoClient = MongoClient.createShared(vertx, new JsonObject()//
           .put("host", cfg.getString("TEST_MONGO_HOST"))//
@@ -61,7 +62,7 @@ public class TestJwtVerticle {
 
   @Test
   void testJwtValidateSuccess(Vertx vertx, VertxTestContext testContext) {
-    webClient.post(port, host, requestURI).rxSendJsonObject(user).subscribe(response -> {
+    webClient.post(port, host, requestURI + "/validate").rxSendJsonObject(user).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -80,9 +81,10 @@ public class TestJwtVerticle {
         Assertions.assertNotNull(data);
         Assertions.assertNotNull(data.getString("accessToken"));
 
-        webClient.get(port, host, "/ping").putHeader("Authorization", "Bearer " + data.getString("accessToken"))
-            .rxSend().subscribe(ping -> {
+        webClient.get(port, host, requestURI + "/check")
+            .putHeader("Authorization", "Bearer " + data.getString("accessToken")).rxSend().subscribe(ping -> {
               testContext.verify(() -> {
+                Assertions.assertEquals(200, ping.statusCode());
                 Assertions.assertNotNull(ping.bodyAsJsonObject());
                 testContext.completeNow();
               });

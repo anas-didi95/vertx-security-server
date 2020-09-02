@@ -24,7 +24,6 @@ import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import io.vertx.reactivex.ext.web.handler.BodyHandler;
-import io.vertx.reactivex.ext.web.handler.JWTAuthHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -74,14 +73,13 @@ public class MainVerticle extends AbstractVerticle {
 
       HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
       setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);
-      router.route("/ping").handler(JWTAuthHandler.create(jwtAuth));
       router.get("/ping").handler(healthCheckHandler);
 
       int port = cfg.getInteger("APP_PORT");
-      String host = "localhost";
+      String host = cfg.getString("APP_HOST", "localhost");
       vertx.createHttpServer().requestHandler(router).listen(port, host, http -> {
         if (http.succeeded()) {
-          logger.info("HTTP server started on port {}", port);
+          logger.info("HTTP server started on {}:{}", host, port);
           startPromise.complete();
         } else {
           startPromise.fail(http.cause());

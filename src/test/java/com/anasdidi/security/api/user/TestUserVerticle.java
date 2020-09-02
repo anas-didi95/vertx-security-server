@@ -25,7 +25,7 @@ import io.vertx.reactivex.ext.web.client.WebClient;
 public class TestUserVerticle {
 
   private int port;
-  private String host = "localhost";
+  private String host;
   private String requestURI = "/api/users/";
   private JsonObject createdBody;
   private WebClient webClient;
@@ -46,6 +46,7 @@ public class TestUserVerticle {
 
     config.rxGetConfig().subscribe(cfg -> {
       port = cfg.getInteger("APP_PORT");
+      host = cfg.getString("APP_HOST", "localhost");
       webClient = WebClient.create(vertx);
 
       mongoClient = MongoClient.createShared(vertx, new JsonObject()//

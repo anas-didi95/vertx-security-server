@@ -16,10 +16,12 @@ class JwtController extends CommonController {
   private final Logger logger = LogManager.getLogger(JwtController.class);
   private final EventBus eventBus;
   private final JwtService jwtService;
+  private final JwtValidator jwtValidator;
 
-  JwtController(EventBus eventBus, JwtService jwtService) {
+  JwtController(EventBus eventBus, JwtService jwtService, JwtValidator jwtValidator) {
     this.eventBus = eventBus;
     this.jwtService = jwtService;
+    this.jwtValidator = jwtValidator;
   }
 
   void validate(RoutingContext routingContext) {
@@ -41,13 +43,24 @@ class JwtController extends CommonController {
       }
 
       return requestBody;
-    }).flatMap(json -> {
+    }).map(json -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Convert to vo", tag, requestId);
+      }
+      return JwtUtils.toVO(json);
+    }).map(vo -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Validate vo", tag, requestId);
+      }
+      jwtValidator.validate(requestId, JwtValidator.Validate.LOGIN, vo);
+      return vo;
+    }).flatMap(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Request event to get user", tag, requestId);
       }
       return eventBus.rxRequest(CommonConstants.EVT_USER_READ_USERNAME, new JsonObject()//
           .put("requestId", requestId)//
-          .put("username", json.getString("username"))//
+          .put("username", vo.username)//
           .encode());
     }).map(msg -> {
       if (logger.isDebugEnabled()) {

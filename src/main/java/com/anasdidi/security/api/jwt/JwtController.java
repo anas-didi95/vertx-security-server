@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.jwt;
 
+import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonController;
 
@@ -29,12 +30,17 @@ class JwtController extends CommonController {
     String requestId = routingContext.get("requestId");
 
     JsonObject requestBody = routingContext.getBodyAsJson();
-    String username = requestBody.getString("username");
-    String password = requestBody.getString("password");
+    String username = requestBody != null ? requestBody.getString("username") : "";
+    String password = requestBody != null ? requestBody.getString("password") : "";
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Get request body", tag, requestId);
+      }
+
+      if (requestBody == null || requestBody.isEmpty()) {
+        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
+            CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
       }
 
       if (logger.isDebugEnabled()) {

@@ -155,4 +155,34 @@ public class TestJwtVerticle {
       });
     }, e -> testContext.failNow(e));
   }
+
+  @Test
+  void testJwtLoginRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
+    webClient.post(port, host, requestURI + "/login").rxSend().subscribe(response -> {
+      testContext.verify(() -> {
+        Assertions.assertEquals(400, response.statusCode());
+        Assertions.assertEquals("application/json", response.getHeader("Accept"));
+        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+
+        JsonObject responseBody = response.bodyAsJsonObject();
+        Assertions.assertNotNull(responseBody);
+
+        // status
+        JsonObject status = responseBody.getJsonObject("status");
+        Assertions.assertNotNull(status);
+        Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+        Assertions.assertEquals("Request failed!", status.getString("message"));
+
+        // data
+        JsonObject data = responseBody.getJsonObject("data");
+        Assertions.assertNotNull(data);
+        Assertions.assertNotNull(data.getString("requestId"));
+        Assertions.assertNotNull(data.getInstant("instant"));
+        Assertions.assertNotNull(data.getJsonArray("errorList"));
+        Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+
+        testContext.completeNow();
+      });
+    }, e -> testContext.failNow(e));
+  }
 }

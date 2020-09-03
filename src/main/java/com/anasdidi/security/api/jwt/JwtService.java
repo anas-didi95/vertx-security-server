@@ -23,18 +23,20 @@ class JwtService {
   Single<String> login(String requestId, String username, String password, JsonObject user) {
     String tag = "login";
     return Single.fromCallable(() -> {
-      String uUsername = user.getString("username", "");
-      String uPassword = user.getString("password", "");
+      String uUsername = user.getString("username");
+      String uPassword = user.getString("password");
       if (uUsername == null || uUsername.isBlank() || uPassword == null || uPassword.isBlank()) {
-        logger.error("[{}:{}] Invalid credential! username={}", tag, requestId, username);
-        throw new ApplicationException("Invalid credential!", requestId, "Incorrect username/password!");
+        logger.error("[{}:{}] {} username={}", tag, requestId, JwtConstants.MSG_ERR_INVALID_CREDENTIAL, username);
+        throw new ApplicationException(JwtConstants.MSG_ERR_INVALID_CREDENTIAL, requestId,
+            JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
       }
 
       boolean result1 = username.equals(uUsername);
       boolean result2 = BCrypt.checkpw(password, uPassword);
       if (!result1 || !result2) {
-        logger.error("[{}:{}] Invalid credential! username={}", tag, requestId, username);
-        throw new ApplicationException("Invalid credential!", requestId, "Incorrect username/password!");
+        logger.error("[{}:{}] {} username={}", tag, requestId, JwtConstants.MSG_ERR_INVALID_CREDENTIAL, username);
+        throw new ApplicationException(JwtConstants.MSG_ERR_INVALID_CREDENTIAL, requestId,
+            JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
       }
 
       JsonObject claims = new JsonObject()//

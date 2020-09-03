@@ -15,7 +15,7 @@ class JwtService {
     this.jwtAuth = jwtAuth;
   }
 
-  Single<String> validate(String username, String password, JsonObject user) {
+  Single<String> login(String username, String password, JsonObject user) {
     return Single.fromCallable(() -> {
       boolean result1 = username.equals(username);
       boolean result2 = BCrypt.checkpw(password, user.getString("password"));

@@ -32,7 +32,7 @@ public class JwtVerticle extends AbstractVerticle {
     Router router = Router.router(vertx);
 
     // No need token bearer
-    router.post("/login").handler(jwtController::validate);
+    router.post("/login").handler(jwtController::login);
 
     // Need token bearer
     router.route().handler(JWTAuthHandler.create(jwtAuth));

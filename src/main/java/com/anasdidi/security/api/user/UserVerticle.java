@@ -42,7 +42,7 @@ public class UserVerticle extends AbstractVerticle {
     router.post("/").handler(userController::doCreate);
     router.put("/:id").handler(userController::doUpdate);
     router.delete("/:id").handler(userController::doDelete);
-    mainRouter.mountSubRouter("/api/users", router);
+    mainRouter.mountSubRouter("/api/user", router);
 
     vertx.eventBus().consumer(CommonConstants.EVT_USER_READ_USERNAME, userController::reqUserReadUsername);
 

@@ -24,8 +24,8 @@ class JwtController extends CommonController {
     this.jwtValidator = jwtValidator;
   }
 
-  void login(RoutingContext routingContext) {
-    String tag = "login";
+  void doLogin(RoutingContext routingContext) {
+    String tag = "doLogin";
     String requestId = routingContext.get("requestId");
 
     JsonObject requestBody = routingContext.getBodyAsJson();
@@ -83,8 +83,8 @@ class JwtController extends CommonController {
         CommonConstants.MSG_OK_USER_VALIDATE);
   }
 
-  void check(RoutingContext routingContext) {
-    String tag = "check";
+  void doCheck(RoutingContext routingContext) {
+    String tag = "doCheck";
     String requestId = routingContext.get("requestId");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {

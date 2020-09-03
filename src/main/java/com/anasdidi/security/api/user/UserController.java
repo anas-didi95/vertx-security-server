@@ -24,8 +24,8 @@ class UserController extends CommonController {
     this.userService = userService;
   }
 
-  void create(RoutingContext routingContext) {
-    String tag = "create";
+  void doCreate(RoutingContext routingContext) {
+    String tag = "doCreate";
     String requestId = routingContext.get("requestId");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
@@ -78,8 +78,8 @@ class UserController extends CommonController {
         CommonConstants.MSG_OK_RECORD_CREATED);
   }
 
-  void update(RoutingContext routingContext) {
-    String tag = "update";
+  void doUpdate(RoutingContext routingContext) {
+    String tag = "doUpdate";
     String requestId = routingContext.get("requestId");
 
     String paramId = routingContext.request().getParam("id");
@@ -129,8 +129,8 @@ class UserController extends CommonController {
         CommonConstants.MSG_OK_RECORD_UPDATE);
   }
 
-  void delete(RoutingContext routingContext) {
-    String tag = "delete";
+  void doDelete(RoutingContext routingContext) {
+    String tag = "doDelete";
     String requestId = routingContext.get("requestId");
 
     String paramId = routingContext.request().getParam("id");
@@ -180,8 +180,8 @@ class UserController extends CommonController {
         CommonConstants.MSG_OK_RECORD_DELETE);
   }
 
-  void doUserReadUsername(Message<Object> message) {
-    String tag = "doUserReadUsername";
+  void reqUserReadUsername(Message<Object> message) {
+    String tag = "reqUserReadUsername";
     JsonObject body = new JsonObject((String) message.body());
     String requestId = body.getString("requestId");
 

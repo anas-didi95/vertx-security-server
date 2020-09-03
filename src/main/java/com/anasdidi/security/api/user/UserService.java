@@ -95,6 +95,7 @@ class UserService {
 
     return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields)//
         .map(json -> UserUtils.toVO(json))//
+        .defaultIfEmpty(new UserVO())//
         .toSingle();
   }
 }

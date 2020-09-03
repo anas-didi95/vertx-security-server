@@ -24,8 +24,8 @@ class JwtController extends CommonController {
     this.jwtValidator = jwtValidator;
   }
 
-  void validate(RoutingContext routingContext) {
-    String tag = "validate";
+  void login(RoutingContext routingContext) {
+    String tag = "login";
     String requestId = routingContext.get("requestId");
 
     JsonObject requestBody = routingContext.getBodyAsJson();
@@ -69,9 +69,9 @@ class JwtController extends CommonController {
       return new JsonObject((String) msg.body());
     }).flatMap(user -> {
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Validate user", tag, requestId);
+        logger.debug("[{}:{}] Login user", tag, requestId);
       }
-      return jwtService.validate(username, password, user);
+      return jwtService.login(requestId, username, password, user);
     }).map(accessToken -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Construct response body", tag, requestId);

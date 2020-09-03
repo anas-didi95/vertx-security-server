@@ -39,12 +39,12 @@ public class UserVerticle extends AbstractVerticle {
     configureMongoCollection(startPromise);
 
     Router router = Router.router(vertx);
-    router.post("/").handler(userController::create);
-    router.put("/:id").handler(userController::update);
-    router.delete("/:id").handler(userController::delete);
+    router.post("/").handler(userController::doCreate);
+    router.put("/:id").handler(userController::doUpdate);
+    router.delete("/:id").handler(userController::doDelete);
     mainRouter.mountSubRouter("/api/users", router);
 
-    vertx.eventBus().consumer(CommonConstants.EVT_USER_READ_USERNAME, userController::doUserReadUsername);
+    vertx.eventBus().consumer(CommonConstants.EVT_USER_READ_USERNAME, userController::reqUserReadUsername);
 
     logger.info("[start] Deployed success");
     startPromise.complete();

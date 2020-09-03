@@ -61,8 +61,8 @@ public class TestJwtVerticle {
   }
 
   @Test
-  void testJwtValidateSuccess(Vertx vertx, VertxTestContext testContext) {
-    webClient.post(port, host, requestURI + "/validate").rxSendJsonObject(user).subscribe(response -> {
+  void testJwtLoginSuccess(Vertx vertx, VertxTestContext testContext) {
+    webClient.post(port, host, requestURI + "/login").rxSendJsonObject(user).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -94,10 +94,10 @@ public class TestJwtVerticle {
   }
 
   @Test
-  void testJwtValidateValidationError(Vertx vertx, VertxTestContext testContext) {
+  void testJwtLoginValidationError(Vertx vertx, VertxTestContext testContext) {
     user.put("username", "");
 
-    webClient.post(port, host, requestURI + "/validate").rxSendJsonObject(user).subscribe(response -> {
+    webClient.post(port, host, requestURI + "/login").rxSendJsonObject(user).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(400, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));

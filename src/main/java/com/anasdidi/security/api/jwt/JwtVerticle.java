@@ -38,7 +38,7 @@ public class JwtVerticle extends AbstractVerticle {
     router.route().handler(JWTAuthHandler.create(jwtAuth));
     router.get("/check").handler(jwtController::doCheck);
 
-    mainRouter.mountSubRouter("/jwt", router);
+    mainRouter.mountSubRouter("/api/jwt", router);
 
     logger.info("[start] Deployed success");
     startPromise.complete();

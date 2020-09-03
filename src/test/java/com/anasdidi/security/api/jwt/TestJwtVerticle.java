@@ -25,7 +25,7 @@ public class TestJwtVerticle {
 
   private int port;
   private String host;
-  private String requestURI = "/jwt";
+  private String requestURI = "/api/jwt";
   private WebClient webClient;
   private JsonObject user;
 

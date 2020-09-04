@@ -25,8 +25,8 @@ class GraphqlDataFetcher {
     this.eventBus = eventBus;
   }
 
-  void getUser(DataFetchingEnvironment env, Promise<List<Map<String, Object>>> future) {
-    String tag = "getUser";
+  void getUserList(DataFetchingEnvironment env, Promise<List<Map<String, Object>>> future) {
+    String tag = "getUserList";
     String requestId = CommonUtils.generateId();
     JsonObject message = new JsonObject()//
         .put("requestId", requestId);
@@ -35,7 +35,7 @@ class GraphqlDataFetcher {
       logger.debug("[{}:{}] message\n{}", tag, requestId, message.encodePrettily());
     }
 
-    eventBus.rxRequest(CommonConstants.EVT_USER_READ, message.encode()).subscribe(reply -> {
+    eventBus.rxRequest(CommonConstants.EVT_USER_GET_LIST, message.encode()).subscribe(reply -> {
       JsonArray resultList = new JsonArray((String) reply.body());
       future.complete(
           resultList.stream().map(o -> (JsonObject) o).map(json -> json.getMap()).collect(Collectors.toList()));

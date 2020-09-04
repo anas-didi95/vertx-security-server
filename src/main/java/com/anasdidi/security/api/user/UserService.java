@@ -91,7 +91,7 @@ class UserService {
         .toSingle();
   }
 
-  Single<UserVO> readByUsername(UserVO vo) {
+  Single<UserVO> getUserByUsername(UserVO vo) {
     JsonObject query = new JsonObject()//
         .put("username", vo.username);
     JsonObject fields = new JsonObject();
@@ -102,7 +102,7 @@ class UserService {
         .toSingle();
   }
 
-  Single<List<UserVO>> read(UserVO vo) {
+  Single<List<UserVO>> getUserList(UserVO vo) {
     JsonObject query = new JsonObject();
 
     return mongoClient.rxFind(UserConstants.COLLECTION_NAME, query)//

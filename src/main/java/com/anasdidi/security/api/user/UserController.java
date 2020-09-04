@@ -183,8 +183,8 @@ class UserController extends CommonController {
         CommonConstants.MSG_OK_RECORD_DELETE);
   }
 
-  void reqUserReadUsername(Message<Object> message) {
-    String tag = "reqUserReadUsername";
+  void reqGetUserByUsername(Message<Object> message) {
+    String tag = "reqGetUserByUsername";
     JsonObject body = new JsonObject((String) message.body());
     String requestId = body.getString("requestId");
 
@@ -198,7 +198,7 @@ class UserController extends CommonController {
           if (logger.isDebugEnabled()) {
             logger.debug("[{}:{}] Get user by username", tag, requestId);
           }
-          return userService.readByUsername(vo);
+          return userService.getUserByUsername(vo);
         }).map(vo -> {
           if (logger.isDebugEnabled()) {
             logger.debug("[{}:{}] Convert vo to reply message", tag, requestId);
@@ -209,8 +209,8 @@ class UserController extends CommonController {
         });
   }
 
-  void reqReadUser(Message<Object> message) {
-    String tag = "reqReadUser";
+  void reqGetUserList(Message<Object> message) {
+    String tag = "reqGetUserList";
     JsonObject body = new JsonObject((String) message.body());
     String requestId = body.getString("requestId");
 
@@ -223,9 +223,9 @@ class UserController extends CommonController {
         })//
         .flatMap(vo -> {
           if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Get user", tag, requestId);
+            logger.debug("[{}:{}] Get user list", tag, requestId);
           }
-          return userService.read(vo);
+          return userService.getUserList(vo);
         })//
         .map(resultList -> {
           if (logger.isDebugEnabled()) {

@@ -45,7 +45,7 @@ public class GraphqlVerticle extends AbstractVerticle {
 
     RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()//
         .type("Query", builder -> builder//
-            .dataFetcher("getUser", new VertxDataFetcher<>(dataFetcher::getUser)))//
+            .dataFetcher("getUserList", new VertxDataFetcher<>(dataFetcher::getUserList)))//
         .build();
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();

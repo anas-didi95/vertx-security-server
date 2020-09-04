@@ -14,6 +14,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.reactivex.core.AbstractVerticle;
+import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
@@ -25,14 +26,16 @@ public class UserVerticle extends AbstractVerticle {
   private final Router mainRouter;
   private final MongoClient mongoClient;
   private final JWTAuth jwtAuth;
+  private final EventBus eventBus;
   private final UserValidator userValidator;
   private final UserService userService;
   private final UserController userController;
 
-  public UserVerticle(Router mainRouter, MongoClient mongoClient, JWTAuth jwtAuth) {
+  public UserVerticle(Router mainRouter, MongoClient mongoClient, JWTAuth jwtAuth, EventBus eventBus) {
     this.mainRouter = mainRouter;
     this.mongoClient = mongoClient;
     this.jwtAuth = jwtAuth;
+    this.eventBus = eventBus;
     this.userValidator = new UserValidator();
     this.userService = new UserService(mongoClient);
     this.userController = new UserController(userValidator, userService);
@@ -49,8 +52,8 @@ public class UserVerticle extends AbstractVerticle {
     router.delete("/:id").handler(userController::doDelete);
     mainRouter.mountSubRouter("/api/user", router);
 
-    vertx.eventBus().consumer(CommonConstants.EVT_USER_READ_USERNAME, userController::reqUserReadUsername);
-    vertx.eventBus().consumer(CommonConstants.EVT_USER_READ, userController::reqReadUser);
+    eventBus.consumer(CommonConstants.EVT_USER_GET_BY_USERNAME, userController::reqGetUserByUsername);
+    eventBus.consumer(CommonConstants.EVT_USER_GET_LIST, userController::reqGetUserList);
 
     logger.info("[start] Deployed success");
     startPromise.complete();

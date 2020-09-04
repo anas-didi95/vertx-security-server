@@ -11,7 +11,7 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "username": "superadmin2",
+  "username": "superadmin",
   "password": "password",
   "fullName": "superadmin",
   "email": "anas.didi95@gmail.com"

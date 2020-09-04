@@ -22,6 +22,6 @@ public class CommonConstants {
 
   public static final String TMPT_FIELD_IS_MANDATORY = "%s field is mandatory!";
 
-  public static final String EVT_USER_READ_USERNAME = "user-read-username";
-  public static final String EVT_USER_READ = "user-read";
+  public static final String EVT_USER_GET_BY_USERNAME = "user-get-by-username";
+  public static final String EVT_USER_GET_LIST = "user-get-list";
 }

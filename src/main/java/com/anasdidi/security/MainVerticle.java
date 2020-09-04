@@ -1,5 +1,6 @@
 package com.anasdidi.security;
 
+import com.anasdidi.security.api.graphql.GraphqlVerticle;
 import com.anasdidi.security.api.jwt.JwtVerticle;
 import com.anasdidi.security.api.user.UserVerticle;
 import com.anasdidi.security.common.CommonUtils;
@@ -69,8 +70,9 @@ public class MainVerticle extends AbstractVerticle {
               .setPublicKey(cfg.getString("JWT_SECRET"))//
               .setSymmetric(true)));
 
+      vertx.deployVerticle(new GraphqlVerticle(router, vertx.eventBus()));
       vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth, cfg));
-      vertx.deployVerticle(new UserVerticle(router, mongoClient, jwtAuth));
+      vertx.deployVerticle(new UserVerticle(router, mongoClient, jwtAuth, vertx.eventBus()));
 
       HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
       setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);

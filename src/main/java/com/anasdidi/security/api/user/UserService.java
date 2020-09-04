@@ -1,5 +1,8 @@
 package com.anasdidi.security.api.user;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonUtils;
 
@@ -88,7 +91,7 @@ class UserService {
         .toSingle();
   }
 
-  Single<UserVO> readByUsername(UserVO vo) {
+  Single<UserVO> getUserByUsername(UserVO vo) {
     JsonObject query = new JsonObject()//
         .put("username", vo.username);
     JsonObject fields = new JsonObject();
@@ -97,5 +100,12 @@ class UserService {
         .map(json -> UserUtils.toVO(json))//
         .defaultIfEmpty(new UserVO())//
         .toSingle();
+  }
+
+  Single<List<UserVO>> getUserList(UserVO vo) {
+    JsonObject query = new JsonObject();
+
+    return mongoClient.rxFind(UserConstants.COLLECTION_NAME, query)//
+        .map(resultList -> resultList.stream().map(json -> UserUtils.toVO(json)).collect(Collectors.toList()));
   }
 }

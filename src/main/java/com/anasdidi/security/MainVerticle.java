@@ -62,13 +62,13 @@ public class MainVerticle extends AbstractVerticle {
       @SuppressWarnings("deprecation")
       JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()//
           .setJWTOptions(new JWTOptions()//
-              .setIssuer("anasdidi.com"))//
+              .setIssuer("anasdidi.dev"))//
           .addPubSecKey(new PubSecKeyOptions()//
               .setAlgorithm("HS256")//
               .setPublicKey("secret")//
               .setSymmetric(true)));
 
-      vertx.deployVerticle(new UserVerticle(router, mongoClient));
+      vertx.deployVerticle(new UserVerticle(router, mongoClient, jwtAuth));
       vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth));
 
       HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);

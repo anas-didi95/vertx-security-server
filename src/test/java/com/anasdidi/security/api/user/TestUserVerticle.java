@@ -31,6 +31,9 @@ public class TestUserVerticle {
   private WebClient webClient;
   private MongoClient mongoClient;
 
+  // signature=secret, issuer=anasdidi.dev
+  private String accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaXNzIjoiYW5hc2RpZGkuZGV2IiwiaWF0IjoxNTE2MjM5MDIyfQ.fzLgJlshK6aJ135zy_fFMigGJVdN-myDMWOrTiah3zY";
+
   private JsonObject generateRequestBody() {
     return new JsonObject()//
         .put("username", System.currentTimeMillis() + "username")//
@@ -77,27 +80,28 @@ public class TestUserVerticle {
   void testUserCreateSuccess(Vertx vertx, VertxTestContext testContext) {
     JsonObject requestBody = generateRequestBody();
 
-    webClient.post(port, host, requestURI).rxSendJsonObject(requestBody).subscribe(response -> {
-      testContext.verify(() -> {
-        Assertions.assertEquals(201, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Accept"));
-        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+    webClient.post(port, host, requestURI).putHeader("Authorization", "Bearer " + accessToken)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            Assertions.assertEquals(201, response.statusCode());
+            Assertions.assertEquals("application/json", response.getHeader("Accept"));
+            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
-        JsonObject responseBody = response.bodyAsJsonObject();
-        Assertions.assertNotNull(responseBody);
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
 
-        JsonObject status = responseBody.getJsonObject("status");
-        Assertions.assertNotNull(status);
-        Assertions.assertEquals(true, status.getBoolean("isSuccess"));
-        Assertions.assertEquals("Record successfully created.", status.getString("message"));
+            JsonObject status = responseBody.getJsonObject("status");
+            Assertions.assertNotNull(status);
+            Assertions.assertEquals(true, status.getBoolean("isSuccess"));
+            Assertions.assertEquals("Record successfully created.", status.getString("message"));
 
-        JsonObject data = responseBody.getJsonObject("data");
-        Assertions.assertNotNull(data);
-        Assertions.assertNotNull(data.getString("id"));
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
+            Assertions.assertNotNull(data.getString("id"));
 
-        testContext.completeNow();
-      });
-    }, e -> testContext.failNow(e));
+            testContext.completeNow();
+          });
+        }, e -> testContext.failNow(e));
   }
 
   @Test
@@ -105,108 +109,111 @@ public class TestUserVerticle {
     JsonObject requestBody = generateRequestBody();
     requestBody.put("fullName", "").put("email", "");
 
-    webClient.post(port, host, requestURI).rxSendJsonObject(requestBody).subscribe(response -> {
-      testContext.verify(() -> {
-        Assertions.assertEquals(400, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Accept"));
-        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+    webClient.post(port, host, requestURI).putHeader("Authorization", "Bearer " + accessToken)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            Assertions.assertEquals(400, response.statusCode());
+            Assertions.assertEquals("application/json", response.getHeader("Accept"));
+            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
-        JsonObject responseBody = response.bodyAsJsonObject();
-        Assertions.assertNotNull(responseBody);
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
 
-        // status
-        JsonObject status = responseBody.getJsonObject("status");
-        Assertions.assertNotNull(status);
-        Assertions.assertEquals(false, status.getBoolean("isSuccess"));
-        Assertions.assertEquals("Validation error!", status.getString("message"));
+            // status
+            JsonObject status = responseBody.getJsonObject("status");
+            Assertions.assertNotNull(status);
+            Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+            Assertions.assertEquals("Validation error!", status.getString("message"));
 
-        // data
-        JsonObject data = responseBody.getJsonObject("data");
-        Assertions.assertNotNull(data);
+            // data
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
 
-        String requestId = data.getString("requestId");
-        Assertions.assertNotNull(requestId);
+            String requestId = data.getString("requestId");
+            Assertions.assertNotNull(requestId);
 
-        JsonArray errorList = data.getJsonArray("errorList");
-        Assertions.assertNotNull(errorList);
-        Assertions.assertTrue(!errorList.isEmpty());
+            JsonArray errorList = data.getJsonArray("errorList");
+            Assertions.assertNotNull(errorList);
+            Assertions.assertTrue(!errorList.isEmpty());
 
-        Instant instant = data.getInstant("instant");
-        Assertions.assertNotNull(instant);
+            Instant instant = data.getInstant("instant");
+            Assertions.assertNotNull(instant);
 
-        testContext.completeNow();
-      });
-    }, e -> testContext.failNow(e));
+            testContext.completeNow();
+          });
+        }, e -> testContext.failNow(e));
   }
 
   @Test
   void testUserCreateServiceError(Vertx vertx, VertxTestContext testContext) {
-    webClient.post(port, host, requestURI).rxSendJsonObject(createdBody).subscribe(response -> {
-      testContext.verify(() -> {
-        Assertions.assertEquals(400, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Accept"));
-        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+    webClient.post(port, host, requestURI).putHeader("Authorization", "Bearer " + accessToken)
+        .rxSendJsonObject(createdBody).subscribe(response -> {
+          testContext.verify(() -> {
+            Assertions.assertEquals(400, response.statusCode());
+            Assertions.assertEquals("application/json", response.getHeader("Accept"));
+            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
-        JsonObject responseBody = response.bodyAsJsonObject();
-        Assertions.assertNotNull(responseBody);
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
 
-        // status
-        JsonObject status = responseBody.getJsonObject("status");
-        Assertions.assertNotNull(status);
-        Assertions.assertEquals(false, status.getBoolean("isSuccess"));
-        Assertions.assertEquals("User creation failed!", status.getString("message"));
+            // status
+            JsonObject status = responseBody.getJsonObject("status");
+            Assertions.assertNotNull(status);
+            Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+            Assertions.assertEquals("User creation failed!", status.getString("message"));
 
-        // data
-        JsonObject data = responseBody.getJsonObject("data");
-        Assertions.assertNotNull(data);
+            // data
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
 
-        String requestId = data.getString("requestId");
-        Assertions.assertNotNull(requestId);
+            String requestId = data.getString("requestId");
+            Assertions.assertNotNull(requestId);
 
-        JsonArray errorList = data.getJsonArray("errorList");
-        Assertions.assertTrue(!errorList.isEmpty());
+            JsonArray errorList = data.getJsonArray("errorList");
+            Assertions.assertTrue(!errorList.isEmpty());
 
-        Instant instant = data.getInstant("instant");
-        Assertions.assertNotNull(instant);
+            Instant instant = data.getInstant("instant");
+            Assertions.assertNotNull(instant);
 
-        testContext.completeNow();
-      });
-    }, e -> testContext.failNow(e));
+            testContext.completeNow();
+          });
+        }, e -> testContext.failNow(e));
   }
 
   @Test
   void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
-    webClient.post(port, host, requestURI).rxSend().subscribe(response -> {
-      testContext.verify(() -> {
-        Assertions.assertEquals(400, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Accept"));
-        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+    webClient.post(port, host, requestURI).putHeader("Authorization", "Bearer " + accessToken).rxSend()
+        .subscribe(response -> {
+          testContext.verify(() -> {
+            Assertions.assertEquals(400, response.statusCode());
+            Assertions.assertEquals("application/json", response.getHeader("Accept"));
+            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
-        JsonObject responseBody = response.bodyAsJsonObject();
-        Assertions.assertNotNull(responseBody);
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
 
-        // status
-        JsonObject status = responseBody.getJsonObject("status");
-        Assertions.assertNotNull(status);
-        Assertions.assertEquals(false, status.getBoolean("isSuccess"));
-        Assertions.assertEquals("Request failed!", status.getString("message"));
+            // status
+            JsonObject status = responseBody.getJsonObject("status");
+            Assertions.assertNotNull(status);
+            Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+            Assertions.assertEquals("Request failed!", status.getString("message"));
 
-        JsonObject data = responseBody.getJsonObject("data");
-        Assertions.assertNotNull(data);
-        Assertions.assertNotNull(data.getString("requestId"));
-        Assertions.assertNotNull(data.getInstant("instant"));
-        Assertions.assertNotNull(data.getJsonArray("errorList"));
-        Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
+            Assertions.assertNotNull(data.getString("requestId"));
+            Assertions.assertNotNull(data.getInstant("instant"));
+            Assertions.assertNotNull(data.getJsonArray("errorList"));
+            Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
 
-        testContext.completeNow();
-      });
-    }, e -> testContext.failNow(e));
+            testContext.completeNow();
+          });
+        }, e -> testContext.failNow(e));
   }
 
   @Test
   void testUserUpdateSuccess(Vertx vertx, VertxTestContext testContext) {
-    webClient.put(port, host, requestURI + "/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
-        .subscribe(response -> {
+    webClient.put(port, host, requestURI + "/" + createdBody.getString("id"))
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -235,8 +242,8 @@ public class TestUserVerticle {
   void testUserUpdateValidationError(Vertx vertx, VertxTestContext testContext) {
     createdBody.put("fullName", "").put("email", "");
 
-    webClient.put(port, host, requestURI + "/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
-        .subscribe(response -> {
+    webClient.put(port, host, requestURI + "/" + createdBody.getString("id"))
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -268,8 +275,8 @@ public class TestUserVerticle {
   void testUserUpdateNotFoundError(Vertx vertx, VertxTestContext testContext) {
     createdBody.put("version", -1);
 
-    webClient.put(port, host, requestURI + "/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
-        .subscribe(response -> {
+    webClient.put(port, host, requestURI + "/" + createdBody.getString("id"))
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -299,38 +306,39 @@ public class TestUserVerticle {
 
   @Test
   void testUserUpdateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
-    webClient.put(port, host, requestURI + "/" + createdBody.getString("id")).rxSend().subscribe(response -> {
-      testContext.verify(() -> {
-        Assertions.assertEquals(400, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Accept"));
-        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+    webClient.put(port, host, requestURI + "/" + createdBody.getString("id"))
+        .putHeader("Authorization", "Bearer " + accessToken).rxSend().subscribe(response -> {
+          testContext.verify(() -> {
+            Assertions.assertEquals(400, response.statusCode());
+            Assertions.assertEquals("application/json", response.getHeader("Accept"));
+            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
-        JsonObject responseBody = response.bodyAsJsonObject();
-        Assertions.assertNotNull(responseBody);
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
 
-        // status
-        JsonObject status = responseBody.getJsonObject("status");
-        Assertions.assertNotNull(status);
-        Assertions.assertEquals(false, status.getBoolean("isSuccess"));
-        Assertions.assertEquals("Request failed!", status.getString("message"));
+            // status
+            JsonObject status = responseBody.getJsonObject("status");
+            Assertions.assertNotNull(status);
+            Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+            Assertions.assertEquals("Request failed!", status.getString("message"));
 
-        // data
-        JsonObject data = responseBody.getJsonObject("data");
-        Assertions.assertNotNull(data);
-        Assertions.assertNotNull(data.getString("requestId"));
-        Assertions.assertNotNull(data.getInstant("instant"));
-        Assertions.assertNotNull(data.getJsonArray("errorList"));
-        Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+            // data
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
+            Assertions.assertNotNull(data.getString("requestId"));
+            Assertions.assertNotNull(data.getInstant("instant"));
+            Assertions.assertNotNull(data.getJsonArray("errorList"));
+            Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
 
-        testContext.completeNow();
-      });
-    }, e -> testContext.failNow(e));
+            testContext.completeNow();
+          });
+        }, e -> testContext.failNow(e));
   }
 
   @Test
   void testUserDeleteSuccess(Vertx vertx, VertxTestContext testContext) {
-    webClient.delete(port, host, requestURI + "/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
-        .subscribe(response -> {
+    webClient.delete(port, host, requestURI + "/" + createdBody.getString("id"))
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -359,8 +367,8 @@ public class TestUserVerticle {
   void testUserDeleteValidationError(Vertx vertx, VertxTestContext testContext) {
     JsonObject requestBody = new JsonObject().put("dummy", "");
 
-    webClient.delete(port, host, requestURI + "/" + createdBody.getString("id")).rxSendJsonObject(requestBody)
-        .subscribe(response -> {
+    webClient.delete(port, host, requestURI + "/" + createdBody.getString("id"))
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -392,8 +400,8 @@ public class TestUserVerticle {
   void testUserDeleteNotFoundError(Vertx vertx, VertxTestContext testContext) {
     createdBody.put("version", -1);
 
-    webClient.delete(port, host, requestURI + "/" + createdBody.getString("id")).rxSendJsonObject(createdBody)
-        .subscribe(response -> {
+    webClient.delete(port, host, requestURI + "/" + createdBody.getString("id"))
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Accept"));
@@ -423,31 +431,32 @@ public class TestUserVerticle {
 
   @Test
   void testUserDeleteRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
-    webClient.delete(port, host, requestURI + "/" + createdBody.getString("id")).rxSend().subscribe(response -> {
-      testContext.verify(() -> {
-        Assertions.assertEquals(400, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Accept"));
-        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+    webClient.delete(port, host, requestURI + "/" + createdBody.getString("id"))
+        .putHeader("Authorization", "Bearer " + accessToken).rxSend().subscribe(response -> {
+          testContext.verify(() -> {
+            Assertions.assertEquals(400, response.statusCode());
+            Assertions.assertEquals("application/json", response.getHeader("Accept"));
+            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
 
-        JsonObject responseBody = response.bodyAsJsonObject();
-        Assertions.assertNotNull(responseBody);
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
 
-        // status
-        JsonObject status = responseBody.getJsonObject("status");
-        Assertions.assertNotNull(status);
-        Assertions.assertEquals(false, status.getBoolean("isSuccess"));
-        Assertions.assertEquals("Request failed!", status.getString("message"));
+            // status
+            JsonObject status = responseBody.getJsonObject("status");
+            Assertions.assertNotNull(status);
+            Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+            Assertions.assertEquals("Request failed!", status.getString("message"));
 
-        // data
-        JsonObject data = responseBody.getJsonObject("data");
-        Assertions.assertNotNull(data);
-        Assertions.assertNotNull(data.getString("requestId"));
-        Assertions.assertNotNull(data.getInstant("instant"));
-        Assertions.assertNotNull(data.getJsonArray("errorList"));
-        Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+            // data
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
+            Assertions.assertNotNull(data.getString("requestId"));
+            Assertions.assertNotNull(data.getInstant("instant"));
+            Assertions.assertNotNull(data.getJsonArray("errorList"));
+            Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
 
-        testContext.completeNow();
-      });
-    }, e -> testContext.failNow(e));
+            testContext.completeNow();
+          });
+        }, e -> testContext.failNow(e));
   }
 }

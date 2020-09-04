@@ -43,7 +43,7 @@ class JwtService {
           .put("username", username);
       return jwtAuth.generateToken(claims, new JWTOptions()//
           .setSubject(user.getString("id"))//
-          .setIssuer("anasdidi.com")//
+          .setIssuer("anasdidi.dev")//
           .setExpiresInMinutes(30));
     });
   }

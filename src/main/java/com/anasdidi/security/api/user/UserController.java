@@ -1,5 +1,7 @@
 package com.anasdidi.security.api.user;
 
+import java.util.stream.Collectors;
+
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonController;
@@ -9,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 
 import io.reactivex.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.eventbus.Message;
 import io.vertx.reactivex.ext.web.RoutingContext;
@@ -188,7 +191,7 @@ class UserController extends CommonController {
     Single.just(body)//
         .map(json -> {
           if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Convent body to vo", tag, requestId);
+            logger.debug("[{}:{}] Convert body to vo", tag, requestId);
           }
           return UserUtils.toVO(json);
         }).flatMap(vo -> {
@@ -204,5 +207,31 @@ class UserController extends CommonController {
         }).subscribe(reply -> {
           message.reply(reply);
         });
+  }
+
+  void reqReadUser(Message<Object> message) {
+    String tag = "reqReadUser";
+    JsonObject body = new JsonObject((String) message.body());
+    String requestId = body.getString("requestId");
+
+    Single.just(body)//
+        .map(json -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] Convert body to vo", tag, requestId);
+          }
+          return UserUtils.toVO(json);
+        })//
+        .flatMap(vo -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] Get user", tag, requestId);
+          }
+          return userService.read(vo);
+        })//
+        .map(resultList -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] Convert resultList to reply message", tag, requestId);
+          }
+          return new JsonArray(resultList.stream().map(vo -> UserUtils.toJson(vo)).collect(Collectors.toList()));
+        }).subscribe(reply -> message.reply(reply.encode()));
   }
 }

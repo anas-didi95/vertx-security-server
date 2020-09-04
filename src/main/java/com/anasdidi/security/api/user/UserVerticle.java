@@ -50,6 +50,7 @@ public class UserVerticle extends AbstractVerticle {
     mainRouter.mountSubRouter("/api/user", router);
 
     vertx.eventBus().consumer(CommonConstants.EVT_USER_READ_USERNAME, userController::reqUserReadUsername);
+    vertx.eventBus().consumer(CommonConstants.EVT_USER_READ, userController::reqReadUser);
 
     logger.info("[start] Deployed success");
     startPromise.complete();

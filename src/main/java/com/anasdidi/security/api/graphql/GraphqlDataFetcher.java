@@ -1,15 +1,19 @@
 package com.anasdidi.security.api.graphql;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.anasdidi.security.common.CommonConstants;
+import com.anasdidi.security.common.CommonUtils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import graphql.schema.DataFetchingEnvironment;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.eventbus.EventBus;
 
 class GraphqlDataFetcher {
@@ -23,19 +27,18 @@ class GraphqlDataFetcher {
 
   void getUser(DataFetchingEnvironment env, Promise<List<Map<String, Object>>> future) {
     String tag = "getUser";
-    if (logger.isDebugEnabled()) {
-      logger.debug("[{}] Start ...", tag);
-    }
-
-    Map<String, Object> data = new HashMap<>();
-    data.put("id", "Hello world");
-
-    List<Map<String, Object>> resultList = new ArrayList<>();
-    resultList.add(data);
+    String requestId = CommonUtils.generateId();
+    JsonObject message = new JsonObject()//
+        .put("requestId", requestId);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}} End ... resultList.size={}", tag, (resultList == null ? -1 : resultList.size()));
+      logger.debug("[{}:{}] message\n{}", tag, requestId, message.encodePrettily());
     }
-    future.complete(resultList);
+
+    eventBus.rxRequest(CommonConstants.EVT_USER_READ, message.encode()).subscribe(reply -> {
+      JsonArray resultList = new JsonArray((String) reply.body());
+      future.complete(
+          resultList.stream().map(o -> (JsonObject) o).map(json -> json.getMap()).collect(Collectors.toList()));
+    }, e -> future.fail(e));
   }
 }

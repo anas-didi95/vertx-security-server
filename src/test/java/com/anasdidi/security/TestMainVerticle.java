@@ -42,6 +42,10 @@ public class TestMainVerticle {
       testContext.verify(() -> {
         Assertions.assertNotNull(cfg.getInteger("APP_PORT"));
 
+        Assertions.assertNotNull(cfg.getString("JWT_SECRET"));
+        Assertions.assertNotNull(cfg.getString("JWT_ISSUER"));
+        Assertions.assertNotNull(cfg.getInteger("JWT_EXPIRE_IN_MINUTES"));
+
         Assertions.assertNotNull(cfg.getString("MONGO_HOST"));
         Assertions.assertNotNull(cfg.getInteger("MONGO_PORT"));
         Assertions.assertNotNull(cfg.getString("MONGO_USERNAME"));

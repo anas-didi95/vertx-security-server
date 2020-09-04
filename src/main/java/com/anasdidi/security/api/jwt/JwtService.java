@@ -15,9 +15,11 @@ class JwtService {
 
   private final Logger logger = LogManager.getLogger(JwtService.class);
   private final JWTAuth jwtAuth;
+  private final JsonObject cfg;
 
-  JwtService(JWTAuth jwtAuth) {
+  JwtService(JWTAuth jwtAuth, JsonObject cfg) {
     this.jwtAuth = jwtAuth;
+    this.cfg = cfg;
   }
 
   Single<String> login(String requestId, String username, String password, JsonObject user) {
@@ -43,8 +45,8 @@ class JwtService {
           .put("username", username);
       return jwtAuth.generateToken(claims, new JWTOptions()//
           .setSubject(user.getString("id"))//
-          .setIssuer("anasdidi.dev")//
-          .setExpiresInMinutes(30));
+          .setIssuer(cfg.getString("JWT_ISSUER"))//
+          .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES")));
     });
   }
 }

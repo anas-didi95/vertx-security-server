@@ -10,6 +10,7 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
 import io.vertx.ext.web.handler.graphql.VertxDataFetcher;
 import io.vertx.reactivex.core.AbstractVerticle;
@@ -25,11 +26,13 @@ public class GraphqlVerticle extends AbstractVerticle {
   private final Logger logger = LogManager.getLogger(GraphqlVerticle.class);
   private final Router mainRouter;
   private final JWTAuth jwtAuth;
+  private final JsonObject cfg;
   private final GraphqlDataFetcher dataFetcher;
 
-  public GraphqlVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth) {
+  public GraphqlVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth, JsonObject cfg) {
     this.mainRouter = mainRouter;
     this.jwtAuth = jwtAuth;
+    this.cfg = cfg;
     this.dataFetcher = new GraphqlDataFetcher(eventBus);
   }
 
@@ -40,12 +43,12 @@ public class GraphqlVerticle extends AbstractVerticle {
     router.post("/").handler(GraphQLHandler.create(createGraphQL()));
     mainRouter.mountSubRouter("/graphql", router);
 
-    if (true) {
+    if (cfg.getBoolean("GRAPHIQL_IS_ENABLE", false)) {
       Router router1 = Router.router(vertx);
       router1.post("/graphql").handler(GraphQLHandler.create(createGraphQL()));
       router1.get("/*").handler(GraphiQLHandler.create(new GraphiQLHandlerOptions()//
           .setGraphQLUri("/graphiql/graphql")//
-          .setEnabled(true)));
+          .setEnabled(cfg.getBoolean("GRAPHIQL_IS_ENABLE", false))));
       mainRouter.mountSubRouter("/graphiql", router1);
     }
 

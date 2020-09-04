@@ -43,10 +43,18 @@ public class MainVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
+    String tag = "start";
     ConfigRetriever configRetriever = ConfigRetriever.create(vertx,
         new ConfigRetrieverOptions().addStore(new ConfigStoreOptions().setType("env")));
 
     configRetriever.rxGetConfig().subscribe(cfg -> {
+      logger.info("[{}] configRetriever\n{}", tag, cfg.copy()//
+          .put("TEST_MONGO_PASSWORD", "-")//
+          .put("MONGO_PASSWORD", "-")//
+          .put("JWT_SECRET", "-")//
+          .put("JWT_ISSUER", "-")//
+          .encodePrettily());
+
       JsonObject mongoConfig = new JsonObject()
           .put("host", isTest ? cfg.getString("TEST_MONGO_HOST") : cfg.getString("MONGO_HOST"))//
           .put("port", isTest ? cfg.getInteger("TEST_MONGO_PORT") : cfg.getInteger("MONGO_PORT"))//
@@ -76,13 +84,13 @@ public class MainVerticle extends AbstractVerticle {
 
       vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth, cfg));
       vertx.deployVerticle(new UserVerticle(router, mongoClient, jwtAuth, vertx.eventBus()));
-      vertx.deployVerticle(new GraphqlVerticle(router, vertx.eventBus(), jwtAuth));
+      vertx.deployVerticle(new GraphqlVerticle(router, vertx.eventBus(), jwtAuth, cfg));
 
       int port = cfg.getInteger("APP_PORT");
       String host = cfg.getString("APP_HOST", "localhost");
       vertx.createHttpServer().requestHandler(router).listen(port, host, http -> {
         if (http.succeeded()) {
-          logger.info("HTTP server started on {}:{}", host, port);
+          logger.info("[{}] HTTP server started on {}:{}", tag, host, port);
           startPromise.complete();
         } else {
           startPromise.fail(http.cause());

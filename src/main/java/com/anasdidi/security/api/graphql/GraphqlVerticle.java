@@ -10,12 +10,13 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.Promise;
-import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
 import io.vertx.ext.web.handler.graphql.VertxDataFetcher;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.handler.graphql.GraphQLHandler;
+import io.vertx.reactivex.ext.web.handler.graphql.GraphiQLHandler;
 
 public class GraphqlVerticle extends AbstractVerticle {
 
@@ -31,10 +32,7 @@ public class GraphqlVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
     mainRouter.post("/graphql").handler(GraphQLHandler.create(createGraphQL()));
-    // .handler(routingContext -> {
-    // routingContext.response().setStatusCode(200).end(new
-    // JsonObject().put("hello", "world").encode());
-    // });
+    mainRouter.get("/graphiql*").handler(GraphiQLHandler.create(new GraphiQLHandlerOptions().setEnabled(true)));
 
     logger.info("[start] Deployed success");
     startPromise.complete();

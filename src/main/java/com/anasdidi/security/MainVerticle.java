@@ -56,10 +56,6 @@ public class MainVerticle extends AbstractVerticle {
           .put("db_name", "security");
       MongoClient mongoClient = MongoClient.createShared(vertx, mongoConfig);//
 
-      Router router = Router.router(vertx);
-      router.route().handler(BodyHandler.create());
-      router.route().handler(this::generateRequestId);
-
       @SuppressWarnings("deprecation")
       JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()//
           .setJWTOptions(new JWTOptions()//
@@ -70,13 +66,17 @@ public class MainVerticle extends AbstractVerticle {
               .setPublicKey(cfg.getString("JWT_SECRET"))//
               .setSymmetric(true)));
 
+      HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
+      setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);
+
+      Router router = Router.router(vertx);
+      router.route().handler(BodyHandler.create());
+      router.route().handler(this::generateRequestId);
+      router.get("/ping").handler(healthCheckHandler);
+
       vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth, cfg));
       vertx.deployVerticle(new UserVerticle(router, mongoClient, jwtAuth, vertx.eventBus()));
       vertx.deployVerticle(new GraphqlVerticle(router, vertx.eventBus(), jwtAuth));
-
-      HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
-      setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);
-      router.get("/ping").handler(healthCheckHandler);
 
       int port = cfg.getInteger("APP_PORT");
       String host = cfg.getString("APP_HOST", "localhost");

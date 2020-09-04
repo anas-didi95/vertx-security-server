@@ -35,10 +35,19 @@ public class GraphqlVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
-    mainRouter.route("/graphql").handler(JWTAuthHandler.create(jwtAuth));
-    mainRouter.post("/graphql").handler(GraphQLHandler.create(createGraphQL()));
+    Router router = Router.router(vertx);
+    router.route().handler(JWTAuthHandler.create(jwtAuth));
+    router.post("/").handler(GraphQLHandler.create(createGraphQL()));
+    mainRouter.mountSubRouter("/graphql", router);
 
-    mainRouter.get("/graphiql*").handler(GraphiQLHandler.create(new GraphiQLHandlerOptions().setEnabled(true)));
+    if (true) {
+      Router router1 = Router.router(vertx);
+      router1.post("/graphql").handler(GraphQLHandler.create(createGraphQL()));
+      router1.get("/*").handler(GraphiQLHandler.create(new GraphiQLHandlerOptions()//
+          .setGraphQLUri("/graphiql/graphql")//
+          .setEnabled(true)));
+      mainRouter.mountSubRouter("/graphiql", router1);
+    }
 
     logger.info("[start] Deployed success");
     startPromise.complete();

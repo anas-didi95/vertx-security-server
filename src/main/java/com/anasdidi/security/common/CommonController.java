@@ -17,6 +17,7 @@ public abstract class CommonController {
     long timeTaken = System.currentTimeMillis() - (long) routingContext.get("startTime");
 
     subscriber.subscribe(data -> {
+      boolean isDataSensitive = data.containsKey("accessToken");
       String responseBody = new JsonObject()//
           .put("status", new JsonObject()//
               .put("isSuccess", true)//
@@ -25,7 +26,7 @@ public abstract class CommonController {
           .encode();
 
       logger.info("[{}:{}] onSuccess : timeTaken={}ms, statusCode={}, responseBody={}", tag, requestId, timeTaken,
-          statusCode, responseBody);
+          statusCode, (!isDataSensitive ? responseBody : "{{content hidden}}"));
 
       routingContext.response()//
           .putHeader(CommonConstants.HEADER_ACCEPT, CommonConstants.MEDIA_TYPE_APP_JSON)//

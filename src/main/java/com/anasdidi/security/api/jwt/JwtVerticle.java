@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
@@ -19,10 +20,10 @@ public class JwtVerticle extends AbstractVerticle {
   private final JwtValidator jwtValidator;
   private final JwtController jwtController;
 
-  public JwtVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth) {
+  public JwtVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth, JsonObject cfg) {
     this.mainRouter = mainRouter;
     this.jwtAuth = jwtAuth;
-    this.jwtService = new JwtService(jwtAuth);
+    this.jwtService = new JwtService(jwtAuth, cfg);
     this.jwtValidator = new JwtValidator();
     this.jwtController = new JwtController(eventBus, jwtService, jwtValidator);
   }

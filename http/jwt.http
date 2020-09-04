@@ -1,0 +1,13 @@
+@host = localhost
+@port = 5000
+@hostname = {{host}}:{{port}}
+
+// @name login
+POST http://{{hostname}}/api/jwt/login
+Accept: application/json
+Content-Type: application/json
+
+{
+  "username": "superadmin",
+  "password": "password"
+}

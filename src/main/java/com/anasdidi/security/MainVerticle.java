@@ -62,7 +62,7 @@ public class MainVerticle extends AbstractVerticle {
       @SuppressWarnings("deprecation")
       JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()//
           .setJWTOptions(new JWTOptions()//
-              .setIssuer("anasdidi.com"))//
+              .setIssuer("anasdidi.dev"))//
           .addPubSecKey(new PubSecKeyOptions()//
               .setAlgorithm("HS256")//
               .setPublicKey("secret")//

@@ -1,0 +1,13 @@
+@port = 5000
+@host = localhost
+@hostname = {{host}}:{{port}}
+
+// @name graph
+POST http://{{hostname}}/graphql
+Accept: application/json
+Content-Type: application/json
+
+{
+  "query": "query { getUser { id } }",
+  "variables": null
+}

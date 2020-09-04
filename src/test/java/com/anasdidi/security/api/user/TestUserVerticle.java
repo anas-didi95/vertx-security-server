@@ -14,10 +14,14 @@ import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.JWTOptions;
+import io.vertx.ext.auth.PubSecKeyOptions;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.config.ConfigRetriever;
 import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.client.WebClient;
 
@@ -30,9 +34,7 @@ public class TestUserVerticle {
   private JsonObject createdBody;
   private WebClient webClient;
   private MongoClient mongoClient;
-
-  // signature=secret, issuer=anasdidi.dev
-  private String accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaXNzIjoiYW5hc2RpZGkuZGV2IiwiaWF0IjoxNTE2MjM5MDIyfQ.fzLgJlshK6aJ135zy_fFMigGJVdN-myDMWOrTiah3zY";
+  private String accessToken;
 
   private JsonObject generateRequestBody() {
     return new JsonObject()//
@@ -68,6 +70,19 @@ public class TestUserVerticle {
           .put("fullName", uuid)//
           .put("email", uuid)//
           .put("version", 0);
+
+      @SuppressWarnings("deprecation")
+      JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()//
+          .setJWTOptions(new JWTOptions()//
+              .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES"))//
+              .setIssuer(cfg.getString("JWT_ISSUER")))//
+          .addPubSecKey(new PubSecKeyOptions()//
+              .setAlgorithm("HS256")//
+              .setPublicKey(cfg.getString("JWT_SECRET"))//
+              .setSymmetric(true)));
+      accessToken = jwtAuth.generateToken(new JsonObject(), new JWTOptions()//
+          .setIssuer(cfg.getString("JWT_ISSUER"))//
+          .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES")));
 
       mongoClient.rxSave("users", createdBody).defaultIfEmpty(uuid).subscribe(docId -> {
         createdBody.put("id", docId);

@@ -14,21 +14,25 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.reactivex.core.AbstractVerticle;
+import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
+import io.vertx.reactivex.ext.web.handler.JWTAuthHandler;
 
 public class UserVerticle extends AbstractVerticle {
 
   private final Logger logger = LogManager.getLogger(UserVerticle.class);
   private final Router mainRouter;
   private final MongoClient mongoClient;
+  private final JWTAuth jwtAuth;
   private final UserValidator userValidator;
   private final UserService userService;
   private final UserController userController;
 
-  public UserVerticle(Router mainRouter, MongoClient mongoClient) {
+  public UserVerticle(Router mainRouter, MongoClient mongoClient, JWTAuth jwtAuth) {
     this.mainRouter = mainRouter;
     this.mongoClient = mongoClient;
+    this.jwtAuth = jwtAuth;
     this.userValidator = new UserValidator();
     this.userService = new UserService(mongoClient);
     this.userController = new UserController(userValidator, userService);
@@ -39,6 +43,7 @@ public class UserVerticle extends AbstractVerticle {
     configureMongoCollection(startPromise);
 
     Router router = Router.router(vertx);
+    router.route().handler(JWTAuthHandler.create(jwtAuth));
     router.post("/").handler(userController::doCreate);
     router.put("/:id").handler(userController::doUpdate);
     router.delete("/:id").handler(userController::doDelete);

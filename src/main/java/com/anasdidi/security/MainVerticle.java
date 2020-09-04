@@ -70,9 +70,9 @@ public class MainVerticle extends AbstractVerticle {
               .setPublicKey(cfg.getString("JWT_SECRET"))//
               .setSymmetric(true)));
 
-      vertx.deployVerticle(new GraphqlVerticle(router, vertx.eventBus()));
       vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth, cfg));
       vertx.deployVerticle(new UserVerticle(router, mongoClient, jwtAuth, vertx.eventBus()));
+      vertx.deployVerticle(new GraphqlVerticle(router, vertx.eventBus(), jwtAuth));
 
       HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
       setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);

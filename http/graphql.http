@@ -1,13 +1,16 @@
 @port = 5000
 @host = localhost
 @hostname = {{host}}:{{port}}
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaXNzIjoiYW5hc2RpZGkuZGV2IiwiaWF0IjoxNTE2MjM5MDIyfQ.fzLgJlshK6aJ135zy_fFMigGJVdN-myDMWOrTiah3zY
+// signature=secret, issuer=anasdidi.dev
 
 // @name graph
 POST http://{{hostname}}/graphql
 Accept: application/json
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
-  "query": "query { getUser { id } }",
+  "query": "query { getUserList { id username fullName version } }",
   "variables": null
 }

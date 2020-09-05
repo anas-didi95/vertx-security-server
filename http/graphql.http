@@ -29,3 +29,18 @@ Authorization: Bearer {{accessToken}}
     "id": "E300DC218B164E988533752B6562A4EC"
   }
 }
+
+###
+
+// @name getUserByUsername
+POST http://{{hostname}}/graphql
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "query": "query ($username: String!) { getUserByUsername(username: $username) { id username version } }",
+  "variables": {
+    "username": "superadmin"
+  }
+}

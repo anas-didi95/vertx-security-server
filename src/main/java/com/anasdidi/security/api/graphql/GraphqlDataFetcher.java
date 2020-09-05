@@ -41,4 +41,22 @@ class GraphqlDataFetcher {
           resultList.stream().map(o -> (JsonObject) o).map(json -> json.getMap()).collect(Collectors.toList()));
     }, e -> future.fail(e));
   }
+
+  void getUserById(DataFetchingEnvironment env, Promise<Map<String, Object>> future) {
+    String tag = "getUserById";
+    String requestId = CommonUtils.generateId();
+    String id = env.getArgument("id");
+    JsonObject message = new JsonObject()//
+        .put("requestId", requestId)//
+        .put("id", id);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] message\n{}", tag, requestId, message.encodePrettily());
+    }
+
+    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_ID, message.encode()).subscribe(reply -> {
+      JsonObject body = new JsonObject((String) reply.body());
+      future.complete(body.getMap());
+    }, e -> future.fail(e));
+  }
 }

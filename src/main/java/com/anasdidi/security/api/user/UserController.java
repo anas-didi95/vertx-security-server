@@ -234,4 +234,30 @@ class UserController extends CommonController {
           return new JsonArray(resultList.stream().map(vo -> UserUtils.toJson(vo)).collect(Collectors.toList()));
         }).subscribe(reply -> message.reply(reply.encode()));
   }
+
+  void reqGetUserById(Message<Object> message) {
+    String tag = "reqGetUserById";
+    JsonObject body = new JsonObject((String) message.body());
+    String requestId = body.getString("requestId");
+
+    Single.just(body)//
+        .map(json -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] Convert body to vo", tag, requestId);
+          }
+          return UserUtils.toVO(json);
+        })//
+        .flatMap(vo -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] Get user by id", tag, requestId);
+          }
+          return userService.getUserById(vo);
+        })//
+        .map(result -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] Convert result to reply message", tag, requestId);
+          }
+          return UserUtils.toJson(result);
+        }).subscribe(reply -> message.reply(reply.encode()));
+  }
 }

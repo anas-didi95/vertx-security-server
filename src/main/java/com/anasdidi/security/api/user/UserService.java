@@ -108,4 +108,15 @@ class UserService {
     return mongoClient.rxFind(UserConstants.COLLECTION_NAME, query)//
         .map(resultList -> resultList.stream().map(json -> UserUtils.toVO(json)).collect(Collectors.toList()));
   }
+
+  Single<UserVO> getUserById(UserVO vo) {
+    JsonObject query = new JsonObject()//
+        .put("_id", vo.id);
+    JsonObject fields = new JsonObject();
+
+    return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields)//
+        .map(json -> UserUtils.toVO(json))//
+        .defaultIfEmpty(new UserVO())//
+        .toSingle();
+  }
 }

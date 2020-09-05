@@ -8,5 +8,5 @@ type User {
 
 type Query {
   getUserList: [User]!
-  getUserById: User!
+  getUserById(id: String!): User!
 }

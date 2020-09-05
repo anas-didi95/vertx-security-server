@@ -24,4 +24,5 @@ public class CommonConstants {
 
   public static final String EVT_USER_GET_BY_USERNAME = "user-get-by-username";
   public static final String EVT_USER_GET_LIST = "user-get-list";
+  public static final String EVT_USER_GET_BY_ID = "user-get-by-id";
 }

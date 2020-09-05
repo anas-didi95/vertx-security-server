@@ -54,6 +54,7 @@ public class UserVerticle extends AbstractVerticle {
 
     eventBus.consumer(CommonConstants.EVT_USER_GET_BY_USERNAME, userController::reqGetUserByUsername);
     eventBus.consumer(CommonConstants.EVT_USER_GET_LIST, userController::reqGetUserList);
+    eventBus.consumer(CommonConstants.EVT_USER_GET_BY_ID, userController::reqGetUserById);
 
     logger.info("[start] Deployed success");
     startPromise.complete();

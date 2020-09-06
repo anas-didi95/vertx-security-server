@@ -2,6 +2,7 @@
 m2-docker/
 mongo-data/
 log/
+mongodump/
 
 ### Vert.x ###
 .vertx/

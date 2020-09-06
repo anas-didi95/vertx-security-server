@@ -23,6 +23,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:?Required}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Required}
     volumes:
+      - ./mongodump:/mongodump
       - mongodata:/data/db
 
   mongotest:

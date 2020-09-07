@@ -1,5 +1,8 @@
 package com.anasdidi.security.common;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,6 +13,17 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 public abstract class CommonController {
 
   private final Logger logger = LogManager.getLogger(CommonController.class);
+  private final Map<String, String> headers;
+
+  public CommonController() {
+    this.headers = new HashMap<>();
+    this.headers.put("Accept", "application/json");
+    this.headers.put("Content-Type", "application/json");
+    this.headers.put("Cache-Control", "no-store, no-cache");
+    this.headers.put("X-Content-Type-Options", "nosniff");
+    this.headers.put("X-XSS-Protection", "1; mode=block");
+    this.headers.put("X-Frame-Options", "deny");
+  }
 
   protected void sendResponse(String requestId, Single<JsonObject> subscriber, RoutingContext routingContext,
       int statusCode, String message) {
@@ -28,9 +42,8 @@ public abstract class CommonController {
       logger.info("[{}:{}] onSuccess : timeTaken={}ms, statusCode={}, responseBody={}", tag, requestId, timeTaken,
           statusCode, (!isDataSensitive ? responseBody : "{{content hidden}}"));
 
+      routingContext.response().headers().addAll(headers);
       routingContext.response()//
-          .putHeader(CommonConstants.HEADER_ACCEPT, CommonConstants.MEDIA_TYPE_APP_JSON)//
-          .putHeader(CommonConstants.HEADER_CONTENT_TYPE, CommonConstants.MEDIA_TYPE_APP_JSON)//
           .setStatusCode(statusCode)//
           .end(responseBody);
     }, e -> {
@@ -45,9 +58,8 @@ public abstract class CommonController {
 
       logger.error("[{}:{}] onError : timeTaken={}ms, responseBody={}", tag, requestId, timeTaken, responseBody);
 
+      routingContext.response().headers().addAll(headers);
       routingContext.response()//
-          .putHeader(CommonConstants.HEADER_ACCEPT, CommonConstants.MEDIA_TYPE_APP_JSON)//
-          .putHeader(CommonConstants.HEADER_CONTENT_TYPE, CommonConstants.MEDIA_TYPE_APP_JSON)//
           .setStatusCode(CommonConstants.STATUS_CODE_BAD_REQUEST)//
           .end(responseBody);
     });

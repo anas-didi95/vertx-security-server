@@ -67,6 +67,10 @@ public class TestJwtVerticle {
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+        Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+        Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+        Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+        Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
 
         JsonObject responseBody = response.bodyAsJsonObject();
         Assertions.assertNotNull(responseBody);
@@ -102,6 +106,10 @@ public class TestJwtVerticle {
         Assertions.assertEquals(400, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+        Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+        Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+        Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+        Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
 
         JsonObject responseBody = response.bodyAsJsonObject();
         Assertions.assertNotNull(responseBody);
@@ -133,6 +141,10 @@ public class TestJwtVerticle {
         Assertions.assertEquals(400, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+        Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+        Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+        Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+        Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
 
         JsonObject responseBody = response.bodyAsJsonObject();
         Assertions.assertNotNull(responseBody);
@@ -163,6 +175,10 @@ public class TestJwtVerticle {
         Assertions.assertEquals(400, response.statusCode());
         Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+        Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+        Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+        Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+        Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
 
         JsonObject responseBody = response.bodyAsJsonObject();
         Assertions.assertNotNull(responseBody);

@@ -6,11 +6,6 @@ public class CommonConstants {
   public static final int STATUS_CODE_CREATED = 201;
   public static final int STATUS_CODE_BAD_REQUEST = 400;
 
-  public static final String HEADER_ACCEPT = "Accept";
-  public static final String HEADER_CONTENT_TYPE = "Content-Type";
-
-  public static final String MEDIA_TYPE_APP_JSON = "application/json";
-
   public static final String MSG_ERR_REQUEST_FAILED = "Request failed!";
   public static final String MSG_ERR_REQUEST_BODY_EMPTY = "Request body is empty!";
   public static final String MSG_ERR_VALIDATE_ERROR = "Validation error!";

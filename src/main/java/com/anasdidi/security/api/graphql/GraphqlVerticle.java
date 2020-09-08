@@ -1,5 +1,7 @@
 package com.anasdidi.security.api.graphql;
 
+import com.anasdidi.security.common.CommonConstants;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -47,7 +49,7 @@ public class GraphqlVerticle extends AbstractVerticle {
       Router router1 = Router.router(vertx);
       router1.post("/graphql").handler(GraphQLHandler.create(createGraphQL()));
       router1.get("/*").handler(GraphiQLHandler.create(new GraphiQLHandlerOptions()//
-          .setGraphQLUri("/security/graphiql/graphql")//
+          .setGraphQLUri(CommonConstants.CONTEXT_PATH + "/graphiql/graphql")//
           .setEnabled(cfg.getBoolean("GRAPHIQL_IS_ENABLE", false))));
       mainRouter.mountSubRouter("/graphiql", router1);
     }

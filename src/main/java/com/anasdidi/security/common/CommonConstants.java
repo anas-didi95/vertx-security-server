@@ -2,6 +2,8 @@ package com.anasdidi.security.common;
 
 public class CommonConstants {
 
+  public static final String CONTEXT_PATH = "/security";
+
   public static final int STATUS_CODE_OK = 200;
   public static final int STATUS_CODE_CREATED = 201;
   public static final int STATUS_CODE_BAD_REQUEST = 400;

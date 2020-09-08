@@ -3,6 +3,7 @@ package com.anasdidi.security;
 import com.anasdidi.security.api.graphql.GraphqlVerticle;
 import com.anasdidi.security.api.jwt.JwtVerticle;
 import com.anasdidi.security.api.user.UserVerticle;
+import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonUtils;
 
 import org.apache.logging.log4j.LogManager;
@@ -88,7 +89,7 @@ public class MainVerticle extends AbstractVerticle {
 
       int port = cfg.getInteger("APP_PORT");
       String host = cfg.getString("APP_HOST", "localhost");
-      Router contextPath = Router.router(vertx).mountSubRouter("/security", router);
+      Router contextPath = Router.router(vertx).mountSubRouter(CommonConstants.CONTEXT_PATH, router);
       vertx.createHttpServer().requestHandler(contextPath).listen(port, host, http -> {
         if (http.succeeded()) {
           logger.info("[{}] HTTP server started on {}:{}", tag, host, port);

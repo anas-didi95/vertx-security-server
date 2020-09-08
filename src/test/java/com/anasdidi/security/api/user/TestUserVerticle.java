@@ -30,7 +30,7 @@ public class TestUserVerticle {
 
   private int port;
   private String host;
-  private String requestURI = "/api/user";
+  private String requestURI = "/security/api/user";
   private JsonObject createdBody;
   private WebClient webClient;
   private MongoClient mongoClient;

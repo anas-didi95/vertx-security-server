@@ -28,7 +28,7 @@ public class TestGraphqlVerticle {
 
   private int port;
   private String host;
-  private String requestURI = "/graphql";
+  private String requestURI = "/security/graphql";
   private WebClient webClient;
   private MongoClient mongoClient;
   private JsonObject user;

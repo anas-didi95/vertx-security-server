@@ -99,7 +99,6 @@ public class TestUserVerticle {
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(201, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -132,7 +131,6 @@ public class TestUserVerticle {
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -173,7 +171,6 @@ public class TestUserVerticle {
         .rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -213,7 +210,6 @@ public class TestUserVerticle {
         .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -247,7 +243,6 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -281,7 +276,6 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -318,7 +312,6 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -353,7 +346,6 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSend().subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -388,7 +380,6 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -422,7 +413,6 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -459,7 +449,6 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -494,7 +483,6 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSend().subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Accept"));
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
             Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
             Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));

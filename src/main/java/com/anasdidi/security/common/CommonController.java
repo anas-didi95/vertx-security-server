@@ -17,7 +17,6 @@ public abstract class CommonController {
 
   public CommonController() {
     this.headers = new HashMap<>();
-    this.headers.put("Accept", "application/json");
     this.headers.put("Content-Type", "application/json");
     this.headers.put("Cache-Control", "no-store, no-cache");
     this.headers.put("X-Content-Type-Options", "nosniff");

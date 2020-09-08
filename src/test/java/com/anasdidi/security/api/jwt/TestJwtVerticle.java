@@ -65,7 +65,6 @@ public class TestJwtVerticle {
     webClient.post(port, host, requestURI + "/login").rxSendJsonObject(user).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(200, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
         Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
         Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -104,7 +103,6 @@ public class TestJwtVerticle {
     webClient.post(port, host, requestURI + "/login").rxSendJsonObject(user).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(400, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
         Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
         Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -139,7 +137,6 @@ public class TestJwtVerticle {
     webClient.post(port, host, requestURI + "/login").rxSendJsonObject(user).subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(400, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
         Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
         Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
@@ -173,7 +170,6 @@ public class TestJwtVerticle {
     webClient.post(port, host, requestURI + "/login").rxSend().subscribe(response -> {
       testContext.verify(() -> {
         Assertions.assertEquals(400, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Accept"));
         Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
         Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
         Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));

@@ -47,7 +47,7 @@ public class GraphqlVerticle extends AbstractVerticle {
       Router router1 = Router.router(vertx);
       router1.post("/graphql").handler(GraphQLHandler.create(createGraphQL()));
       router1.get("/*").handler(GraphiQLHandler.create(new GraphiQLHandlerOptions()//
-          .setGraphQLUri("/graphiql/graphql")//
+          .setGraphQLUri("/security/graphiql/graphql")//
           .setEnabled(cfg.getBoolean("GRAPHIQL_IS_ENABLE", false))));
       mainRouter.mountSubRouter("/graphiql", router1);
     }

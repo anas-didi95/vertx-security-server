@@ -1,9 +1,10 @@
 @host = localhost
 @port = 5000
 @hostname = {{host}}:{{port}}
+@uri = /security/api/jwt
 
 // @name login
-POST http://{{hostname}}/api/jwt/login
+POST http://{{hostname}}{{uri}}/login
 Accept: application/json
 Content-Type: application/json
 

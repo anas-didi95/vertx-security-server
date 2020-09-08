@@ -3,6 +3,6 @@
 @hostname = {{host}}:{{port}}
 
 ### Health check
-GET http://{{hostname}}/ping
+GET http://{{hostname}}/security/ping
 Accept: application/json
 Content-Type: application/json

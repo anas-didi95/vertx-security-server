@@ -1,11 +1,12 @@
 @host = localhost
 @port = 5000
 @hostname = {{host}}:{{port}}
+@uri = /security/api/user
 @accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaXNzIjoiYW5hc2RpZGkuZGV2IiwiaWF0IjoxNTE2MjM5MDIyfQ.fzLgJlshK6aJ135zy_fFMigGJVdN-myDMWOrTiah3zY
 // signature=secret, issuer=anasdidi.dev
 
 // @name createContent
-POST http://{{hostname}}/api/user
+POST http://{{hostname}}{{uri}}
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
@@ -22,7 +23,7 @@ Authorization: Bearer {{accessToken}}
 @userId = {{createContent.response.body.$.data.id}}
 
 // @name updateContent
-PUT http://{{hostname}}/api/user/{{userId}}
+PUT http://{{hostname}}{{uri}}/{{userId}}
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
@@ -32,17 +33,17 @@ Authorization: Bearer {{accessToken}}
   "password": "password",
   "fullName": "anas juwaidi",
   "email": "anas.didi95@gmail.com1",
-  "version": 1
+  "version": 0
 }
 
 ###
 
 // @name deleteContent
-DELETE http://{{hostname}}/api/user/{{userId}}
+DELETE http://{{hostname}}{{uri}}/{{userId}}
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "version": 2
+  "version": 1
 }

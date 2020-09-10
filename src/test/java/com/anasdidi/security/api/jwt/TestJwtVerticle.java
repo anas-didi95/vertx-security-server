@@ -216,6 +216,23 @@ public class TestJwtVerticle {
               Assertions.assertEquals("1; mode=block", response2.getHeader("X-XSS-Protection"));
               Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
 
+              JsonObject responseBody2 = response2.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody2);
+
+              // status
+              JsonObject status2 = responseBody2.getJsonObject("status");
+              Assertions.assertNotNull(status2);
+              Assertions.assertEquals(true, status2.getBoolean("isSuccess"));
+              Assertions.assertEquals("Token refreshed.", status2.getString("message"));
+
+              // data
+              JsonObject data2 = responseBody2.getJsonObject("data");
+              Assertions.assertNotNull(data2);
+              Assertions.assertNotNull(data2.getString("accessToken"));
+              Assertions.assertNotNull(data2.getString("refreshId"));
+              Assertions.assertNotEquals(data1.getString("accessToken"), data2.getString("accessToken"));
+              Assertions.assertNotEquals(data1.getString("refreshId"), data2.getString("refreshId"));
+
               testContext.completeNow();
             });
           }, e -> testContext.failNow(e));

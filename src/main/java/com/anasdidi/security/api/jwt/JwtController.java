@@ -109,13 +109,38 @@ class JwtController extends CommonController {
     String tag = "doRefresh";
     String requestId = routingContext.get("requestId");
 
+    JsonObject requestBody = routingContext.getBodyAsJson();
+
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Start process", tag, requestId);
+        logger.debug("[{}:{}] Get request body", tag, requestId);
       }
-      return new JsonObject();
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
+      }
+
+      return requestBody;
+    }).map(json -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Convert json to vo");
+      }
+      return JwtUtils.toVO(json);
+    }).flatMap(vo -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Refresh token", tag, requestId);
+      }
+      return jwtService.refresh(requestId, vo);
+    }).map(vo -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Construct response body", tag, requestId);
+      }
+      return new JsonObject()//
+          .put("accessToken", vo.accessToken)//
+          .put("refreshId", vo.id);
     });
 
-    sendResponse(requestId, subscriber, routingContext, 200, "Ok");
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
+        JwtConstants.MSG_OK_TOKEN_REFRESHED);
   }
 }

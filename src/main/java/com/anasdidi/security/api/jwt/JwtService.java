@@ -68,4 +68,41 @@ class JwtService {
       return JwtUtils.toVO(json);
     });
   }
+
+  Single<JwtVO> refresh(String requestId, JwtVO vo) {
+    String tag = "refresh";
+    JsonObject query = new JsonObject()//
+        .put("_id", vo.id)//
+        .put("hasRefresh", false);
+    JsonObject update = new JsonObject()//
+        .put("$set", new JsonObject()//
+            .put("hasRefresh", true));
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] query\n{}", tag, requestId, query.encodePrettily());
+      logger.debug("[{}:{}] update\n{}", tag, requestId, update.encodePrettily());
+    }
+
+    return mongoClient.rxFindOneAndUpdate(JwtConstants.COLLECTION_NAME, query, update).map(rst -> {
+      JsonObject claims = new JsonObject()//
+          .put("username", rst.getString("username"));
+      String accessToken = jwtAuth.generateToken(claims, new JWTOptions()//
+          .setSubject(rst.getString("userId"))//
+          .setIssuer(cfg.getString("JWT_ISSUER"))//
+          .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES")));
+
+      String id = CommonUtils.generateId();
+      JsonObject document = new JsonObject()//
+          .put("_id", id)//
+          .put("accessToken", accessToken)//
+          .put("hasRefresh", false)//
+          .put("timestampCreated", Instant.now());
+      mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
+
+      JsonObject json = new JsonObject()//
+          .put("id", id)//
+          .put("accessToken", accessToken);
+      return JwtUtils.toVO(json);
+    }).toSingle();
+  }
 }

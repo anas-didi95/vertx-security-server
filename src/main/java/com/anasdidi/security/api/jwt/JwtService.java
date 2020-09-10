@@ -1,6 +1,7 @@
 package com.anasdidi.security.api.jwt;
 
 import com.anasdidi.security.common.ApplicationException;
+import com.anasdidi.security.common.CommonUtils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,19 +11,22 @@ import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
+import io.vertx.reactivex.ext.mongo.MongoClient;
 
 class JwtService {
 
   private final Logger logger = LogManager.getLogger(JwtService.class);
   private final JWTAuth jwtAuth;
+  private final MongoClient mongoClient;
   private final JsonObject cfg;
 
-  JwtService(JWTAuth jwtAuth, JsonObject cfg) {
+  JwtService(JWTAuth jwtAuth, MongoClient mongoClient, JsonObject cfg) {
     this.jwtAuth = jwtAuth;
+    this.mongoClient = mongoClient;
     this.cfg = cfg;
   }
 
-  Single<String> login(String requestId, String username, String password, JsonObject user) {
+  Single<JsonObject> login(String requestId, String username, String password, JsonObject user) {
     String tag = "login";
     return Single.fromCallable(() -> {
       String uUsername = user.getString("username");
@@ -43,10 +47,20 @@ class JwtService {
 
       JsonObject claims = new JsonObject()//
           .put("username", username);
-      return jwtAuth.generateToken(claims, new JWTOptions()//
+      String accessToken = jwtAuth.generateToken(claims, new JWTOptions()//
           .setSubject(user.getString("id"))//
           .setIssuer(cfg.getString("JWT_ISSUER"))//
           .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES")));
+
+      String id = CommonUtils.generateId();
+      JsonObject document = new JsonObject()//
+          .put("_id", id)//
+          .put("accessToken", accessToken);
+      mongoClient.rxSave("jwts", document).subscribe();
+
+      return new JsonObject()//
+          .put("id", id)//
+          .put("accessToken", accessToken);
     });
   }
 }

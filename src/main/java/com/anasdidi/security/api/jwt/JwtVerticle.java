@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
+import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.handler.JWTAuthHandler;
 
@@ -20,10 +21,10 @@ public class JwtVerticle extends AbstractVerticle {
   private final JwtValidator jwtValidator;
   private final JwtController jwtController;
 
-  public JwtVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth, JsonObject cfg) {
+  public JwtVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth, MongoClient mongoClient, JsonObject cfg) {
     this.mainRouter = mainRouter;
     this.jwtAuth = jwtAuth;
-    this.jwtService = new JwtService(jwtAuth, cfg);
+    this.jwtService = new JwtService(jwtAuth, mongoClient, cfg);
     this.jwtValidator = new JwtValidator();
     this.jwtController = new JwtController(eventBus, jwtService, jwtValidator);
   }

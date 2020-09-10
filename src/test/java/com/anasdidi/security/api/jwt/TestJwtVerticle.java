@@ -83,6 +83,7 @@ public class TestJwtVerticle {
         JsonObject data = responseBody.getJsonObject("data");
         Assertions.assertNotNull(data);
         Assertions.assertNotNull(data.getString("accessToken"));
+        Assertions.assertNotNull(data.getString("refreshId"));
 
         webClient.get(port, host, requestURI + "/check")
             .putHeader("Authorization", "Bearer " + data.getString("accessToken")).rxSend().subscribe(ping -> {

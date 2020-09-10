@@ -78,13 +78,13 @@ class JwtController extends CommonController {
         logger.debug("[{}:{}] Login user", tag, requestId);
       }
       return jwtService.login(requestId, username, password, user);
-    }).map(jwt -> {
+    }).map(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Construct response body", tag, requestId);
       }
       return new JsonObject()//
-          .put("accessToken", jwt.getString("accessToken"))//
-          .put("refreshId", jwt.getString("id"));
+          .put("accessToken", vo.accessToken)//
+          .put("refreshId", vo.id);
     });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,

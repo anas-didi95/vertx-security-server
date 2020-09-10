@@ -28,7 +28,7 @@ class JwtService {
     this.cfg = cfg;
   }
 
-  Single<JsonObject> login(String requestId, String username, String password, JsonObject user) {
+  Single<JwtVO> login(String requestId, String username, String password, JsonObject user) {
     String tag = "login";
     return Single.fromCallable(() -> {
       String uUsername = user.getString("username");
@@ -62,9 +62,10 @@ class JwtService {
           .put("timestampCreated", Instant.now());
       mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
 
-      return new JsonObject()//
+      JsonObject json = new JsonObject()//
           .put("id", id)//
           .put("accessToken", accessToken);
+      return JwtUtils.toVO(json);
     });
   }
 }

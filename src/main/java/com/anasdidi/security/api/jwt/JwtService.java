@@ -58,6 +58,7 @@ class JwtService {
       JsonObject document = new JsonObject()//
           .put("_id", id)//
           .put("accessToken", accessToken)//
+          .put("hasRefresh", false)//
           .put("timestampCreated", Instant.now());
       mongoClient.rxSave("jwts", document).subscribe();
 

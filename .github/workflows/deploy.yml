@@ -17,7 +17,7 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Connect to Digitalocean
+      - name: Deploy package to Digitalocean
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -25,5 +25,6 @@ jobs:
           key: ${{ secrets.KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            whoami
-            ls -a
+            cd workspace/
+            ./server-build.sh security
+            ./server-start.sh true

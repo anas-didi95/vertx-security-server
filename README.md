@@ -1,6 +1,7 @@
 # Security Microservice
 
 [![Logo](https://img.shields.io/badge/vert.x-3.9.2-purple.svg)](https://vertx.io")
+![deploy](https://github.com/anas-didi95/vertx-security-server/workflows/deploy/badge.svg?branch=master)
 
 This application was generated using http://start.vertx.io
 

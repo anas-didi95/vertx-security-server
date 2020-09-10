@@ -6,7 +6,7 @@ name: deploy
 # events but only for the master branch
 on:
   push:
-    branches: [master, test]
+    branches: [master, add-github-action-deploy]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -18,7 +18,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Connect to Digitalocean
-        users: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}

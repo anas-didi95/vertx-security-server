@@ -60,7 +60,7 @@ class JwtService {
           .put("accessToken", accessToken)//
           .put("hasRefresh", false)//
           .put("timestampCreated", Instant.now());
-      mongoClient.rxSave("jwts", document).subscribe();
+      mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
 
       return new JsonObject()//
           .put("id", id)//

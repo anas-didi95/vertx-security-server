@@ -202,23 +202,22 @@ public class TestJwtVerticle {
   @Test
   void testJwtRefreshSuccess(Vertx vertx, VertxTestContext testContext) {
     webClient.post(port, host, requestURI + "/login").rxSendJsonObject(user).subscribe(response1 -> {
-      JsonObject responseBody1 = response1.bodyAsJsonObject();
-      Assertions.assertNotNull(responseBody1);
-      Assertions.assertNotNull(responseBody1.getString("accessToken"));
-      Assertions.assertNotNull(responseBody1.getString("refreshId"));
+      JsonObject data1 = response1.bodyAsJsonObject().getJsonObject("data");
+      String accessToken = data1.getString("accessToken");
+      JsonObject requestBody = new JsonObject().put("id", data1.getString("refreshId"));
 
-      String accessToken = responseBody1.getString("accessToken");
-      JsonObject requestBody = new JsonObject().put("id", responseBody1.getString("refreshId"));
       webClient.post(port, host, requestURI + "/refresh").putHeader("Authorization", "Bearer " + accessToken)
           .rxSendJsonObject(requestBody).subscribe(response2 -> {
-            Assertions.assertEquals(200, response2.statusCode());
-            Assertions.assertEquals("application/json", response2.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response2.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response2.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response2.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
+            testContext.verify(() -> {
+              Assertions.assertEquals(200, response2.statusCode());
+              Assertions.assertEquals("application/json", response2.getHeader("Content-Type"));
+              Assertions.assertEquals("no-store, no-cache", response2.getHeader("Cache-Control"));
+              Assertions.assertEquals("nosniff", response2.getHeader("X-Content-Type-Options"));
+              Assertions.assertEquals("1; mode=block", response2.getHeader("X-XSS-Protection"));
+              Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
 
-            testContext.completeNow();
+              testContext.completeNow();
+            });
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }

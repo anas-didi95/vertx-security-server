@@ -104,4 +104,18 @@ class JwtController extends CommonController {
 
     sendResponse(requestId, subscriber, routingContext, 200, "Ok");
   }
+
+  void doRefresh(RoutingContext routingContext) {
+    String tag = "doRefresh";
+    String requestId = routingContext.get("requestId");
+
+    Single<JsonObject> subscriber = Single.fromCallable(() -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Start process", tag, requestId);
+      }
+      return new JsonObject();
+    });
+
+    sendResponse(requestId, subscriber, routingContext, 200, "Ok");
+  }
 }

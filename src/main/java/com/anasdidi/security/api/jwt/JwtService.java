@@ -1,5 +1,7 @@
 package com.anasdidi.security.api.jwt;
 
+import java.time.Instant;
+
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonUtils;
 
@@ -55,7 +57,8 @@ class JwtService {
       String id = CommonUtils.generateId();
       JsonObject document = new JsonObject()//
           .put("_id", id)//
-          .put("accessToken", accessToken);
+          .put("accessToken", accessToken)//
+          .put("timestampCreated", Instant.now());
       mongoClient.rxSave("jwts", document).subscribe();
 
       return new JsonObject()//

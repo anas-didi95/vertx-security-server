@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.jwt;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,6 +54,34 @@ public class JwtVerticle extends AbstractVerticle {
     router.post("/refresh").handler(jwtController::doRefresh);
 
     mainRouter.mountSubRouter("/api/jwt", router);
+
+    long periodicCleanup = 1000L * 60 * 60;
+    vertx.setPeriodic(periodicCleanup, r -> {
+      String tag = "" + System.currentTimeMillis();
+      JsonObject query = new JsonObject()//
+          .put("createTimestamp", new JsonObject().put("$lt", Instant.now().minusMillis(periodicCleanup)));
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[start] {} Periodic mongo cleanup: periodic={}, query\n{}", tag, periodicCleanup,
+            query.encodePrettily());
+      }
+
+      mongoClient.rxFind(JwtConstants.COLLECTION_NAME, query).subscribe(resultList -> {
+        if (logger.isDebugEnabled()) {
+          logger.debug("[start] {} Periodic mongo cleanup: resultList={}", tag,
+              (resultList == null ? -1 : resultList.size()));
+        }
+
+        resultList.stream().forEach(result -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("[start] {} result={}", tag, result.getString("createTimestamp"));
+          }
+          mongoClient
+              .rxFindOneAndDelete(JwtConstants.COLLECTION_NAME, new JsonObject().put("_id", result.getString("_id")))
+              .subscribe();
+        });
+      });
+    });
 
     logger.info("[start] Deployed success");
     startPromise.complete();

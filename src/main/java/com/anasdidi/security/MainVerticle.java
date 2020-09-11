@@ -83,7 +83,7 @@ public class MainVerticle extends AbstractVerticle {
       router.route().handler(this::generateRequestId);
       router.get("/ping").handler(healthCheckHandler);
 
-      vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth, cfg));
+      vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth, mongoClient, cfg));
       vertx.deployVerticle(new UserVerticle(router, mongoClient, jwtAuth, vertx.eventBus()));
       vertx.deployVerticle(new GraphqlVerticle(router, vertx.eventBus(), jwtAuth, cfg));
 

@@ -83,6 +83,7 @@ public class TestJwtVerticle {
         JsonObject data = responseBody.getJsonObject("data");
         Assertions.assertNotNull(data);
         Assertions.assertNotNull(data.getString("accessToken"));
+        Assertions.assertNotNull(data.getString("refreshId"));
 
         webClient.get(port, host, requestURI + "/check")
             .putHeader("Authorization", "Bearer " + data.getString("accessToken")).rxSend().subscribe(ping -> {
@@ -195,6 +196,47 @@ public class TestJwtVerticle {
 
         testContext.completeNow();
       });
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testJwtRefreshSuccess(Vertx vertx, VertxTestContext testContext) {
+    webClient.post(port, host, requestURI + "/login").rxSendJsonObject(user).subscribe(response1 -> {
+      JsonObject data1 = response1.bodyAsJsonObject().getJsonObject("data");
+      String accessToken = data1.getString("accessToken");
+      JsonObject requestBody = new JsonObject().put("id", data1.getString("refreshId"));
+
+      Thread.sleep(1000);
+      webClient.post(port, host, requestURI + "/refresh").putHeader("Authorization", "Bearer " + accessToken)
+          .rxSendJsonObject(requestBody).subscribe(response2 -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(200, response2.statusCode());
+              Assertions.assertEquals("application/json", response2.getHeader("Content-Type"));
+              Assertions.assertEquals("no-store, no-cache", response2.getHeader("Cache-Control"));
+              Assertions.assertEquals("nosniff", response2.getHeader("X-Content-Type-Options"));
+              Assertions.assertEquals("1; mode=block", response2.getHeader("X-XSS-Protection"));
+              Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
+
+              JsonObject responseBody2 = response2.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody2);
+
+              // status
+              JsonObject status2 = responseBody2.getJsonObject("status");
+              Assertions.assertNotNull(status2);
+              Assertions.assertEquals(true, status2.getBoolean("isSuccess"));
+              Assertions.assertEquals("Token refreshed.", status2.getString("message"));
+
+              // data
+              JsonObject data2 = responseBody2.getJsonObject("data");
+              Assertions.assertNotNull(data2);
+              Assertions.assertNotNull(data2.getString("accessToken"));
+              Assertions.assertNotNull(data2.getString("refreshId"));
+              Assertions.assertNotEquals(data1.getString("accessToken"), data2.getString("accessToken"));
+              Assertions.assertNotEquals(data1.getString("refreshId"), data2.getString("refreshId"));
+
+              testContext.completeNow();
+            });
+          }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }
 }

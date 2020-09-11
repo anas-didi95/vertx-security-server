@@ -13,10 +13,14 @@ import org.mindrot.jbcrypt.BCrypt;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.JWTOptions;
+import io.vertx.ext.auth.PubSecKeyOptions;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.config.ConfigRetriever;
 import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.client.WebClient;
 
@@ -28,6 +32,7 @@ public class TestJwtVerticle {
   private String requestURI = "/security/api/jwt";
   private WebClient webClient;
   private JsonObject user;
+  private String accessToken;
 
   @BeforeEach
   void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
@@ -46,6 +51,19 @@ public class TestJwtVerticle {
           .put("password", cfg.getString("TEST_MONGO_PASSWORD"))//
           .put("authSource", cfg.getString("TEST_MONGO_AUTH_SOURCE"))//
           .put("db_name", "security"));
+
+      @SuppressWarnings("deprecation")
+      JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()//
+          .setJWTOptions(new JWTOptions()//
+              .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES"))//
+              .setIssuer(cfg.getString("JWT_ISSUER")))//
+          .addPubSecKey(new PubSecKeyOptions()//
+              .setAlgorithm("HS256")//
+              .setPublicKey(cfg.getString("JWT_SECRET"))//
+              .setSymmetric(true)));
+      accessToken = jwtAuth.generateToken(new JsonObject(), new JWTOptions()//
+          .setIssuer(cfg.getString("JWT_ISSUER"))//
+          .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES")));
 
       String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
       user = new JsonObject()//
@@ -344,6 +362,46 @@ public class TestJwtVerticle {
               Assertions.assertNotNull(status2);
               Assertions.assertEquals(false, status2.getBoolean("isSuccess"));
               Assertions.assertEquals("Refresh token failed!", status2.getString("message"));
+
+              // data
+              JsonObject data2 = responseBody2.getJsonObject("data");
+              Assertions.assertNotNull(data2);
+              Assertions.assertNotNull(data2.getString("requestId"));
+              Assertions.assertNotNull(data2.getInstant("instant"));
+              Assertions.assertNotNull(data2.getJsonArray("errorList"));
+              Assertions.assertTrue(!data2.getJsonArray("errorList").isEmpty());
+
+              testContext.completeNow();
+            });
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testJwtRefreshInvalidCredentialError(Vertx vertx, VertxTestContext testContext) {
+    webClient.post(port, host, requestURI + "/login").rxSendJsonObject(user).subscribe(response1 -> {
+      JsonObject data1 = response1.bodyAsJsonObject().getJsonObject("data");
+      // String accessToken = data1.getString("accessToken");
+      JsonObject requestBody = new JsonObject().put("id", data1.getString("refreshId"));
+
+      webClient.post(port, host, requestURI + "/refresh").putHeader("Authorization", "Bearer " + accessToken)
+          .rxSendJsonObject(requestBody).subscribe(response2 -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(400, response2.statusCode());
+              Assertions.assertEquals("application/json", response2.getHeader("Content-Type"));
+              Assertions.assertEquals("no-store, no-cache", response2.getHeader("Cache-Control"));
+              Assertions.assertEquals("nosniff", response2.getHeader("X-Content-Type-Options"));
+              Assertions.assertEquals("1; mode=block", response2.getHeader("X-XSS-Protection"));
+              Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
+
+              JsonObject responseBody2 = response2.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody2);
+
+              // status
+              JsonObject status2 = responseBody2.getJsonObject("status");
+              Assertions.assertNotNull(status2);
+              Assertions.assertEquals(false, status2.getBoolean("isSuccess"));
+              Assertions.assertEquals("Refresh token invalid!", status2.getString("message"));
 
               // data
               JsonObject data2 = responseBody2.getJsonObject("data");

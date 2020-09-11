@@ -105,7 +105,15 @@ class JwtService {
               JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
         })//
         .map(rst -> {
-          return getAndSaveToken(requestId, rst.getString("username"), rst.getString("userId"));
+          String username = rst.getString("username");
+          String userId = rst.getString("userId");
+
+          if (!vo.username.equals(username) || !vo.userId.equals(userId)) {
+            throw new ApplicationException(JwtConstants.MSG_ERR_REFRESH_TOKEN_INVALID, requestId,
+                JwtConstants.MSG_ERR_REFRESH_TOKEN_CREDENTIAL_MISMATCH);
+          }
+
+          return getAndSaveToken(requestId, username, userId);
         })//
         .toSingle();
   }

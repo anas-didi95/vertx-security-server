@@ -10,6 +10,7 @@ class JwtUtils {
     vo.accessToken = json.getString("accessToken");
     vo.username = json.getString("username");
     vo.password = json.getString("password");
+    vo.userId = json.getString("userId");
     return vo;
   }
 }

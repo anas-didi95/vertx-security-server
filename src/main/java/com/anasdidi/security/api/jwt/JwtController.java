@@ -109,6 +109,7 @@ class JwtController extends CommonController {
     String tag = "doRefresh";
     String requestId = routingContext.get("requestId");
 
+    JsonObject user = routingContext.user().principal();
     JsonObject requestBody = routingContext.getBodyAsJson();
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
@@ -119,6 +120,10 @@ class JwtController extends CommonController {
       if (requestBody == null || requestBody.isEmpty()) {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY, requestId,
             CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
+      } else {
+        requestBody//
+            .put("username", user.getString("username", ""))//
+            .put("userId", user.getString("sub", ""));
       }
 
       if (logger.isDebugEnabled()) {

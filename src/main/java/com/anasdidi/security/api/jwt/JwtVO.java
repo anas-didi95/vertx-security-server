@@ -8,6 +8,7 @@ class JwtVO {
   String accessToken;
   String username;
   String password;
+  String userId;
 
   JwtVO() {
   }

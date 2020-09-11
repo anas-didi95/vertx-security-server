@@ -126,6 +126,12 @@ class JwtController extends CommonController {
         logger.debug("[{}:{}] Convert json to vo");
       }
       return JwtUtils.toVO(json);
+    }).map(vo -> {
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] Validate vo", tag, requestId);
+      }
+      jwtValidator.validate(requestId, JwtValidator.Validate.REFRESH, vo);
+      return vo;
     }).flatMap(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Refresh token", tag, requestId);

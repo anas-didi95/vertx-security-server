@@ -16,7 +16,7 @@ class JwtValidator {
   private final Logger logger = LogManager.getLogger(JwtValidator.class);
 
   enum Validate {
-    LOGIN
+    LOGIN, REFRESH
   }
 
   void validate(String requestId, Validate val, JwtVO vo) throws ApplicationException {
@@ -26,6 +26,9 @@ class JwtValidator {
     switch (val) {
       case LOGIN:
         errorList = validateLogin(vo, errorList);
+        break;
+      case REFRESH:
+        errorList = validateRefresh(vo, errorList);
         break;
     }
 
@@ -46,6 +49,16 @@ class JwtValidator {
 
     if (password == null || password.isBlank()) {
       errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Password"));
+    }
+
+    return errorList;
+  }
+
+  private List<String> validateRefresh(JwtVO vo, List<String> errorList) {
+    String id = vo.id;
+
+    if (id == null || id.isBlank()) {
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Id"));
     }
 
     return errorList;

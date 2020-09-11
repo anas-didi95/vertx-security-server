@@ -51,7 +51,7 @@ public class JwtVerticle extends AbstractVerticle {
 
     mainRouter.mountSubRouter("/api/jwt", router);
 
-    long periodicCleanup = 1000L * 60 * 1;
+    long periodicCleanup = 1000L * 60 * 60;
     vertx.setPeriodic(periodicCleanup, r -> {
       String tag = "" + System.currentTimeMillis();
       Instant deleteLessThanDate = Instant.now().minusMillis(periodicCleanup);
@@ -64,7 +64,7 @@ public class JwtVerticle extends AbstractVerticle {
       }
 
       mongoClient.rxFind(JwtConstants.COLLECTION_NAME, query).subscribe(resultList -> {
-        logger.info("[start] {} Periodic mongo cleanup: deleteLessThanDate={} resultList={}", tag, deleteLessThanDate,
+        logger.info("[start] {} Periodic mongo cleanup: deleteLessThanDate={}, resultList={}", tag, deleteLessThanDate,
             (resultList == null ? -1 : resultList.size()));
 
         resultList.stream().forEach(result -> {

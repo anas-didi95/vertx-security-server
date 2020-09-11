@@ -279,4 +279,43 @@ public class TestJwtVerticle {
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }
+
+  @Test
+  void testJwtRefreshRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
+    webClient.post(port, host, requestURI + "/login").rxSendJsonObject(user).subscribe(response1 -> {
+      JsonObject data1 = response1.bodyAsJsonObject().getJsonObject("data");
+      String accessToken = data1.getString("accessToken");
+
+      webClient.post(port, host, requestURI + "/refresh").putHeader("Authorization", "Bearer " + accessToken).rxSend()
+          .subscribe(response2 -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(400, response2.statusCode());
+              Assertions.assertEquals("application/json", response2.getHeader("Content-Type"));
+              Assertions.assertEquals("no-store, no-cache", response2.getHeader("Cache-Control"));
+              Assertions.assertEquals("nosniff", response2.getHeader("X-Content-Type-Options"));
+              Assertions.assertEquals("1; mode=block", response2.getHeader("X-XSS-Protection"));
+              Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
+
+              JsonObject responseBody2 = response2.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody2);
+
+              // status
+              JsonObject status2 = responseBody2.getJsonObject("status");
+              Assertions.assertNotNull(status2);
+              Assertions.assertEquals(false, status2.getBoolean("isSuccess"));
+              Assertions.assertEquals("Request body is empty!", status2.getString("message"));
+
+              // data
+              JsonObject data2 = responseBody2.getJsonObject("data");
+              Assertions.assertNotNull(data2);
+              Assertions.assertNotNull(data2.getString("requestId"));
+              Assertions.assertNotNull(data2.getInstant("instant"));
+              Assertions.assertNotNull(data2.getJsonArray("errorList"));
+              Assertions.assertTrue(!data2.getJsonArray("errorList").isEmpty());
+
+              testContext.completeNow();
+            });
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
 }

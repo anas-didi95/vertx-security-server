@@ -116,6 +116,11 @@ class JwtController extends CommonController {
         logger.debug("[{}:{}] Get request body", tag, requestId);
       }
 
+      if (requestBody == null || requestBody.isEmpty()) {
+        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY, requestId,
+            CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
+      }
+
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
       }

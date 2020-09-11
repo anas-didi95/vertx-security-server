@@ -54,8 +54,9 @@ public class JwtVerticle extends AbstractVerticle {
     long periodicCleanup = 1000L * 60 * 1;
     vertx.setPeriodic(periodicCleanup, r -> {
       String tag = "" + System.currentTimeMillis();
+      Instant deleteLessThanDate = Instant.now().minusMillis(periodicCleanup);
       JsonObject query = new JsonObject()//
-          .put("createDate", new JsonObject().put("$lt", Instant.now().minusMillis(periodicCleanup)));
+          .put("createDate", new JsonObject().put("$lt", deleteLessThanDate));
 
       if (logger.isDebugEnabled()) {
         logger.debug("[start] {} Periodic mongo cleanup: periodic={}, query\n{}", tag, periodicCleanup,
@@ -63,14 +64,13 @@ public class JwtVerticle extends AbstractVerticle {
       }
 
       mongoClient.rxFind(JwtConstants.COLLECTION_NAME, query).subscribe(resultList -> {
-        if (logger.isDebugEnabled()) {
-          logger.debug("[start] {} Periodic mongo cleanup: resultList={}", tag,
-              (resultList == null ? -1 : resultList.size()));
-        }
+        logger.info("[start] {} Periodic mongo cleanup: deleteLessThanDate={} resultList={}", tag, deleteLessThanDate,
+            (resultList == null ? -1 : resultList.size()));
 
         resultList.stream().forEach(result -> {
           if (logger.isDebugEnabled()) {
-            logger.debug("[start] {} result={}", tag, result.getString("createDate"));
+            logger.debug("[start] {} Periodic mongo cleanup: result.createDate={}", tag,
+                result.getString("createDate"));
           }
           mongoClient
               .rxFindOneAndDelete(JwtConstants.COLLECTION_NAME, new JsonObject().put("_id", result.getString("_id")))

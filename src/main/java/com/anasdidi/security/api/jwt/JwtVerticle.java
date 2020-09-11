@@ -1,10 +1,7 @@
 package com.anasdidi.security.api.jwt;
 
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -12,7 +9,6 @@ import org.apache.logging.log4j.Logger;
 
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
@@ -55,11 +51,11 @@ public class JwtVerticle extends AbstractVerticle {
 
     mainRouter.mountSubRouter("/api/jwt", router);
 
-    long periodicCleanup = 1000L * 60 * 60;
+    long periodicCleanup = 1000L * 60 * 1;
     vertx.setPeriodic(periodicCleanup, r -> {
       String tag = "" + System.currentTimeMillis();
       JsonObject query = new JsonObject()//
-          .put("createTimestamp", new JsonObject().put("$lt", Instant.now().minusMillis(periodicCleanup)));
+          .put("createDate", new JsonObject().put("$lt", Instant.now().minusMillis(periodicCleanup)));
 
       if (logger.isDebugEnabled()) {
         logger.debug("[start] {} Periodic mongo cleanup: periodic={}, query\n{}", tag, periodicCleanup,
@@ -74,7 +70,7 @@ public class JwtVerticle extends AbstractVerticle {
 
         resultList.stream().forEach(result -> {
           if (logger.isDebugEnabled()) {
-            logger.debug("[start] {} result={}", tag, result.getString("createTimestamp"));
+            logger.debug("[start] {} result={}", tag, result.getString("createDate"));
           }
           mongoClient
               .rxFindOneAndDelete(JwtConstants.COLLECTION_NAME, new JsonObject().put("_id", result.getString("_id")))
@@ -116,23 +112,5 @@ public class JwtVerticle extends AbstractVerticle {
   }
 
   void configureMongoCollectionIndexes(Promise<Void> startPromise) {
-    mongoClient.listIndexes(JwtConstants.COLLECTION_NAME, indexList -> {
-      if (indexList.succeeded()) {
-        @SuppressWarnings({ "unchecked" })
-        Set<String> indexSet = new HashSet<>(indexList.result().getList());
-
-        String idx1 = "idx_createTimestamp_ttl";
-        if (!indexSet.contains(idx1)) {
-          mongoClient.rxCreateIndexWithOptions(//
-              JwtConstants.COLLECTION_NAME, //
-              new JsonObject().put("createTimestamp", 1), //
-              new IndexOptions().name(idx1).expireAfter(Long.valueOf(3600), TimeUnit.SECONDS))//
-              .subscribe(() -> logger.info("[configureMongoCollectionIndexes] Mongo create index '{}' succeed.", idx1));
-        }
-      } else {
-        logger.error("[configureMongoCollectionIndexes] Mongo get index list failed!");
-        startPromise.fail(indexList.cause());
-      }
-    });
   }
 }

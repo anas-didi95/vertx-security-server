@@ -9,8 +9,8 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "username": "anas.didi95",
-  "password": "08071aN@"
+  "username": "username",
+  "password": "password"
 }
 
 ###

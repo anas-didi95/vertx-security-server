@@ -35,27 +35,27 @@ Following table is a **mandatory** environment variables used in this project.
 
 | Variable Name | Datatype | Description |
 | --- | --- | --- |
-| **APP_PORT** | Number | Server port |
-| **JWT_SECRET** | String | JWT secret key for signature of token |
-| **JWT_ISSUER** | String | JWT issuer for token validation |
-| **JWT_EXPIRE_IN_MINUTES** | Number | JWT token expiration period (in minutes) |
-| **MONGO_HOST** | String | Mongo host |
-| **MONGO_PORT** | Number | Mongo port |
-| **MONGO_USERNAME** | String | Mongo username |
-| **MONGO_PASSWORD** | String | Mongo password |
-| **MONGO_AUTH_SOURCE** | String | Mongo database for mongo user authentication |
-| **TEST_MONGO_HOST** | String | Mongo host for unit test |
-| **TEST_MONGO_PORT** | Number | Mongo port for unit test |
-| **TEST_MONGO_USERNAME** | String | Mongo username for unit test |
-| **TEST_MONGO_PASSWORD** | String | Mongo password for unit test |
-| **TEST_MONGO_AUTH_SOURCE** | String | Mongo database for mongo user authentication for unit test |
+| APP_PORT | Number | Server port |
+| JWT_SECRET | String | JWT secret key for signature of token |
+| JWT_ISSUER | String | JWT issuer for token validation |
+| JWT_EXPIRE_IN_MINUTES | Number | JWT token expiration period (in minutes) |
+| MONGO_HOST | String | Mongo host |
+| MONGO_PORT | Number | Mongo port |
+| MONGO_USERNAME | String | Mongo username |
+| MONGO_PASSWORD | String | Mongo password |
+| MONGO_AUTH_SOURCE | String | Mongo database for mongo user authentication |
+| TEST_MONGO_HOST | String | Mongo host for unit test |
+| TEST_MONGO_PORT | Number | Mongo port for unit test |
+| TEST_MONGO_USERNAME | String | Mongo username for unit test |
+| TEST_MONGO_PASSWORD | String | Mongo password for unit test |
+| TEST_MONGO_AUTH_SOURCE | String | Mongo database for mongo user authentication for unit test |
 
 Following table is a **optional** environment variables used in this project.
 | Variable Name | Datatype | Description | Default Value |
 | --- | --- | --- | --- |
-| **APP_HOST** | String | Server host | localhost |
-| **LOG_LEVEL** | String | Log level | error |
-| **GRAPHIQL_IS_ENABLE** | Boolean | Flag to enable `/graphiql` path | false
+| APP_HOST | String | Server host | localhost |
+| LOG_LEVEL | String | Log level | error |
+| GRAPHIQL_IS_ENABLE | Boolean | Flag to enable `/graphiql` path | false
 
 ---
 
@@ -81,6 +81,7 @@ To run your application:
 * Can create, update, delete user resource.
 * Add JWT authentication for resource handler.
 * Add GraphQL to query resource.
+* Add JWT refresh token to get new access token.
 
 ---
 

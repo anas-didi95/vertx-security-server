@@ -41,9 +41,8 @@ class JwtService {
     String id = CommonUtils.generateId();
     JsonObject document = new JsonObject()//
         .put("_id", id)//
-        .put("accessToken", accessToken)//
         .put("hasRefresh", false)//
-        .put("createTimestamp", Instant.now())//
+        .put("createDate", Instant.now())//
         .put("username", username)//
         .put("userId", userId);
 

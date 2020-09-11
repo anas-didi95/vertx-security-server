@@ -92,11 +92,11 @@ public class JwtVerticle extends AbstractVerticle {
         @SuppressWarnings({ "unchecked" })
         Set<String> indexSet = new HashSet<>(indexList.result().getList());
 
-        String idx1 = "idx_timestamp_ttl";
+        String idx1 = "idx_createTimestamp_ttl";
         if (!indexSet.contains(idx1)) {
           mongoClient.rxCreateIndexWithOptions(//
               JwtConstants.COLLECTION_NAME, //
-              new JsonObject().put("timestampCreated", 1), //
+              new JsonObject().put("createTimestamp", 1), //
               new IndexOptions().name(idx1).expireAfter(Long.valueOf(3600), TimeUnit.SECONDS))//
               .subscribe(() -> logger.info("[configureMongoCollectionIndexes] Mongo create index '{}' succeed.", idx1));
         }

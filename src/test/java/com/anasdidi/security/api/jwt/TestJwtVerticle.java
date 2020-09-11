@@ -206,6 +206,7 @@ public class TestJwtVerticle {
       String accessToken = data1.getString("accessToken");
       JsonObject requestBody = new JsonObject().put("id", data1.getString("refreshId"));
 
+      Thread.sleep(1000);
       webClient.post(port, host, requestURI + "/refresh").putHeader("Authorization", "Bearer " + accessToken)
           .rxSendJsonObject(requestBody).subscribe(response2 -> {
             testContext.verify(() -> {

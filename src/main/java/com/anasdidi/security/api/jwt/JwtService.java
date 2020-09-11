@@ -28,6 +28,37 @@ class JwtService {
     this.cfg = cfg;
   }
 
+  private JwtVO getAndSaveToken(String requestId, String username, String userId) {
+    String tag = "getAndSaveToken";
+
+    JsonObject claims = new JsonObject()//
+        .put("username", username);
+    String accessToken = jwtAuth.generateToken(claims, new JWTOptions()//
+        .setSubject(userId)//
+        .setIssuer(cfg.getString("JWT_ISSUER"))//
+        .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES")));
+
+    String id = CommonUtils.generateId();
+    JsonObject document = new JsonObject()//
+        .put("_id", id)//
+        .put("accessToken", accessToken)//
+        .put("hasRefresh", false)//
+        .put("createTimestamp", Instant.now())//
+        .put("username", username)//
+        .put("userId", userId);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] document\n{}", tag, requestId, document.copy().put("accessToken", "***"));
+    }
+
+    mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
+
+    JsonObject json = new JsonObject()//
+        .put("id", id)//
+        .put("accessToken", accessToken);
+    return JwtUtils.toVO(json);
+  }
+
   Single<JwtVO> login(String requestId, String username, String password, JsonObject user) {
     String tag = "login";
     return Single.fromCallable(() -> {
@@ -47,25 +78,7 @@ class JwtService {
             JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
       }
 
-      JsonObject claims = new JsonObject()//
-          .put("username", username);
-      String accessToken = jwtAuth.generateToken(claims, new JWTOptions()//
-          .setSubject(user.getString("id"))//
-          .setIssuer(cfg.getString("JWT_ISSUER"))//
-          .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES")));
-
-      String id = CommonUtils.generateId();
-      JsonObject document = new JsonObject()//
-          .put("_id", id)//
-          .put("accessToken", accessToken)//
-          .put("hasRefresh", false)//
-          .put("timestampCreated", Instant.now());
-      mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
-
-      JsonObject json = new JsonObject()//
-          .put("id", id)//
-          .put("accessToken", accessToken);
-      return JwtUtils.toVO(json);
+      return getAndSaveToken(requestId, username, user.getString("id"));
     });
   }
 
@@ -84,25 +97,7 @@ class JwtService {
     }
 
     return mongoClient.rxFindOneAndUpdate(JwtConstants.COLLECTION_NAME, query, update).map(rst -> {
-      JsonObject claims = new JsonObject()//
-          .put("username", rst.getString("username"));
-      String accessToken = jwtAuth.generateToken(claims, new JWTOptions()//
-          .setSubject(rst.getString("userId"))//
-          .setIssuer(cfg.getString("JWT_ISSUER"))//
-          .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES")));
-
-      String id = CommonUtils.generateId();
-      JsonObject document = new JsonObject()//
-          .put("_id", id)//
-          .put("accessToken", accessToken)//
-          .put("hasRefresh", false)//
-          .put("timestampCreated", Instant.now());
-      mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
-
-      JsonObject json = new JsonObject()//
-          .put("id", id)//
-          .put("accessToken", accessToken);
-      return JwtUtils.toVO(json);
+      return getAndSaveToken(requestId, rst.getString("username"), rst.getString("userId"));
     }).toSingle();
   }
 }

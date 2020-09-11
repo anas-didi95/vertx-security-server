@@ -109,11 +109,11 @@ class JwtService {
           String userId = rst.getString("userId");
 
           if (!vo.username.equals(username) || !vo.userId.equals(userId)) {
-            throw new ApplicationException("Refresh token credential invalid!", requestId,
-                "Refresh token credential mismatch!");
+            throw new ApplicationException(JwtConstants.MSG_ERR_REFRESH_TOKEN_INVALID, requestId,
+                JwtConstants.MSG_ERR_REFRESH_TOKEN_CREDENTIAL_MISMATCH);
           }
 
-          return getAndSaveToken(requestId, rst.getString("username"), rst.getString("userId"));
+          return getAndSaveToken(requestId, username, userId);
         })//
         .toSingle();
   }

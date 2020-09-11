@@ -401,7 +401,7 @@ public class TestJwtVerticle {
               JsonObject status2 = responseBody2.getJsonObject("status");
               Assertions.assertNotNull(status2);
               Assertions.assertEquals(false, status2.getBoolean("isSuccess"));
-              Assertions.assertEquals("Refresh token credential invalid!", status2.getString("message"));
+              Assertions.assertEquals("Refresh token invalid!", status2.getString("message"));
 
               // data
               JsonObject data2 = responseBody2.getJsonObject("data");

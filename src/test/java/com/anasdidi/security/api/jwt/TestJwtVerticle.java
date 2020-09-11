@@ -381,6 +381,7 @@ public class TestJwtVerticle {
   void testJwtRefreshInvalidCredentialError(Vertx vertx, VertxTestContext testContext) {
     webClient.post(port, host, requestURI + "/login").rxSendJsonObject(user).subscribe(response1 -> {
       JsonObject data1 = response1.bodyAsJsonObject().getJsonObject("data");
+      // String accessToken = data1.getString("accessToken");
       JsonObject requestBody = new JsonObject().put("id", data1.getString("refreshId"));
 
       webClient.post(port, host, requestURI + "/refresh").putHeader("Authorization", "Bearer " + accessToken)

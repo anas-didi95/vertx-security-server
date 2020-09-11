@@ -105,6 +105,14 @@ class JwtService {
               JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
         })//
         .map(rst -> {
+          String username = rst.getString("username");
+          String userId = rst.getString("userId");
+
+          if (!vo.username.equals(username) || !vo.userId.equals(userId)) {
+            throw new ApplicationException("Refresh token credential invalid!", requestId,
+                "Refresh token credential mismatch!");
+          }
+
           return getAndSaveToken(requestId, rst.getString("username"), rst.getString("userId"));
         })//
         .toSingle();

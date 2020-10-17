@@ -26,11 +26,11 @@ public class JwtVerticle extends AbstractVerticle {
   private final JwtValidator jwtValidator;
   private final JwtController jwtController;
 
-  public JwtVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth, MongoClient mongoClient, JsonObject cfg) {
+  public JwtVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth, MongoClient mongoClient) {
     this.mainRouter = mainRouter;
     this.jwtAuth = jwtAuth;
     this.mongoClient = mongoClient;
-    this.jwtService = new JwtService(jwtAuth, mongoClient, cfg);
+    this.jwtService = new JwtService(jwtAuth, mongoClient);
     this.jwtValidator = new JwtValidator();
     this.jwtController = new JwtController(eventBus, jwtService, jwtValidator);
   }

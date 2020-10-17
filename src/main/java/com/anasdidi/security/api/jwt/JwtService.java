@@ -2,6 +2,7 @@ package com.anasdidi.security.api.jwt;
 
 import java.time.Instant;
 
+import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonUtils;
 
@@ -20,23 +21,22 @@ class JwtService {
   private final Logger logger = LogManager.getLogger(JwtService.class);
   private final JWTAuth jwtAuth;
   private final MongoClient mongoClient;
-  private final JsonObject cfg;
 
-  JwtService(JWTAuth jwtAuth, MongoClient mongoClient, JsonObject cfg) {
+  JwtService(JWTAuth jwtAuth, MongoClient mongoClient) {
     this.jwtAuth = jwtAuth;
     this.mongoClient = mongoClient;
-    this.cfg = cfg;
   }
 
   private JwtVO getAndSaveToken(String requestId, String username, String userId) {
     String tag = "getAndSaveToken";
+    AppConfig appConfig = AppConfig.instance();
 
     JsonObject claims = new JsonObject()//
         .put("username", username);
     String accessToken = jwtAuth.generateToken(claims, new JWTOptions()//
         .setSubject(userId)//
-        .setIssuer(cfg.getString("JWT_ISSUER"))//
-        .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES")));
+        .setIssuer(appConfig.getJwtIssuer())//
+        .setExpiresInMinutes(appConfig.getJwtExpireInMinutes()));
 
     String id = CommonUtils.generateId();
     JsonObject document = new JsonObject()//

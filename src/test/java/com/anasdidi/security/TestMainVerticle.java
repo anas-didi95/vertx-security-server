@@ -1,5 +1,7 @@
 package com.anasdidi.security;
 
+import com.anasdidi.security.common.AppConfig;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
@@ -37,30 +39,34 @@ public class TestMainVerticle {
 
   @Test
   @Order(2)
-  void testConfigEnvironmentVariable(Vertx vertx, VertxTestContext testContext) {
-    configRetriever.rxGetConfig().subscribe(cfg -> {
-      testContext.verify(() -> {
-        Assertions.assertNotNull(cfg.getInteger("APP_PORT"));
+  void testAppConfigSuccess(Vertx vertx, VertxTestContext testContext) {
+    testContext.verify(() -> {
+      AppConfig appConfig = AppConfig.instance();
+      Assertions.assertNotNull(appConfig);
 
-        Assertions.assertNotNull(cfg.getString("JWT_SECRET"));
-        Assertions.assertNotNull(cfg.getString("JWT_ISSUER"));
-        Assertions.assertNotNull(cfg.getInteger("JWT_EXPIRE_IN_MINUTES"));
+      Assertions.assertNotNull(appConfig.getAppPort());
+      Assertions.assertNotNull(appConfig.getAppHost());
 
-        Assertions.assertNotNull(cfg.getString("MONGO_HOST"));
-        Assertions.assertNotNull(cfg.getInteger("MONGO_PORT"));
-        Assertions.assertNotNull(cfg.getString("MONGO_USERNAME"));
-        Assertions.assertNotNull(cfg.getString("MONGO_PASSWORD"));
-        Assertions.assertNotNull(cfg.getString("MONGO_AUTH_SOURCE"));
+      Assertions.assertNotNull(appConfig.getJwtSecret());
+      Assertions.assertNotNull(appConfig.getJwtIssuer());
+      Assertions.assertNotNull(appConfig.getJwtExpireInMinutes());
 
-        Assertions.assertNotNull(cfg.getString("TEST_MONGO_HOST"));
-        Assertions.assertNotNull(cfg.getInteger("TEST_MONGO_PORT"));
-        Assertions.assertNotNull(cfg.getString("TEST_MONGO_USERNAME"));
-        Assertions.assertNotNull(cfg.getString("TEST_MONGO_PASSWORD"));
-        Assertions.assertNotNull(cfg.getString("TEST_MONGO_AUTH_SOURCE"));
+      Assertions.assertNotNull(appConfig.getMongoHost());
+      Assertions.assertNotNull(appConfig.getMongoPort());
+      Assertions.assertNotNull(appConfig.getMongoUsername());
+      Assertions.assertNotNull(appConfig.getMongoPassword());
+      Assertions.assertNotNull(appConfig.getMongoAuthSource());
 
-        testContext.completeNow();
-      });
-    }, e -> testContext.failNow(e));
+      Assertions.assertNotNull(appConfig.getTestMongoHost());
+      Assertions.assertNotNull(appConfig.getTestMongoPort());
+      Assertions.assertNotNull(appConfig.getTestMongoUsename());
+      Assertions.assertNotNull(appConfig.getTestMongoPassword());
+      Assertions.assertNotNull(appConfig.getTestMongoAuthSource());
+
+      Assertions.assertNotNull(appConfig.getGraphiqlIsEnable());
+
+      testContext.completeNow();
+    });
   }
 
   @Test

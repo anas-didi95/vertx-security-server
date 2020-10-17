@@ -95,7 +95,7 @@ public class AppConfig {
   }
 
   public int getTestMongoPort() {
-    return config.getInteger("TEST_MONGO_PORT");
+    return config.getInteger("TEST_MONGO_PORT", -1);
   }
 
   public String getTestMongoUsename() {

@@ -6,6 +6,7 @@ import java.util.Set;
 import com.anasdidi.security.api.graphql.GraphqlVerticle;
 import com.anasdidi.security.api.jwt.JwtVerticle;
 import com.anasdidi.security.api.user.UserVerticle;
+import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonUtils;
 
@@ -54,6 +55,8 @@ public class MainVerticle extends AbstractVerticle {
         new ConfigRetrieverOptions().addStore(new ConfigStoreOptions().setType("env")));
 
     configRetriever.rxGetConfig().subscribe(cfg -> {
+      AppConfig.create(cfg);
+
       logger.info("[{}] configRetriever\n{}", tag, cfg.copy()//
           .put("TEST_MONGO_PASSWORD", "-")//
           .put("MONGO_PASSWORD", "-")//

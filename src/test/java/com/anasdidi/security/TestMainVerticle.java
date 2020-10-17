@@ -45,6 +45,7 @@ public class TestMainVerticle {
       Assertions.assertNotNull(appConfig);
 
       Assertions.assertNotNull(appConfig.getAppPort());
+      Assertions.assertNotNull(appConfig.getAppHost());
 
       Assertions.assertNotNull(appConfig.getJwtSecret());
       Assertions.assertNotNull(appConfig.getJwtIssuer());
@@ -61,6 +62,8 @@ public class TestMainVerticle {
       Assertions.assertNotNull(appConfig.getTestMongoUsename());
       Assertions.assertNotNull(appConfig.getTestMongoPassword());
       Assertions.assertNotNull(appConfig.getTestMongoAuthSource());
+
+      Assertions.assertNotNull(appConfig.getGraphiqlIsEnable());
 
       testContext.completeNow();
     });

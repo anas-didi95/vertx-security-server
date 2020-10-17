@@ -28,8 +28,34 @@ public class AppConfig {
     return appConfig;
   }
 
+  @Override
+  public String toString() {
+    return new JsonObject()//
+        .put("APP_PORT", getAppPort())//
+        .put("APP_HOST", getAppHost())//
+        .put("JWT_SECRET", getJwtSecret())//
+        .put("JWT_ISSUER", getJwtIssuer())//
+        .put("JWT_EXPIRE_IN_MINUTES", getJwtExpireInMinutes())//
+        .put("MONGO_HOST", getMongoHost())//
+        .put("MONGO_PORT", getMongoPort())//
+        .put("MONGO_USERNAME", getMongoUsername())//
+        .put("MONGO_PASSWORD", getMongoPassword())//
+        .put("MONGO_AUTH_SOURCE", getMongoAuthSource())//
+        .put("TEST_MONGO_HOST", getTestMongoHost())//
+        .put("TEST_MONGO_PORT", getTestMongoPort())//
+        .put("TEST_MONGO_USERNAME", getTestMongoUsename())//
+        .put("TEST_MONGO_PASSWORD", getTestMongoPassword())//
+        .put("TEST_MONGO_AUTH_SOURCE", getTestMongoAuthSource())//
+        .put("GRAPHIQL_IS_ENABLE", getGraphiqlIsEnable())//
+        .encodePrettily();
+  }
+
   public int getAppPort() {
     return config.getInteger("APP_PORT");
+  }
+
+  public String getAppHost() {
+    return config.getString("APP_HOST", "localhost");
   }
 
   public String getJwtSecret() {
@@ -82,5 +108,9 @@ public class AppConfig {
 
   public String getTestMongoAuthSource() {
     return config.getString("TEST_MONGO_AUTH_SOURCE");
+  }
+
+  public boolean getGraphiqlIsEnable() {
+    return config.getBoolean("GRAPHIQL_IS_ENABLE", false);
   }
 }

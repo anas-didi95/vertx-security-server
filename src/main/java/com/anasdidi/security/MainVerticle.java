@@ -54,33 +54,27 @@ public class MainVerticle extends AbstractVerticle {
     ConfigRetriever configRetriever = ConfigRetriever.create(vertx,
         new ConfigRetrieverOptions().addStore(new ConfigStoreOptions().setType("env")));
 
-    configRetriever.rxGetConfig().subscribe(cfg -> {
-      AppConfig.create(cfg);
-
-      logger.info("[{}] configRetriever\n{}", tag, cfg.copy()//
-          .put("TEST_MONGO_PASSWORD", "-")//
-          .put("MONGO_PASSWORD", "-")//
-          .put("JWT_SECRET", "-")//
-          .put("JWT_ISSUER", "-")//
-          .encodePrettily());
+    configRetriever.rxGetConfig().subscribe(config -> {
+      AppConfig appConfig = AppConfig.create(config);
+      logger.info("[{}] appConfig\n{}", tag, appConfig.toString());
 
       JsonObject mongoConfig = new JsonObject()
-          .put("host", isTest ? cfg.getString("TEST_MONGO_HOST") : cfg.getString("MONGO_HOST"))//
-          .put("port", isTest ? cfg.getInteger("TEST_MONGO_PORT") : cfg.getInteger("MONGO_PORT"))//
-          .put("username", isTest ? cfg.getString("TEST_MONGO_USERNAME") : cfg.getString("MONGO_USERNAME"))//
-          .put("password", isTest ? cfg.getString("TEST_MONGO_PASSWORD") : cfg.getString("MONGO_PASSWORD"))//
-          .put("authSource", isTest ? cfg.getString("TEST_MONGO_AUTH_SOURCE") : cfg.getString("MONGO_AUTH_SOURCE"))//
+          .put("host", isTest ? appConfig.getTestMongoHost() : appConfig.getMongoHost())//
+          .put("port", isTest ? appConfig.getTestMongoPort() : appConfig.getMongoPort())//
+          .put("username", isTest ? appConfig.getTestMongoUsename() : appConfig.getMongoUsername())//
+          .put("password", isTest ? appConfig.getTestMongoPassword() : appConfig.getMongoPassword())//
+          .put("authSource", isTest ? appConfig.getTestMongoAuthSource() : appConfig.getMongoAuthSource())//
           .put("db_name", "security");
       MongoClient mongoClient = MongoClient.createShared(vertx, mongoConfig);//
 
       @SuppressWarnings("deprecation")
       JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()//
           .setJWTOptions(new JWTOptions()//
-              .setExpiresInMinutes(cfg.getInteger("JWT_EXPIRE_IN_MINUTES"))//
-              .setIssuer(cfg.getString("JWT_ISSUER")))//
+              .setExpiresInMinutes(appConfig.getJwtExpireInMinutes())//
+              .setIssuer(appConfig.getJwtIssuer()))
           .addPubSecKey(new PubSecKeyOptions()//
               .setAlgorithm("HS256")//
-              .setPublicKey(cfg.getString("JWT_SECRET"))//
+              .setPublicKey(appConfig.getJwtSecret())//
               .setSymmetric(true)));
 
       HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
@@ -92,12 +86,12 @@ public class MainVerticle extends AbstractVerticle {
       router.route().handler(this::generateRequestId);
       router.get("/ping").handler(healthCheckHandler);
 
-      vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth, mongoClient, cfg));
+      vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth, mongoClient));
       vertx.deployVerticle(new UserVerticle(router, mongoClient, jwtAuth, vertx.eventBus()));
-      vertx.deployVerticle(new GraphqlVerticle(router, vertx.eventBus(), jwtAuth, cfg));
+      vertx.deployVerticle(new GraphqlVerticle(router, vertx.eventBus(), jwtAuth));
 
-      int port = cfg.getInteger("APP_PORT");
-      String host = cfg.getString("APP_HOST", "localhost");
+      int port = appConfig.getAppPort();
+      String host = appConfig.getAppHost();
       Router contextPath = Router.router(vertx).mountSubRouter(CommonConstants.CONTEXT_PATH, router);
       vertx.createHttpServer().requestHandler(contextPath).listen(port, host, http -> {
         if (http.succeeded()) {

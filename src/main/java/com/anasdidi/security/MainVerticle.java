@@ -1,5 +1,8 @@
 package com.anasdidi.security;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.anasdidi.security.api.graphql.GraphqlVerticle;
 import com.anasdidi.security.api.jwt.JwtVerticle;
 import com.anasdidi.security.api.user.UserVerticle;
@@ -12,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.Promise;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Log4j2LogDelegateFactory;
 import io.vertx.ext.auth.JWTOptions;
@@ -26,6 +30,7 @@ import io.vertx.reactivex.ext.mongo.MongoClient;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import io.vertx.reactivex.ext.web.handler.BodyHandler;
+import io.vertx.reactivex.ext.web.handler.CorsHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -79,6 +84,7 @@ public class MainVerticle extends AbstractVerticle {
       setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);
 
       Router router = Router.router(vertx);
+      router.route().handler(setupCorsHandler());
       router.route().handler(BodyHandler.create());
       router.route().handler(this::generateRequestId);
       router.get("/ping").handler(healthCheckHandler);
@@ -125,5 +131,22 @@ public class MainVerticle extends AbstractVerticle {
             .put("error", e.getMessage())));
       });
     });
+  }
+
+  CorsHandler setupCorsHandler() {
+    Set<String> headerNames = new HashSet<>();
+    headerNames.add("Accept");
+    headerNames.add("Content-Type");
+    headerNames.add("Authorization");
+
+    Set<HttpMethod> methods = new HashSet<>();
+    methods.add(HttpMethod.GET);
+    methods.add(HttpMethod.POST);
+    methods.add(HttpMethod.PUT);
+    methods.add(HttpMethod.DELETE);
+
+    return CorsHandler.create("*")//
+        .allowedHeaders(headerNames)//
+        .allowedMethods(methods);
   }
 }

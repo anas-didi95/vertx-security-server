@@ -1,6 +1,6 @@
 # Security Microservice
 
-[![Logo](https://img.shields.io/badge/vert.x-3.9.2-purple.svg)](https://vertx.io")
+[![Logo](https://img.shields.io/badge/vert.x-3.9.4-purple.svg)](https://vertx.io")
 ![deploy](https://github.com/anas-didi95/vertx-security-server/workflows/deploy/badge.svg?branch=master)
 ![build](https://github.com/anas-didi95/vertx-security-server/workflows/build/badge.svg)
 
@@ -25,7 +25,7 @@ Back-end service which provides security-related resources such as user and JSON
 ---
 
 ## Technologies
-* Vert.x - Version 3.9.2
+* Vert.x - Version 3.9.4
 * Log4j2 - Version 2.13.3
 * jBcrypt - Version 0.4
 

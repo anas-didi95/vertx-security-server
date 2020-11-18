@@ -5,15 +5,14 @@ import io.vertx.core.json.JsonObject;
 public class AppConfig {
 
   private static AppConfig appConfig;
+  private final JsonObject cfg;
 
-  private final JsonObject config;
-
-  private AppConfig(JsonObject config) {
-    this.config = config;
+  private AppConfig(JsonObject cfg) {
+    this.cfg = cfg;
   }
 
-  public static AppConfig create(JsonObject config) {
-    appConfig = new AppConfig(config);
+  public static AppConfig create(JsonObject cfg) {
+    appConfig = new AppConfig(cfg);
     return appConfig;
   }
 
@@ -32,7 +31,6 @@ public class AppConfig {
         .put("JWT_SECRET", getJwtSecret())//
         .put("JWT_ISSUER", getJwtIssuer())//
         .put("JWT_EXPIRE_IN_MINUTES", getJwtExpireInMinutes())//
-        .put("MONGO_CONNECTION_STRING", getMongoConnectionString())//
         .put("MONGO_CONFIG", getMongoConfig())//
         .put("MONGO_HOST", getMongoHost())//
         .put("MONGO_PORT", getMongoPort())//
@@ -49,76 +47,76 @@ public class AppConfig {
   }
 
   public int getAppPort() {
-    return config.getInteger("APP_PORT");
+    return cfg.getInteger("APP_PORT");
   }
 
   public String getAppHost() {
-    return config.getString("APP_HOST", "localhost");
+    return cfg.getString("APP_HOST", "localhost");
   }
 
   public String getJwtSecret() {
-    return config.getString("JWT_SECRET");
+    return cfg.getString("JWT_SECRET");
   }
 
   public String getJwtIssuer() {
-    return config.getString("JWT_ISSUER");
+    return cfg.getString("JWT_ISSUER");
   }
 
   public int getJwtExpireInMinutes() {
-    return config.getInteger("JWT_EXPIRE_IN_MINUTES");
+    return cfg.getInteger("JWT_EXPIRE_IN_MINUTES");
   }
 
   public String getMongoHost() {
-    return config.getString("MONGO_HOST");
+    return cfg.getString("MONGO_HOST");
   }
 
   public int getMongoPort() {
-    return config.getInteger("MONGO_PORT");
+    return cfg.getInteger("MONGO_PORT");
   }
 
   public String getMongoUsername() {
-    return config.getString("MONGO_USERNAME");
+    return cfg.getString("MONGO_USERNAME");
   }
 
   public String getMongoPassword() {
-    return config.getString("MONGO_PASSWORD");
+    return cfg.getString("MONGO_PASSWORD");
   }
 
   public String getMongoAuthSource() {
-    return config.getString("MONGO_AUTH_SOURCE");
+    return cfg.getString("MONGO_AUTH_SOURCE");
   }
 
   public String getTestMongoHost() {
-    return config.getString("TEST_MONGO_HOST");
+    return cfg.getString("TEST_MONGO_HOST");
   }
 
   public int getTestMongoPort() {
-    return config.getInteger("TEST_MONGO_PORT", -1);
+    return cfg.getInteger("TEST_MONGO_PORT", -1);
   }
 
   public String getTestMongoUsename() {
-    return config.getString("TEST_MONGO_USERNAME");
+    return cfg.getString("TEST_MONGO_USERNAME");
   }
 
   public String getTestMongoPassword() {
-    return config.getString("TEST_MONGO_PASSWORD");
+    return cfg.getString("TEST_MONGO_PASSWORD");
   }
 
   public String getTestMongoAuthSource() {
-    return config.getString("TEST_MONGO_AUTH_SOURCE");
-  }
-
-  public String getMongoConnectionString() {
-    return "mongodb://mongo:mongo@mongo:27017/security?authSource=admin";
+    return cfg.getString("TEST_MONGO_AUTH_SOURCE");
   }
 
   public JsonObject getMongoConfig() {
-    String connectionString = "mongodb://mongo:mongo@mongo:27017/security?authSource=admin";
+    String connectionString = cfg.getString("MONGO_CONNECTION_STRING");
+
+    if (connectionString == null) {
+      return null;
+    }
 
     return new JsonObject().put("connection_string", connectionString);
   }
 
   public boolean getGraphiqlIsEnable() {
-    return config.getBoolean("GRAPHIQL_IS_ENABLE", false);
+    return cfg.getBoolean("GRAPHIQL_IS_ENABLE", false);
   }
 }

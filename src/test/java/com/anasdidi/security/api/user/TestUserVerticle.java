@@ -86,7 +86,8 @@ public class TestUserVerticle {
 
       mongoClient.rxSave("users", createdBody).defaultIfEmpty(uuid).subscribe(docId -> {
         createdBody.put("id", docId);
-        vertx.deployVerticle(new MainVerticle(true), testContext.succeeding(id -> testContext.completeNow()));
+        vertx.deployVerticle(new MainVerticle(),
+            testContext.succeeding(id -> testContext.completeNow()));
       }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }
@@ -206,8 +207,8 @@ public class TestUserVerticle {
 
   @Test
   void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
-    webClient.post(port, host, requestURI).putHeader("Authorization", "Bearer " + accessToken).rxSend()
-        .subscribe(response -> {
+    webClient.post(port, host, requestURI).putHeader("Authorization", "Bearer " + accessToken)
+        .rxSend().subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
@@ -240,7 +241,8 @@ public class TestUserVerticle {
   @Test
   void testUserUpdateSuccess(Vertx vertx, VertxTestContext testContext) {
     webClient.put(port, host, requestURI + "/" + createdBody.getString("id"))
-        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
+        .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
@@ -273,7 +275,8 @@ public class TestUserVerticle {
     createdBody.put("fullName", "").put("email", "");
 
     webClient.put(port, host, requestURI + "/" + createdBody.getString("id"))
-        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
+        .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
@@ -309,7 +312,8 @@ public class TestUserVerticle {
     createdBody.put("version", -1);
 
     webClient.put(port, host, requestURI + "/" + createdBody.getString("id"))
-        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
+        .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
@@ -377,7 +381,8 @@ public class TestUserVerticle {
   @Test
   void testUserDeleteSuccess(Vertx vertx, VertxTestContext testContext) {
     webClient.delete(port, host, requestURI + "/" + createdBody.getString("id"))
-        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
+        .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
@@ -410,7 +415,8 @@ public class TestUserVerticle {
     JsonObject requestBody = new JsonObject().put("dummy", "");
 
     webClient.delete(port, host, requestURI + "/" + createdBody.getString("id"))
-        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody).subscribe(response -> {
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
+        .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
@@ -446,7 +452,8 @@ public class TestUserVerticle {
     createdBody.put("version", -1);
 
     webClient.delete(port, host, requestURI + "/" + createdBody.getString("id"))
-        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody).subscribe(response -> {
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
+        .subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(400, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));

@@ -39,12 +39,14 @@ public class MainVerticle extends AbstractVerticle {
   private Logger logger = LogManager.getLogger(MainVerticle.class);
 
   public MainVerticle(boolean isTest) {
-    System.setProperty("vertx.logger-delegate-factory-class-name", Log4j2LogDelegateFactory.class.getName());
+    System.setProperty("vertx.logger-delegate-factory-class-name",
+        Log4j2LogDelegateFactory.class.getName());
     this.isTest = isTest;
   }
 
   public MainVerticle() {
-    System.setProperty("vertx.logger-delegate-factory-class-name", Log4j2LogDelegateFactory.class.getName());
+    System.setProperty("vertx.logger-delegate-factory-class-name",
+        Log4j2LogDelegateFactory.class.getName());
     this.isTest = false;
   }
 
@@ -63,7 +65,8 @@ public class MainVerticle extends AbstractVerticle {
           .put("port", isTest ? appConfig.getTestMongoPort() : appConfig.getMongoPort())//
           .put("username", isTest ? appConfig.getTestMongoUsename() : appConfig.getMongoUsername())//
           .put("password", isTest ? appConfig.getTestMongoPassword() : appConfig.getMongoPassword())//
-          .put("authSource", isTest ? appConfig.getTestMongoAuthSource() : appConfig.getMongoAuthSource())//
+          .put("authSource",
+              isTest ? appConfig.getTestMongoAuthSource() : appConfig.getMongoAuthSource())//
           .put("db_name", "security");
       MongoClient mongoClient = MongoClient.createShared(vertx, mongoConfig);//
 
@@ -92,7 +95,8 @@ public class MainVerticle extends AbstractVerticle {
 
       int port = appConfig.getAppPort();
       String host = appConfig.getAppHost();
-      Router contextPath = Router.router(vertx).mountSubRouter(CommonConstants.CONTEXT_PATH, router);
+      Router contextPath =
+          Router.router(vertx).mountSubRouter(CommonConstants.CONTEXT_PATH, router);
       vertx.createHttpServer().requestHandler(contextPath).listen(port, host, http -> {
         if (http.succeeded()) {
           logger.info("[{}] HTTP server started on {}:{}", tag, host, port);
@@ -110,7 +114,8 @@ public class MainVerticle extends AbstractVerticle {
     routingContext.next();
   }
 
-  void setupHealthCheck(HealthCheckHandler healthCheckHandler, MongoClient mongoClient, JsonObject mongoConfig) {
+  void setupHealthCheck(HealthCheckHandler healthCheckHandler, MongoClient mongoClient,
+      JsonObject mongoConfig) {
     healthCheckHandler.register("check-mongo-connection", promise -> {
       JsonObject data = new JsonObject()//
           .put("host", mongoConfig.getString("host"))//

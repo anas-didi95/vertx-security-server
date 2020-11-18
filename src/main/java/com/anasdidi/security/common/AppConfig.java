@@ -1,13 +1,9 @@
 package com.anasdidi.security.common;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import io.vertx.core.json.JsonObject;
 
 public class AppConfig {
 
-  private final static Logger logger = LogManager.getLogger(AppConfig.class);
   private static AppConfig appConfig;
 
   private final JsonObject config;
@@ -21,9 +17,9 @@ public class AppConfig {
     return appConfig;
   }
 
-  public static AppConfig instance() {
+  public static AppConfig instance() throws Exception {
     if (appConfig == null) {
-      logger.error("[instance] appConfig is null!");
+      throw new Exception("AppConfig is null!");
     }
     return appConfig;
   }
@@ -36,7 +32,8 @@ public class AppConfig {
         .put("JWT_SECRET", getJwtSecret())//
         .put("JWT_ISSUER", getJwtIssuer())//
         .put("JWT_EXPIRE_IN_MINUTES", getJwtExpireInMinutes())//
-        .put("MONGO_CONNECTION_STRING", getMongoConnectionString())
+        .put("MONGO_CONNECTION_STRING", getMongoConnectionString())//
+        .put("MONGO_CONFIG", getMongoConfig())//
         .put("MONGO_HOST", getMongoHost())//
         .put("MONGO_PORT", getMongoPort())//
         .put("MONGO_USERNAME", getMongoUsername())//
@@ -113,6 +110,12 @@ public class AppConfig {
 
   public String getMongoConnectionString() {
     return "mongodb://mongo:mongo@mongo:27017/security?authSource=admin";
+  }
+
+  public JsonObject getMongoConfig() {
+    String connectionString = "mongodb://mongo:mongo@mongo:27017/security?authSource=admin";
+
+    return new JsonObject().put("connection_string", connectionString);
   }
 
   public boolean getGraphiqlIsEnable() {

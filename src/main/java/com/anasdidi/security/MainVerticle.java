@@ -35,17 +35,16 @@ import io.vertx.reactivex.ext.web.handler.CorsHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
-  private final boolean isTest;
   private Logger logger = LogManager.getLogger(MainVerticle.class);
 
   public MainVerticle(boolean isTest) {
-    System.setProperty("vertx.logger-delegate-factory-class-name", Log4j2LogDelegateFactory.class.getName());
-    this.isTest = isTest;
+    System.setProperty("vertx.logger-delegate-factory-class-name",
+        Log4j2LogDelegateFactory.class.getName());
   }
 
   public MainVerticle() {
-    System.setProperty("vertx.logger-delegate-factory-class-name", Log4j2LogDelegateFactory.class.getName());
-    this.isTest = false;
+    System.setProperty("vertx.logger-delegate-factory-class-name",
+        Log4j2LogDelegateFactory.class.getName());
   }
 
   @Override
@@ -58,14 +57,7 @@ public class MainVerticle extends AbstractVerticle {
       AppConfig appConfig = AppConfig.create(config);
       logger.info("[{}] appConfig\n{}", tag, appConfig.toString());
 
-      JsonObject mongoConfig = new JsonObject()
-          .put("host", isTest ? appConfig.getTestMongoHost() : appConfig.getMongoHost())//
-          .put("port", isTest ? appConfig.getTestMongoPort() : appConfig.getMongoPort())//
-          .put("username", isTest ? appConfig.getTestMongoUsename() : appConfig.getMongoUsername())//
-          .put("password", isTest ? appConfig.getTestMongoPassword() : appConfig.getMongoPassword())//
-          .put("authSource", isTest ? appConfig.getTestMongoAuthSource() : appConfig.getMongoAuthSource())//
-          .put("db_name", "security");
-      MongoClient mongoClient = MongoClient.createShared(vertx, mongoConfig);//
+      MongoClient mongoClient = MongoClient.createShared(vertx, appConfig.getMongoConfig());//
 
       @SuppressWarnings("deprecation")
       JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()//
@@ -78,7 +70,7 @@ public class MainVerticle extends AbstractVerticle {
               .setSymmetric(true)));
 
       HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
-      setupHealthCheck(healthCheckHandler, mongoClient, mongoConfig);
+      setupHealthCheck(healthCheckHandler, mongoClient);
 
       Router router = Router.router(vertx);
       router.route().handler(setupCorsHandler());
@@ -92,7 +84,8 @@ public class MainVerticle extends AbstractVerticle {
 
       int port = appConfig.getAppPort();
       String host = appConfig.getAppHost();
-      Router contextPath = Router.router(vertx).mountSubRouter(CommonConstants.CONTEXT_PATH, router);
+      Router contextPath =
+          Router.router(vertx).mountSubRouter(CommonConstants.CONTEXT_PATH, router);
       vertx.createHttpServer().requestHandler(contextPath).listen(port, host, http -> {
         if (http.succeeded()) {
           logger.info("[{}] HTTP server started on {}:{}", tag, host, port);
@@ -110,22 +103,16 @@ public class MainVerticle extends AbstractVerticle {
     routingContext.next();
   }
 
-  void setupHealthCheck(HealthCheckHandler healthCheckHandler, MongoClient mongoClient, JsonObject mongoConfig) {
+  void setupHealthCheck(HealthCheckHandler healthCheckHandler, MongoClient mongoClient) {
     healthCheckHandler.register("check-mongo-connection", promise -> {
-      JsonObject data = new JsonObject()//
-          .put("host", mongoConfig.getString("host"))//
-          .put("port", mongoConfig.getInteger("port"))//
-          .put("db_name", mongoConfig.getString("db_name"));
       mongoClient.rxGetCollections().subscribe(resultList -> {
         if (!resultList.isEmpty()) {
-          promise.complete(Status.OK(data));
+          promise.complete(Status.OK());
         } else {
-          promise.complete(Status.KO(data//
-              .put("error", "Collection list is empty!")));
+          promise.complete(Status.KO(new JsonObject().put("error", "Collection list is empty!")));
         }
       }, e -> {
-        promise.complete(Status.KO(data//
-            .put("error", e.getMessage())));
+        promise.complete(Status.KO(new JsonObject().put("error", e.getMessage())));
       });
     });
   }

@@ -77,7 +77,8 @@ public class TestGraphqlVerticle {
 
       mongoClient.rxSave("users", user).defaultIfEmpty(uuid).subscribe(docId -> {
         user.put("id", docId);
-        vertx.deployVerticle(new MainVerticle(true), testContext.succeeding(id -> testContext.completeNow()));
+        vertx.deployVerticle(new MainVerticle(),
+            testContext.succeeding(id -> testContext.completeNow()));
       }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }

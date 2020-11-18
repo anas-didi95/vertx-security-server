@@ -27,7 +27,7 @@ class JwtService {
     this.mongoClient = mongoClient;
   }
 
-  private JwtVO getAndSaveToken(String requestId, String username, String userId) {
+  private JwtVO getAndSaveToken(String requestId, String username, String userId) throws Exception {
     String tag = "getAndSaveToken";
     AppConfig appConfig = AppConfig.instance();
 
@@ -47,7 +47,8 @@ class JwtService {
         .put("userId", userId);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] document\n{}", tag, requestId, document.copy().put("accessToken", "***"));
+      logger.debug("[{}:{}] document\n{}", tag, requestId,
+          document.copy().put("accessToken", "***"));
     }
 
     mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
@@ -64,7 +65,8 @@ class JwtService {
       String uUsername = user.getString("username");
       String uPassword = user.getString("password");
       if (uUsername == null || uUsername.isBlank() || uPassword == null || uPassword.isBlank()) {
-        logger.error("[{}:{}] {} username={}", tag, requestId, JwtConstants.MSG_ERR_INVALID_CREDENTIAL, username);
+        logger.error("[{}:{}] {} username={}", tag, requestId,
+            JwtConstants.MSG_ERR_INVALID_CREDENTIAL, username);
         throw new ApplicationException(JwtConstants.MSG_ERR_INVALID_CREDENTIAL, requestId,
             JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
       }
@@ -72,7 +74,8 @@ class JwtService {
       boolean result1 = username.equals(uUsername);
       boolean result2 = BCrypt.checkpw(password, uPassword);
       if (!result1 || !result2) {
-        logger.error("[{}:{}] {} username={}", tag, requestId, JwtConstants.MSG_ERR_INVALID_CREDENTIAL, username);
+        logger.error("[{}:{}] {} username={}", tag, requestId,
+            JwtConstants.MSG_ERR_INVALID_CREDENTIAL, username);
         throw new ApplicationException(JwtConstants.MSG_ERR_INVALID_CREDENTIAL, requestId,
             JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
       }

@@ -20,75 +20,71 @@ import io.vertx.reactivex.ext.mongo.MongoClient;
 @ExtendWith(VertxExtension.class)
 public class TestMainVerticle {
 
-  private ConfigRetriever configRetriever;
+	private ConfigRetriever configRetriever;
 
-  @BeforeEach
-  void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
-    this.configRetriever = ConfigRetriever.create(vertx, new ConfigRetrieverOptions()//
-        .addStore(new ConfigStoreOptions()//
-            .setType("env")));
+	@BeforeEach
+	void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
+		this.configRetriever = ConfigRetriever.create(vertx, new ConfigRetrieverOptions()//
+				.addStore(new ConfigStoreOptions()//
+						.setType("env")));
 
-    vertx.deployVerticle(new MainVerticle(), testContext.succeeding(id -> testContext.completeNow()));
-  }
+		vertx.deployVerticle(new MainVerticle(),
+				testContext.succeeding(id -> testContext.completeNow()));
+	}
 
-  @Test
-  @Order(1)
-  void verticle_deployed(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    testContext.completeNow();
-  }
+	@Test
+	@Order(1)
+	void verticle_deployed(Vertx vertx, VertxTestContext testContext) throws Throwable {
+		testContext.completeNow();
+	}
 
-  @Test
-  @Order(2)
-  void testAppConfigSuccess(Vertx vertx, VertxTestContext testContext) {
-    testContext.verify(() -> {
-      AppConfig appConfig = AppConfig.instance();
-      Assertions.assertNotNull(appConfig);
+	@Test
+	@Order(2)
+	void testAppConfigSuccess(Vertx vertx, VertxTestContext testContext) {
+		AppConfig appConfig = AppConfig.instance();
 
-      Assertions.assertNotNull(appConfig.getAppPort());
-      Assertions.assertNotNull(appConfig.getAppHost());
+		testContext.verify(() -> {
+			Assertions.assertNotNull(appConfig);
 
-      Assertions.assertNotNull(appConfig.getJwtSecret());
-      Assertions.assertNotNull(appConfig.getJwtIssuer());
-      Assertions.assertNotNull(appConfig.getJwtExpireInMinutes());
+			Assertions.assertNotNull(appConfig.getAppPort());
+			Assertions.assertNotNull(appConfig.getAppHost());
 
-      Assertions.assertNotNull(appConfig.getMongoHost());
-      Assertions.assertNotNull(appConfig.getMongoPort());
-      Assertions.assertNotNull(appConfig.getMongoUsername());
-      Assertions.assertNotNull(appConfig.getMongoPassword());
-      Assertions.assertNotNull(appConfig.getMongoAuthSource());
+			Assertions.assertNotNull(appConfig.getJwtSecret());
+			Assertions.assertNotNull(appConfig.getJwtIssuer());
+			Assertions.assertNotNull(appConfig.getJwtExpireInMinutes());
 
-      Assertions.assertNotNull(appConfig.getTestMongoHost());
-      Assertions.assertNotNull(appConfig.getTestMongoPort());
-      Assertions.assertNotNull(appConfig.getTestMongoUsename());
-      Assertions.assertNotNull(appConfig.getTestMongoPassword());
-      Assertions.assertNotNull(appConfig.getTestMongoAuthSource());
+			Assertions.assertNotNull(appConfig.getMongoConnectionString());
+			Assertions.assertNotNull(appConfig.getMongoHost());
+			Assertions.assertNotNull(appConfig.getMongoPort());
+			Assertions.assertNotNull(appConfig.getMongoUsername());
+			Assertions.assertNotNull(appConfig.getMongoPassword());
+			Assertions.assertNotNull(appConfig.getMongoAuthSource());
 
-      Assertions.assertNotNull(appConfig.getGraphiqlIsEnable());
+			Assertions.assertNotNull(appConfig.getTestMongoHost());
+			Assertions.assertNotNull(appConfig.getTestMongoPort());
+			Assertions.assertNotNull(appConfig.getTestMongoUsename());
+			Assertions.assertNotNull(appConfig.getTestMongoPassword());
+			Assertions.assertNotNull(appConfig.getTestMongoAuthSource());
 
-      testContext.completeNow();
-    });
-  }
+			Assertions.assertNotNull(appConfig.getGraphiqlIsEnable());
 
-  @Test
-  @Order(3)
-  void testMongoConfigureSuccess(Vertx vertx, VertxTestContext testContext) {
-    String collectionName = "TestCollection";
+			testContext.completeNow();
+		});
+	}
 
-    configRetriever.rxGetConfig().subscribe(cfg -> {
-      MongoClient mongoClient = MongoClient.createShared(vertx, new JsonObject()//
-          .put("host", cfg.getString("MONGO_HOST"))//
-          .put("port", cfg.getInteger("MONGO_PORT"))//
-          .put("username", cfg.getString("MONGO_USERNAME"))//
-          .put("password", cfg.getString("MONGO_PASSWORD"))//
-          .put("authSource", cfg.getString("MONGO_AUTH_SOURCE"))//
-          .put("db_name", "security"));
+	@Test
+	@Order(3)
+	void testMongoConfigureSuccess(Vertx vertx, VertxTestContext testContext) {
+		AppConfig appConfig = AppConfig.instance();
+		MongoClient mongoClient = MongoClient.createShared(vertx,
+				new JsonObject().put("connection_string", appConfig.getMongoConnectionString()));
 
-      mongoClient.rxCreateCollection(collectionName).subscribe(() -> {
-        mongoClient.rxDropCollection(collectionName).subscribe(() -> {
-          testContext.completeNow();
-        }, e -> testContext.failNow(e));
-      }, e -> testContext.failNow(e));
-    }, e -> testContext.failNow(e));
-  }
+		mongoClient.rxGetCollections().subscribe(resultList -> {
+			testContext.verify(() -> {
+				Assertions.assertNotNull(resultList);
 
+				testContext.completeNow();
+			});
+		}, e -> testContext.failNow(e));
+	}
 }

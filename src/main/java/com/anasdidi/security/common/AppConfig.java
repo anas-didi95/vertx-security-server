@@ -36,6 +36,7 @@ public class AppConfig {
         .put("JWT_SECRET", getJwtSecret())//
         .put("JWT_ISSUER", getJwtIssuer())//
         .put("JWT_EXPIRE_IN_MINUTES", getJwtExpireInMinutes())//
+        .put("MONGO_CONNECTION_STRING", getMongoConnectionString())
         .put("MONGO_HOST", getMongoHost())//
         .put("MONGO_PORT", getMongoPort())//
         .put("MONGO_USERNAME", getMongoUsername())//
@@ -108,6 +109,10 @@ public class AppConfig {
 
   public String getTestMongoAuthSource() {
     return config.getString("TEST_MONGO_AUTH_SOURCE");
+  }
+
+  public String getMongoConnectionString() {
+    return "mongodb://mongo:mongo@mongo:27017/security?authSource=admin";
   }
 
   public boolean getGraphiqlIsEnable() {

@@ -26,7 +26,8 @@ public class JwtVerticle extends AbstractVerticle {
   private final JwtValidator jwtValidator;
   private final JwtController jwtController;
 
-  public JwtVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth, MongoClient mongoClient) {
+  public JwtVerticle(Router mainRouter, EventBus eventBus, JWTAuth jwtAuth,
+      MongoClient mongoClient) {
     this.mainRouter = mainRouter;
     this.jwtAuth = jwtAuth;
     this.mongoClient = mongoClient;
@@ -49,7 +50,7 @@ public class JwtVerticle extends AbstractVerticle {
     router.get("/check").handler(jwtController::doCheck);
     router.post("/refresh").handler(jwtController::doRefresh);
 
-    mainRouter.mountSubRouter("/api/jwt", router);
+    mainRouter.mountSubRouter(JwtConstants.REQUEST_URI, router);
 
     long periodicCleanup = 1000L * 60 * 60;
     vertx.setPeriodic(periodicCleanup, r -> {
@@ -59,22 +60,21 @@ public class JwtVerticle extends AbstractVerticle {
           .put("createDate", new JsonObject().put("$lt", deleteLessThanDate));
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[start] {} Periodic mongo cleanup: periodic={}, query\n{}", tag, periodicCleanup,
-            query.encodePrettily());
+        logger.debug("[start] {} Periodic mongo cleanup: periodic={}, query\n{}", tag,
+            periodicCleanup, query.encodePrettily());
       }
 
       mongoClient.rxFind(JwtConstants.COLLECTION_NAME, query).subscribe(resultList -> {
-        logger.info("[start] {} Periodic mongo cleanup: deleteLessThanDate={}, resultList={}", tag, deleteLessThanDate,
-            (resultList == null ? -1 : resultList.size()));
+        logger.info("[start] {} Periodic mongo cleanup: deleteLessThanDate={}, resultList={}", tag,
+            deleteLessThanDate, (resultList == null ? -1 : resultList.size()));
 
         resultList.stream().forEach(result -> {
           if (logger.isDebugEnabled()) {
             logger.debug("[start] {} Periodic mongo cleanup: result.createDate={}", tag,
                 result.getString("createDate"));
           }
-          mongoClient
-              .rxFindOneAndDelete(JwtConstants.COLLECTION_NAME, new JsonObject().put("_id", result.getString("_id")))
-              .subscribe();
+          mongoClient.rxFindOneAndDelete(JwtConstants.COLLECTION_NAME,
+              new JsonObject().put("_id", result.getString("_id"))).subscribe();
         });
       });
     });

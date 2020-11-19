@@ -41,16 +41,6 @@ Following table is a **mandatory** environment variables used in this project.
 | JWT_ISSUER | String | JWT issuer for token validation |
 | JWT_EXPIRE_IN_MINUTES | Number | JWT token expiration period (in minutes) |
 | MONGO_CONNECTION_STRING | String | Mongo connection string (refer [doc](https://docs.mongodb.com/manual/reference/connection-string/) for example) |
-| MONGO_HOST | String | Mongo host |
-| MONGO_PORT | Number | Mongo port |
-| MONGO_USERNAME | String | Mongo username |
-| MONGO_PASSWORD | String | Mongo password |
-| MONGO_AUTH_SOURCE | String | Mongo database for mongo user authentication |
-| TEST_MONGO_HOST | String | Mongo host for unit test |
-| TEST_MONGO_PORT | Number | Mongo port for unit test |
-| TEST_MONGO_USERNAME | String | Mongo username for unit test |
-| TEST_MONGO_PASSWORD | String | Mongo password for unit test |
-| TEST_MONGO_AUTH_SOURCE | String | Mongo database for mongo user authentication for unit test |
 
 Following table is a **optional** environment variables used in this project.
 | Variable Name | Datatype | Description | Default Value |

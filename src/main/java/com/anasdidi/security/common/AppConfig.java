@@ -32,16 +32,6 @@ public class AppConfig {
         .put("JWT_ISSUER", getJwtIssuer())//
         .put("JWT_EXPIRE_IN_MINUTES", getJwtExpireInMinutes())//
         .put("MONGO_CONFIG", getMongoConfig())//
-        .put("MONGO_HOST", getMongoHost())//
-        .put("MONGO_PORT", getMongoPort())//
-        .put("MONGO_USERNAME", getMongoUsername())//
-        .put("MONGO_PASSWORD", getMongoPassword())//
-        .put("MONGO_AUTH_SOURCE", getMongoAuthSource())//
-        .put("TEST_MONGO_HOST", getTestMongoHost())//
-        .put("TEST_MONGO_PORT", getTestMongoPort())//
-        .put("TEST_MONGO_USERNAME", getTestMongoUsename())//
-        .put("TEST_MONGO_PASSWORD", getTestMongoPassword())//
-        .put("TEST_MONGO_AUTH_SOURCE", getTestMongoAuthSource())//
         .put("GRAPHIQL_IS_ENABLE", getGraphiqlIsEnable())//
         .encodePrettily();
   }
@@ -64,46 +54,6 @@ public class AppConfig {
 
   public int getJwtExpireInMinutes() {
     return cfg.getInteger("JWT_EXPIRE_IN_MINUTES");
-  }
-
-  public String getMongoHost() {
-    return cfg.getString("MONGO_HOST");
-  }
-
-  public int getMongoPort() {
-    return cfg.getInteger("MONGO_PORT");
-  }
-
-  public String getMongoUsername() {
-    return cfg.getString("MONGO_USERNAME");
-  }
-
-  public String getMongoPassword() {
-    return cfg.getString("MONGO_PASSWORD");
-  }
-
-  public String getMongoAuthSource() {
-    return cfg.getString("MONGO_AUTH_SOURCE");
-  }
-
-  public String getTestMongoHost() {
-    return cfg.getString("TEST_MONGO_HOST");
-  }
-
-  public int getTestMongoPort() {
-    return cfg.getInteger("TEST_MONGO_PORT", -1);
-  }
-
-  public String getTestMongoUsename() {
-    return cfg.getString("TEST_MONGO_USERNAME");
-  }
-
-  public String getTestMongoPassword() {
-    return cfg.getString("TEST_MONGO_PASSWORD");
-  }
-
-  public String getTestMongoAuthSource() {
-    return cfg.getString("TEST_MONGO_AUTH_SOURCE");
   }
 
   public JsonObject getMongoConfig() {

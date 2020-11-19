@@ -36,7 +36,8 @@ class UserService {
         .doOnError(e -> {
           logger.error("[{}:{}] {}", tag, requestId, e.getMessage());
           logger.error("[{}:{}] document\n{}", tag, requestId, document.encodePrettily());
-          e.addSuppressed(new ApplicationException(UserConstants.MSG_ERR_USER_CREATE_FAILED, requestId, e));
+          e.addSuppressed(
+              new ApplicationException(UserConstants.MSG_ERR_USER_CREATE_FAILED, requestId, e));
         })//
         .defaultIfEmpty(vo.id)//
         .toSingle();
@@ -106,7 +107,8 @@ class UserService {
     JsonObject query = new JsonObject();
 
     return mongoClient.rxFind(UserConstants.COLLECTION_NAME, query)//
-        .map(resultList -> resultList.stream().map(json -> UserUtils.toVO(json)).collect(Collectors.toList()));
+        .map(resultList -> resultList.stream().map(json -> UserUtils.toVO(json))
+            .collect(Collectors.toList()));
   }
 
   Single<UserVO> getUserById(UserVO vo) {

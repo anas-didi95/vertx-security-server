@@ -4,12 +4,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import com.anasdidi.security.common.CommonConstants;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.IndexOptions;
@@ -96,14 +93,15 @@ public class UserVerticle extends AbstractVerticle {
         @SuppressWarnings({"unchecked"})
         Set<String> indexSet = new HashSet<>(indexList.result().getList());
 
-        String idx1 = "idx_username";
-        if (!indexSet.contains(idx1)) {
-          mongoClient.rxCreateIndexWithOptions(//
-              UserConstants.COLLECTION_NAME, //
-              new JsonObject().put("username", 1), //
-              new IndexOptions().name(idx1).unique(true))//
+        String idxUsernameUnique = "idx_username_uq";
+        if (!indexSet.contains(idxUsernameUnique)) {
+          mongoClient
+              .rxCreateIndexWithOptions(UserConstants.COLLECTION_NAME,
+                  new JsonObject().put("username", 1),
+                  new IndexOptions().name(idxUsernameUnique).unique(true))
               .subscribe(() -> logger.info(
-                  "[configureMongoCollectionIndexes] Mongo create index '{}' succeed.", idx1));
+                  "[configureMongoCollectionIndexes] Mongo create index '{}' succeed.",
+                  idxUsernameUnique));
         }
       } else {
         logger.error("[configureMongoCollectionIndexes] Mongo get index list failed!");

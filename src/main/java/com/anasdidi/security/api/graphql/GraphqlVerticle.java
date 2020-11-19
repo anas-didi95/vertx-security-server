@@ -65,6 +65,7 @@ public class GraphqlVerticle extends AbstractVerticle {
 
     RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()//
         .type("Query", builder -> builder//
+            .dataFetcher("ping", new VertxDataFetcher<>(dataFetcher::ping))//
             .dataFetcher("getUserList", new VertxDataFetcher<>(dataFetcher::getUserList))//
             .dataFetcher("getUserById", new VertxDataFetcher<>(dataFetcher::getUserById))//
             .dataFetcher("getUserByUsername",

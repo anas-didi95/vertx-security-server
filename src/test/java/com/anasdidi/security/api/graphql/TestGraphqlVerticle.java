@@ -31,9 +31,11 @@ public class TestGraphqlVerticle {
   void testGraphqlSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
     AppConfig appConfig = AppConfig.instance();
     WebClient webClient = WebClient.create(vertx);
+    String testValue = "" + System.currentTimeMillis();
     JsonObject requestBody = new JsonObject()//
-        .put("query", "query { getUserList { id } }")//
-        .put("variables", new JsonObject());
+        .put("query", "query($value: String!) { ping(value: $value) { isSuccess testValue } }")//
+        .put("variables", new JsonObject()//
+            .put("value", testValue));
 
     Thread.sleep(500);
     webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI)
@@ -45,6 +47,14 @@ public class TestGraphqlVerticle {
 
             JsonObject responseBody = response.bodyAsJsonObject();
             Assertions.assertNotNull(responseBody);
+
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
+
+            JsonObject ping = data.getJsonObject("ping");
+            Assertions.assertNotNull(ping);
+            Assertions.assertEquals(true, ping.getBoolean("isSuccess"));
+            Assertions.assertEquals(testValue, ping.getString("testValue"));
 
             testContext.completeNow();
           });

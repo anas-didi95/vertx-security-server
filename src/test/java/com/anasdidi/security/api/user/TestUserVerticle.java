@@ -21,6 +21,7 @@ import io.vertx.reactivex.ext.web.client.WebClient;
 public class TestUserVerticle {
 
   private String requestURI = CommonConstants.CONTEXT_PATH + UserConstants.REQUEST_URI;
+  // payload = { "iss": "anasdidi.dev" }, secret = secret
   private String accessToken =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYifQ.F5jwo_F1RkC5cSLKyKFTX2taKqRpCasfSQDMf13o5PA";
 

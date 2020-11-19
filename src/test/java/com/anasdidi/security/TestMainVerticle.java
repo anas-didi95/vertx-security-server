@@ -39,17 +39,6 @@ public class TestMainVerticle {
       Assertions.assertNotNull(appConfig.getJwtExpireInMinutes());
 
       Assertions.assertNotNull(appConfig.getMongoConfig());
-      Assertions.assertNotNull(appConfig.getMongoHost());
-      Assertions.assertNotNull(appConfig.getMongoPort());
-      Assertions.assertNotNull(appConfig.getMongoUsername());
-      Assertions.assertNotNull(appConfig.getMongoPassword());
-      Assertions.assertNotNull(appConfig.getMongoAuthSource());
-
-      Assertions.assertNotNull(appConfig.getTestMongoHost());
-      Assertions.assertNotNull(appConfig.getTestMongoPort());
-      Assertions.assertNotNull(appConfig.getTestMongoUsename());
-      Assertions.assertNotNull(appConfig.getTestMongoPassword());
-      Assertions.assertNotNull(appConfig.getTestMongoAuthSource());
 
       Assertions.assertNotNull(appConfig.getGraphiqlIsEnable());
 

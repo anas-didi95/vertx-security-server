@@ -42,13 +42,14 @@ public class GraphqlVerticle extends AbstractVerticle {
     Router router = Router.router(vertx);
     router.route().handler(JWTAuthHandler.create(jwtAuth));
     router.post("/").handler(GraphQLHandler.create(createGraphQL()));
-    mainRouter.mountSubRouter("/graphql", router);
+    mainRouter.mountSubRouter(GraphqlConstants.REQUEST_URI, router);
 
     if (appConfig.getGraphiqlIsEnable()) {
       Router router1 = Router.router(vertx);
-      router1.post("/graphql").handler(GraphQLHandler.create(createGraphQL()));
+      router1.post(GraphqlConstants.REQUEST_URI).handler(GraphQLHandler.create(createGraphQL()));
       router1.get("/*").handler(GraphiQLHandler.create(new GraphiQLHandlerOptions()//
-          .setGraphQLUri(CommonConstants.CONTEXT_PATH + "/graphiql/graphql")//
+          .setGraphQLUri(CommonConstants.CONTEXT_PATH + GraphqlConstants.REQUEST_URI_GRAPHIQL
+              + GraphqlConstants.REQUEST_URI)
           .setEnabled(appConfig.getGraphiqlIsEnable())));
       mainRouter.mountSubRouter("/graphiql", router1);
     }
@@ -66,11 +67,13 @@ public class GraphqlVerticle extends AbstractVerticle {
         .type("Query", builder -> builder//
             .dataFetcher("getUserList", new VertxDataFetcher<>(dataFetcher::getUserList))//
             .dataFetcher("getUserById", new VertxDataFetcher<>(dataFetcher::getUserById))//
-            .dataFetcher("getUserByUsername", new VertxDataFetcher<>(dataFetcher::getUserByUsername)))//
+            .dataFetcher("getUserByUsername",
+                new VertxDataFetcher<>(dataFetcher::getUserByUsername)))//
         .build();
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();
-    GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
+    GraphQLSchema graphQLSchema =
+        schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
     return GraphQL.newGraphQL(graphQLSchema).build();
   }
 }

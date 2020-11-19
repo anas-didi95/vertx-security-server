@@ -231,7 +231,8 @@ class UserController extends CommonController {
           if (logger.isDebugEnabled()) {
             logger.debug("[{}:{}] Convert resultList to reply message", tag, requestId);
           }
-          return new JsonArray(resultList.stream().map(vo -> UserUtils.toJson(vo)).collect(Collectors.toList()));
+          return new JsonArray(
+              resultList.stream().map(vo -> UserUtils.toJson(vo)).collect(Collectors.toList()));
         }).subscribe(reply -> message.reply(reply.encode()));
   }
 

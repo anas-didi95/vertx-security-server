@@ -31,7 +31,8 @@ public class UserVerticle extends AbstractVerticle {
   private final UserService userService;
   private final UserController userController;
 
-  public UserVerticle(Router mainRouter, MongoClient mongoClient, JWTAuth jwtAuth, EventBus eventBus) {
+  public UserVerticle(Router mainRouter, MongoClient mongoClient, JWTAuth jwtAuth,
+      EventBus eventBus) {
     this.mainRouter = mainRouter;
     this.mongoClient = mongoClient;
     this.jwtAuth = jwtAuth;
@@ -50,9 +51,10 @@ public class UserVerticle extends AbstractVerticle {
     router.post("/").handler(userController::doCreate);
     router.put("/:id").handler(userController::doUpdate);
     router.delete("/:id").handler(userController::doDelete);
-    mainRouter.mountSubRouter("/api/user", router);
+    mainRouter.mountSubRouter(UserConstants.REQUEST_URI, router);
 
-    eventBus.consumer(CommonConstants.EVT_USER_GET_BY_USERNAME, userController::reqGetUserByUsername);
+    eventBus.consumer(CommonConstants.EVT_USER_GET_BY_USERNAME,
+        userController::reqGetUserByUsername);
     eventBus.consumer(CommonConstants.EVT_USER_GET_LIST, userController::reqGetUserList);
     eventBus.consumer(CommonConstants.EVT_USER_GET_BY_ID, userController::reqGetUserById);
 
@@ -91,7 +93,7 @@ public class UserVerticle extends AbstractVerticle {
   void configureMongoCollectionIndexes(Promise<Void> startPromise) {
     mongoClient.listIndexes(UserConstants.COLLECTION_NAME, indexList -> {
       if (indexList.succeeded()) {
-        @SuppressWarnings({ "unchecked" })
+        @SuppressWarnings({"unchecked"})
         Set<String> indexSet = new HashSet<>(indexList.result().getList());
 
         String idx1 = "idx_username";
@@ -100,7 +102,8 @@ public class UserVerticle extends AbstractVerticle {
               UserConstants.COLLECTION_NAME, //
               new JsonObject().put("username", 1), //
               new IndexOptions().name(idx1).unique(true))//
-              .subscribe(() -> logger.info("[configureMongoCollectionIndexes] Mongo create index '{}' succeed.", idx1));
+              .subscribe(() -> logger.info(
+                  "[configureMongoCollectionIndexes] Mongo create index '{}' succeed.", idx1));
         }
       } else {
         logger.error("[configureMongoCollectionIndexes] Mongo get index list failed!");

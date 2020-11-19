@@ -5,20 +5,9 @@ import io.vertx.core.json.JsonObject;
 
 class UserUtils {
 
-  static UserVO encryptPassword(UserVO vo) {
-    vo.password = BCrypt.hashpw(vo.password, BCrypt.gensalt());
-    return vo;
-  }
-
-  static UserVO toVO(JsonObject json) {
-    UserVO vo = new UserVO();
-    vo.id = json.getString("id", json.getString("_id"));
-    vo.username = json.getString("username");
-    vo.password = json.getString("password");
-    vo.fullName = json.getString("fullName");
-    vo.email = json.getString("email");
-    vo.version = json.getLong("version");
-    return vo;
+  static String encryptPassword(String password) {
+    String encryptedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+    return encryptedPassword;
   }
 
   static JsonObject toMongoDocument(UserVO vo) {

@@ -1,3 +1,4 @@
+@baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/api/user
 @host = localhost
 @port = 5000
 @hostname = {{host}}:{{port}}
@@ -6,7 +7,7 @@
 // signature=secret, issuer=anasdidi.dev
 
 // @name createContent
-POST http://{{hostname}}{{uri}}
+POST {{baseUrl}}
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}

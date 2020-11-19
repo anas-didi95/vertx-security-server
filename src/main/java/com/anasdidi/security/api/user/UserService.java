@@ -1,14 +1,11 @@
 package com.anasdidi.security.api.user;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import com.anasdidi.security.common.ApplicationException;
-import com.anasdidi.security.common.CommonUtils;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.mongo.MongoClient;
@@ -22,24 +19,27 @@ class UserService {
     this.mongoClient = mongoClient;
   }
 
-  Single<String> create(String requestId, UserVO vo) {
-    String tag = "create";
-    vo.id = CommonUtils.generateId();
-    vo.version = Long.valueOf(0);
-    JsonObject document = UserUtils.toMongoDocument(vo);
+  Single<String> create(UserVO vo, String requestId) {
+    final String TAG = "create";
+    JsonObject document = new JsonObject()//
+        .put("username", vo.username)//
+        .put("password", UserUtils.encryptPassword(vo.password))//
+        .put("fullName", vo.fullName)//
+        .put("email", vo.email)//
+        .put("createDate", new JsonObject().put("$date", Instant.now()))//
+        .put("version", 0);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] document\n{}", tag, requestId, document.encodePrettily());
+      logger.debug("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());
     }
 
     return mongoClient.rxSave(UserConstants.COLLECTION_NAME, document)//
         .doOnError(e -> {
-          logger.error("[{}:{}] {}", tag, requestId, e.getMessage());
-          logger.error("[{}:{}] document\n{}", tag, requestId, document.encodePrettily());
+          logger.error("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());
+          logger.error("[{}:{}] {}", TAG, requestId, e.getMessage());
           e.addSuppressed(
               new ApplicationException(UserConstants.MSG_ERR_USER_CREATE_FAILED, requestId, e));
         })//
-        .defaultIfEmpty(vo.id)//
         .toSingle();
   }
 
@@ -98,8 +98,8 @@ class UserService {
     JsonObject fields = new JsonObject();
 
     return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields)//
-        .map(json -> UserUtils.toVO(json))//
-        .defaultIfEmpty(new UserVO())//
+        .map(json -> UserVO.fromJson(json))//
+        .defaultIfEmpty(new UserVO(null, null, null, null, null, null, null, null))//
         .toSingle();
   }
 
@@ -107,7 +107,7 @@ class UserService {
     JsonObject query = new JsonObject();
 
     return mongoClient.rxFind(UserConstants.COLLECTION_NAME, query)//
-        .map(resultList -> resultList.stream().map(json -> UserUtils.toVO(json))
+        .map(resultList -> resultList.stream().map(json -> UserVO.fromJson(json))
             .collect(Collectors.toList()));
   }
 
@@ -117,8 +117,8 @@ class UserService {
     JsonObject fields = new JsonObject();
 
     return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields)//
-        .map(json -> UserUtils.toVO(json))//
-        .defaultIfEmpty(new UserVO())//
+        .map(json -> UserVO.fromJson(json))//
+        .defaultIfEmpty(new UserVO(null, null, null, null, null, null, null, null))//
         .toSingle();
   }
 }

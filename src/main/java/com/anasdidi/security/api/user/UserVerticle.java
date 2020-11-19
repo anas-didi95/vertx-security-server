@@ -4,12 +4,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import com.anasdidi.security.common.CommonConstants;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.IndexOptions;
@@ -63,6 +60,8 @@ public class UserVerticle extends AbstractVerticle {
   }
 
   void configureMongoCollection(Promise<Void> startPromise) {
+    final String TAG = "configureMongoCollection";
+
     mongoClient.getCollections(collectionList -> {
       if (collectionList.succeeded()) {
         List<String> resultList = collectionList.result().stream()//
@@ -72,41 +71,48 @@ public class UserVerticle extends AbstractVerticle {
         if (resultList.isEmpty()) {
           mongoClient.createCollection(UserConstants.COLLECTION_NAME, result -> {
             if (result.succeeded()) {
-              logger.info("[configureMongoCollection] Mongo create collection '{}' succeed.",
+              logger.info("[{}] Mongo create collection '{}' succeed.", TAG,
                   UserConstants.COLLECTION_NAME);
             } else {
-              logger.error("[configureMongoCollection] Mongo create collection '{}' failed!",
+              logger.error("[{}] Mongo create collection '{}' failed!", TAG,
                   UserConstants.COLLECTION_NAME);
               startPromise.fail(result.cause());
             }
           });
+        } else {
+          logger.info("[{}] Mongo collection '{}' found.", TAG, UserConstants.COLLECTION_NAME);
         }
 
         configureMongoCollectionIndexes(startPromise);
       } else {
-        logger.error("[configureMongoCollection] Mongo get collection list failed!");
+        logger.error("[{}] Mongo get collection list failed!", TAG);
         startPromise.fail(collectionList.cause());
       }
     });
   }
 
   void configureMongoCollectionIndexes(Promise<Void> startPromise) {
+    final String TAG = "configureMongoCollectionIndexes";
+
     mongoClient.listIndexes(UserConstants.COLLECTION_NAME, indexList -> {
       if (indexList.succeeded()) {
         @SuppressWarnings({"unchecked"})
         Set<String> indexSet = new HashSet<>(indexList.result().getList());
 
-        String idx1 = "idx_username";
-        if (!indexSet.contains(idx1)) {
-          mongoClient.rxCreateIndexWithOptions(//
-              UserConstants.COLLECTION_NAME, //
-              new JsonObject().put("username", 1), //
-              new IndexOptions().name(idx1).unique(true))//
-              .subscribe(() -> logger.info(
-                  "[configureMongoCollectionIndexes] Mongo create index '{}' succeed.", idx1));
+        String idxUsernameUnique = "idx_username_uq";
+        if (!indexSet.contains(idxUsernameUnique)) {
+          mongoClient
+              .rxCreateIndexWithOptions(UserConstants.COLLECTION_NAME,
+                  new JsonObject().put("username", 1),
+                  new IndexOptions().name(idxUsernameUnique).unique(true))
+              .subscribe(() -> logger.info("[{}:{}] Mongo create index '{}' succeed.", TAG,
+                  UserConstants.COLLECTION_NAME, idxUsernameUnique));
+        } else {
+          logger.info("[{}:{}] Mongo index '{}' found.", TAG, UserConstants.COLLECTION_NAME,
+              idxUsernameUnique);
         }
       } else {
-        logger.error("[configureMongoCollectionIndexes] Mongo get index list failed!");
+        logger.error("[{}:{}] Mongo get index list failed!", TAG, UserConstants.COLLECTION_NAME);
         startPromise.fail(indexList.cause());
       }
     });

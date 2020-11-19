@@ -1,15 +1,11 @@
 package com.anasdidi.security.api.user;
 
 import java.util.stream.Collectors;
-
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonController;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.mindrot.jbcrypt.BCrypt;
-
 import io.reactivex.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -28,14 +24,10 @@ class UserController extends CommonController {
   }
 
   void doCreate(RoutingContext routingContext) {
-    String tag = "doCreate";
+    final String TAG = "doCreate";
     String requestId = routingContext.get("requestId");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Get request body", tag, requestId);
-      }
-
       JsonObject requestBody = routingContext.getBodyAsJson();
       if (requestBody == null || requestBody.isEmpty()) {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
@@ -43,39 +35,14 @@ class UserController extends CommonController {
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] requestBody\n{}", tag, requestId,
-            requestBody.copy().put("password", "-").encodePrettily());
+        logger.debug("[{}:{}] requestBody\n{}", TAG, requestId,
+            requestBody.copy().put("password", "*****").encodePrettily());
       }
 
       return requestBody;
-    }).map(json -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Convert to vo", tag, requestId);
-      }
-      return UserUtils.toVO(json);
-    }).map(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Validate vo", tag, requestId);
-      }
-      userValidator.validate(requestId, UserValidator.Validate.CREATE, vo);
-      return vo;
-    }).map(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Encrypt password", tag, requestId);
-      }
-      vo.password = BCrypt.hashpw(vo.password, BCrypt.gensalt());
-      return vo;
-    }).flatMap(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Save vo to database", tag, requestId);
-      }
-      return userService.create(requestId, vo);
-    }).map(id -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Construct response data", tag, requestId);
-      }
-      return new JsonObject().put("id", id);
-    });
+    }).map(json -> UserVO.fromJson(json))
+        .map(vo -> userValidator.validate(requestId, UserValidator.Validate.CREATE, vo))
+        .flatMap(vo -> userService.create(vo, requestId)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_CREATED,
         CommonConstants.MSG_OK_RECORD_CREATED);
@@ -109,7 +76,7 @@ class UserController extends CommonController {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Convert to vo", tag, requestId);
       }
-      return UserUtils.toVO(json);
+      return UserVO.fromJson(json);
     }).map(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Validate vo", tag, requestId);
@@ -160,7 +127,7 @@ class UserController extends CommonController {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Convert to vo", tag, requestId);
       }
-      return UserUtils.toVO(json);
+      return UserVO.fromJson(json);
     }).map(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Validate vo", tag, requestId);
@@ -193,7 +160,7 @@ class UserController extends CommonController {
           if (logger.isDebugEnabled()) {
             logger.debug("[{}:{}] Convert body to vo", tag, requestId);
           }
-          return UserUtils.toVO(json);
+          return UserVO.fromJson(json);
         }).flatMap(vo -> {
           if (logger.isDebugEnabled()) {
             logger.debug("[{}:{}] Get user by username", tag, requestId);
@@ -219,7 +186,7 @@ class UserController extends CommonController {
           if (logger.isDebugEnabled()) {
             logger.debug("[{}:{}] Convert body to vo", tag, requestId);
           }
-          return UserUtils.toVO(json);
+          return UserVO.fromJson(json);
         })//
         .flatMap(vo -> {
           if (logger.isDebugEnabled()) {
@@ -246,7 +213,7 @@ class UserController extends CommonController {
           if (logger.isDebugEnabled()) {
             logger.debug("[{}:{}] Convert body to vo", tag, requestId);
           }
-          return UserUtils.toVO(json);
+          return UserVO.fromJson(json);
         })//
         .flatMap(vo -> {
           if (logger.isDebugEnabled()) {

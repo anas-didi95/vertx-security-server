@@ -19,7 +19,7 @@ class UserValidator {
     CREATE, UPDATE, DELETE;
   }
 
-  void validate(String requestId, Validate val, UserVO vo) throws ApplicationException {
+  UserVO validate(String requestId, Validate val, UserVO vo) throws ApplicationException {
     String tag = "validate";
     List<String> errorList = new ArrayList<>();
 
@@ -36,10 +36,13 @@ class UserValidator {
     }
 
     if (!errorList.isEmpty()) {
-      logger.error("[{}:{}] {} validate={}\n{}", tag, requestId, CommonConstants.MSG_ERR_VALIDATE_ERROR, val,
-          vo.toString());
-      throw new ApplicationException(CommonConstants.MSG_ERR_VALIDATE_ERROR, requestId, new JsonArray(errorList));
+      logger.error("[{}:{}] {} validate={}\n{}", tag, requestId,
+          CommonConstants.MSG_ERR_VALIDATE_ERROR, val, vo.toString());
+      throw new ApplicationException(CommonConstants.MSG_ERR_VALIDATE_ERROR, requestId,
+          new JsonArray(errorList));
     }
+
+    return vo;
   }
 
   private List<String> validateCreate(UserVO vo, List<String> errorList) {

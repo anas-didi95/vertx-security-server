@@ -1,8 +1,14 @@
 package com.anasdidi.security.api.user;
 
+import org.mindrot.jbcrypt.BCrypt;
 import io.vertx.core.json.JsonObject;
 
 class UserUtils {
+
+  static UserVO encryptPassword(UserVO vo) {
+    vo.password = BCrypt.hashpw(vo.password, BCrypt.gensalt());
+    return vo;
+  }
 
   static UserVO toVO(JsonObject json) {
     UserVO vo = new UserVO();

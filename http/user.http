@@ -24,17 +24,15 @@ Authorization: Bearer {{accessToken}}
 @userId = {{createContent.response.body.$.data.id}}
 
 // @name updateContent
-PUT http://{{hostname}}{{uri}}/{{userId}}
+PUT {{baseUrl}}/{{userId}}
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "username": "superadmin",
-  "password": "password",
-  "fullName": "anas juwaidi",
+  "fullName": "anas juwaidi 123",
   "email": "anas.didi95@gmail.com1",
-  "version": 0
+  "version": 1
 }
 
 ###

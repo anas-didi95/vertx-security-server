@@ -1,9 +1,7 @@
 package com.anasdidi.security.api.user;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import com.anasdidi.security.common.CommonConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,11 +62,9 @@ public class UserVerticle extends AbstractVerticle {
 
     mongoClient.getCollections(collectionList -> {
       if (collectionList.succeeded()) {
-        List<String> resultList = collectionList.result().stream()//
-            .filter(collection -> collection.equals(UserConstants.COLLECTION_NAME))//
-            .collect(Collectors.toList());
+        Set<String> resultSet = new HashSet<>(collectionList.result());
 
-        if (resultList.isEmpty()) {
+        if (!resultSet.contains(UserConstants.COLLECTION_NAME)) {
           mongoClient.createCollection(UserConstants.COLLECTION_NAME, result -> {
             if (result.succeeded()) {
               logger.info("[{}] Mongo create collection '{}' succeed.", TAG,
@@ -99,17 +95,17 @@ public class UserVerticle extends AbstractVerticle {
         @SuppressWarnings({"unchecked"})
         Set<String> indexSet = new HashSet<>(indexList.result().getList());
 
-        String idxUsernameUnique = "idx_username_uq";
-        if (!indexSet.contains(idxUsernameUnique)) {
+        String idxUniqueUsername = "uq_username";
+        if (!indexSet.contains(idxUniqueUsername)) {
           mongoClient
               .rxCreateIndexWithOptions(UserConstants.COLLECTION_NAME,
                   new JsonObject().put("username", 1),
-                  new IndexOptions().name(idxUsernameUnique).unique(true))
+                  new IndexOptions().name(idxUniqueUsername).unique(true))
               .subscribe(() -> logger.info("[{}:{}] Mongo create index '{}' succeed.", TAG,
-                  UserConstants.COLLECTION_NAME, idxUsernameUnique));
+                  UserConstants.COLLECTION_NAME, idxUniqueUsername));
         } else {
           logger.info("[{}:{}] Mongo index '{}' found.", TAG, UserConstants.COLLECTION_NAME,
-              idxUsernameUnique);
+              idxUniqueUsername);
         }
       } else {
         logger.error("[{}:{}] Mongo get index list failed!", TAG, UserConstants.COLLECTION_NAME);

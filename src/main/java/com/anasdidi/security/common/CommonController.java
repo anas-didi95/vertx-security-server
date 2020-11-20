@@ -1,11 +1,7 @@
 package com.anasdidi.security.common;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.web.RoutingContext;
@@ -13,20 +9,10 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 public abstract class CommonController {
 
   private final Logger logger = LogManager.getLogger(CommonController.class);
-  private final Map<String, String> headers;
 
-  public CommonController() {
-    this.headers = new HashMap<>();
-    this.headers.put("Content-Type", "application/json");
-    this.headers.put("Cache-Control", "no-store, no-cache");
-    this.headers.put("X-Content-Type-Options", "nosniff");
-    this.headers.put("X-XSS-Protection", "1; mode=block");
-    this.headers.put("X-Frame-Options", "deny");
-  }
-
-  protected void sendResponse(String requestId, Single<JsonObject> subscriber, RoutingContext routingContext,
-      int statusCode, String message) {
-    String tag = "sendResponse";
+  protected void sendResponse(String requestId, Single<JsonObject> subscriber,
+      RoutingContext routingContext, int statusCode, String message) {
+    final String TAG = "sendResponse";
     long timeTaken = System.currentTimeMillis() - (long) routingContext.get("startTime");
 
     subscriber.subscribe(data -> {
@@ -38,10 +24,11 @@ public abstract class CommonController {
           .put("data", data)//
           .encode();
 
-      logger.info("[{}:{}] onSuccess : timeTaken={}ms, statusCode={}, responseBody={}", tag, requestId, timeTaken,
-          statusCode, (!isDataSensitive ? responseBody : "{{content hidden}}"));
+      logger.info("[{}:{}] onSuccess : timeTaken={}ms, statusCode={}, responseBody={}", TAG,
+          requestId, timeTaken, statusCode,
+          (!isDataSensitive ? responseBody : "{{content hidden}}"));
 
-      routingContext.response().headers().addAll(headers);
+      routingContext.response().headers().addAll(CommonConstants.HEADERS);
       routingContext.response()//
           .setStatusCode(statusCode)//
           .end(responseBody);
@@ -55,9 +42,10 @@ public abstract class CommonController {
         }
       }
 
-      logger.error("[{}:{}] onError : timeTaken={}ms, responseBody={}", tag, requestId, timeTaken, responseBody);
+      logger.error("[{}:{}] onError : timeTaken={}ms, responseBody={}", TAG, requestId, timeTaken,
+          responseBody);
 
-      routingContext.response().headers().addAll(headers);
+      routingContext.response().headers().addAll(CommonConstants.HEADERS);
       routingContext.response()//
           .setStatusCode(CommonConstants.STATUS_CODE_BAD_REQUEST)//
           .end(responseBody);

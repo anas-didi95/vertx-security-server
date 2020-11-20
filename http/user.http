@@ -1,8 +1,4 @@
 @baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/api/user
-@host = localhost
-@port = 5000
-@hostname = {{host}}:{{port}}
-@uri = /security/api/user
 @accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaXNzIjoiYW5hc2RpZGkuZGV2IiwiaWF0IjoxNTE2MjM5MDIyfQ.fzLgJlshK6aJ135zy_fFMigGJVdN-myDMWOrTiah3zY
 // signature=secret, issuer=anasdidi.dev
 
@@ -38,11 +34,11 @@ Authorization: Bearer {{accessToken}}
 ###
 
 // @name deleteContent
-DELETE http://{{hostname}}{{uri}}/{{userId}}
+DELETE {{baseUrl}}/{{userId}}
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "version": 1
+  "version": 0
 }

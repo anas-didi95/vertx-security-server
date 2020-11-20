@@ -76,16 +76,11 @@ class UserController extends CommonController {
   }
 
   void doDelete(RoutingContext routingContext) {
-    String tag = "doDelete";
+    final String TAG = "doDelete";
     String requestId = routingContext.get("requestId");
-
     String paramId = routingContext.request().getParam("id");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Get request body", tag, requestId);
-      }
-
       JsonObject requestBody = routingContext.getBodyAsJson();
       if (requestBody == null || requestBody.isEmpty()) {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
@@ -95,32 +90,13 @@ class UserController extends CommonController {
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
+        logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
       }
 
       return requestBody;
-    }).map(json -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Convert to vo", tag, requestId);
-      }
-      return UserVO.fromJson(json);
-    }).map(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Validate vo", tag, requestId);
-      }
-      userValidator.validate(requestId, UserValidator.Validate.DELETE, vo);
-      return vo;
-    }).flatMap(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Delete vo from database", tag, requestId);
-      }
-      return userService.delete(requestId, vo);
-    }).map(id -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Construct response body", tag, requestId);
-      }
-      return new JsonObject().put("id", id);
-    });
+    }).map(json -> UserVO.fromJson(json))
+        .map(vo -> userValidator.validate(requestId, UserValidator.Validate.DELETE, vo))
+        .flatMap(vo -> userService.delete(vo, requestId)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_RECORD_DELETE);

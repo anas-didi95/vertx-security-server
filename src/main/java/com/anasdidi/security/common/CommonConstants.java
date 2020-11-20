@@ -1,6 +1,20 @@
 package com.anasdidi.security.common;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class CommonConstants {
+
+  public static final Map<String, String> HEADERS;
+
+  static {
+    HEADERS = new HashMap<>();
+    HEADERS.put("Content-Type", "application/json");
+    HEADERS.put("Cache-Control", "no-store, no-cache");
+    HEADERS.put("X-Content-Type-Options", "nosniff");
+    HEADERS.put("X-XSS-Protection", "1; mode=block");
+    HEADERS.put("X-Frame-Options", "deny");
+  }
 
   public static final String CONTEXT_PATH = "/security";
 

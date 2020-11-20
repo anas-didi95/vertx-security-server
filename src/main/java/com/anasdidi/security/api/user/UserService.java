@@ -35,16 +35,16 @@ class UserService {
 
     return mongoClient.rxSave(UserConstants.COLLECTION_NAME, document)//
         .doOnError(e -> {
-          logger.error("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());
           logger.error("[{}:{}] {}", TAG, requestId, e.getMessage());
+          logger.error("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());
           e.addSuppressed(
               new ApplicationException(UserConstants.MSG_ERR_USER_CREATE_FAILED, requestId, e));
         })//
         .toSingle();
   }
 
-  Single<String> update(String requestId, UserVO vo) {
-    String tag = "update";
+  Single<String> update(UserVO vo, String requestId) {
+    final String TAG = "update";
     JsonObject query = new JsonObject()//
         .put("_id", vo.id)//
         .put("version", vo.version);
@@ -52,18 +52,19 @@ class UserService {
         .put("$set", new JsonObject()//
             .put("fullName", vo.fullName)//
             .put("email", vo.email)//
+            .put("updateDate", new JsonObject().put("$date", Instant.now()))//
             .put("version", vo.version + 1));
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] query\n{}", tag, requestId, query.encodePrettily());
-      logger.debug("[{}:{}] update\n{}", tag, requestId, update.encodePrettily());
+      logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
+      logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
     }
 
     return mongoClient.rxFindOneAndUpdate(UserConstants.COLLECTION_NAME, query, update)//
         .doOnComplete(() -> {
-          logger.error("[{}:{}] {}", tag, requestId, UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
-          logger.error("[{}:{}] query\n{}", tag, requestId, query.encodePrettily());
-          logger.error("[{}:{}] update\n{}", tag, requestId, update.encodePrettily());
+          logger.error("[{}:{}] {}", TAG, requestId, UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
+          logger.error("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
+          logger.error("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
           throw new ApplicationException(UserConstants.MSG_ERR_USER_UPDATE_FAILED, requestId,
               UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
         })//

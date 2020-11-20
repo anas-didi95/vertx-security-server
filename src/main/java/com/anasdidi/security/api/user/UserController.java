@@ -49,7 +49,7 @@ class UserController extends CommonController {
   }
 
   void doUpdate(RoutingContext routingContext) {
-    String tag = "doUpdate";
+    final String TAG = "doUpdate";
     String requestId = routingContext.get("requestId");
     String paramId = routingContext.request().getParam("id");
 
@@ -63,13 +63,13 @@ class UserController extends CommonController {
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
+        logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
       }
 
       return requestBody;
     }).map(json -> UserVO.fromJson(json))
         .map(vo -> userValidator.validate(requestId, UserValidator.Validate.UPDATE, vo))
-        .flatMap(vo -> userService.update(requestId, vo)).map(id -> new JsonObject().put("id", id));
+        .flatMap(vo -> userService.update(vo, requestId)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_RECORD_UPDATE);

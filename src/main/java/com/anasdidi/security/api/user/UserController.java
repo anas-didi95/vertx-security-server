@@ -96,7 +96,7 @@ class UserController extends CommonController {
       return requestBody;
     }).map(json -> UserVO.fromJson(json))
         .map(vo -> userValidator.validate(requestId, UserValidator.Validate.DELETE, vo))
-        .flatMap(vo -> userService.delete(requestId, vo)).map(id -> new JsonObject().put("id", id));
+        .flatMap(vo -> userService.delete(vo, requestId)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_RECORD_DELETE);

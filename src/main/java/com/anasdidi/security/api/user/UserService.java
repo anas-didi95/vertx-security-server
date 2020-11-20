@@ -73,20 +73,20 @@ class UserService {
         .toSingle();
   }
 
-  Single<String> delete(String requestId, UserVO vo) {
-    String tag = "delete";
+  Single<String> delete(UserVO vo, String requestId) {
+    final String TAG = "delete";
     JsonObject query = new JsonObject()//
         .put("_id", vo.id)//
         .put("version", vo.version);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] query\n", tag, requestId, query.encodePrettily());
+      logger.debug("[{}:{}] query\n", TAG, requestId, query.encodePrettily());
     }
 
     return mongoClient.rxFindOneAndDelete(UserConstants.COLLECTION_NAME, query)//
         .doOnComplete(() -> {
-          logger.error("[{}:{}] {}", tag, requestId, UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
-          logger.error("[{}:{}] query\n", tag, requestId, query.encodePrettily());
+          logger.error("[{}:{}] {}", TAG, requestId, UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
+          logger.error("[{}:{}] query\n", TAG, requestId, query.encodePrettily());
           throw new ApplicationException(UserConstants.MSG_ERR_USER_DELETE_FAILED, requestId,
               UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
         })//
@@ -101,7 +101,7 @@ class UserService {
 
     return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields)//
         .map(json -> UserVO.fromJson(json))//
-        .defaultIfEmpty(new UserVO(null, null, null, null, null, null, null, null))//
+        .defaultIfEmpty(UserVO.fromJson(new JsonObject()))//
         .toSingle();
   }
 
@@ -120,7 +120,7 @@ class UserService {
 
     return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields)//
         .map(json -> UserVO.fromJson(json))//
-        .defaultIfEmpty(new UserVO(null, null, null, null, null, null, null, null))//
+        .defaultIfEmpty(UserVO.fromJson(new JsonObject()))//
         .toSingle();
   }
 }

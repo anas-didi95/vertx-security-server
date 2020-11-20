@@ -27,6 +27,7 @@ class UserService {
         .put("fullName", vo.fullName)//
         .put("email", vo.email)//
         .put("createDate", new JsonObject().put("$date", Instant.now()))//
+        .put("updateDate", "")//
         .put("version", 0);
 
     if (logger.isDebugEnabled()) {

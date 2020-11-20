@@ -47,6 +47,8 @@ class UserVO {
         .put("password", (password != null ? "*****" : ""))//
         .put("fullName", fullName)//
         .put("email", email)//
+        .put("createDate", createDate)//
+        .put("updateDate", updateDate)//
         .put("version", version)//
         .encodePrettily();
   }

@@ -37,11 +37,6 @@ public class MainVerticle extends AbstractVerticle {
 
   private Logger logger = LogManager.getLogger(MainVerticle.class);
 
-  public MainVerticle(boolean isTest) {
-    System.setProperty("vertx.logger-delegate-factory-class-name",
-        Log4j2LogDelegateFactory.class.getName());
-  }
-
   public MainVerticle() {
     System.setProperty("vertx.logger-delegate-factory-class-name",
         Log4j2LogDelegateFactory.class.getName());
@@ -49,13 +44,13 @@ public class MainVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
-    String tag = "start";
+    final String TAG = "start";
     ConfigRetriever configRetriever = ConfigRetriever.create(vertx,
         new ConfigRetrieverOptions().addStore(new ConfigStoreOptions().setType("env")));
 
     configRetriever.rxGetConfig().subscribe(config -> {
       AppConfig appConfig = AppConfig.create(config);
-      logger.info("[{}] appConfig\n{}", tag, appConfig.toString());
+      logger.info("[{}] appConfig\n{}", TAG, appConfig.toString());
 
       MongoClient mongoClient = MongoClient.createShared(vertx, appConfig.getMongoConfig());//
 
@@ -69,14 +64,11 @@ public class MainVerticle extends AbstractVerticle {
               .setPublicKey(appConfig.getJwtSecret())//
               .setSymmetric(true)));
 
-      HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
-      setupHealthCheck(healthCheckHandler, mongoClient);
-
       Router router = Router.router(vertx);
       router.route().handler(setupCorsHandler());
       router.route().handler(BodyHandler.create());
       router.route().handler(this::generateRequestId);
-      router.get("/ping").handler(healthCheckHandler);
+      router.get("/ping").handler(setupHealthCheck(mongoClient));
 
       vertx.deployVerticle(new JwtVerticle(router, vertx.eventBus(), jwtAuth, mongoClient));
       vertx.deployVerticle(new UserVerticle(router, mongoClient, jwtAuth, vertx.eventBus()));
@@ -88,7 +80,7 @@ public class MainVerticle extends AbstractVerticle {
           Router.router(vertx).mountSubRouter(CommonConstants.CONTEXT_PATH, router);
       vertx.createHttpServer().requestHandler(contextPath).listen(port, host, http -> {
         if (http.succeeded()) {
-          logger.info("[{}] HTTP server started on {}:{}", tag, host, port);
+          logger.info("[{}] HTTP server started on {}:{}", TAG, host, port);
           startPromise.complete();
         } else {
           startPromise.fail(http.cause());
@@ -103,11 +95,13 @@ public class MainVerticle extends AbstractVerticle {
     routingContext.next();
   }
 
-  void setupHealthCheck(HealthCheckHandler healthCheckHandler, MongoClient mongoClient) {
+  HealthCheckHandler setupHealthCheck(MongoClient mongoClient) {
+    HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
+
     healthCheckHandler.register("check-mongo-connection", promise -> {
       mongoClient.rxGetCollections().subscribe(resultList -> {
         if (!resultList.isEmpty()) {
-          promise.complete(Status.OK());
+          promise.complete(Status.OK(new JsonObject().put("totalCollection", resultList.size())));
         } else {
           promise.complete(Status.KO(new JsonObject().put("error", "Collection list is empty!")));
         }
@@ -115,6 +109,8 @@ public class MainVerticle extends AbstractVerticle {
         promise.complete(Status.KO(new JsonObject().put("error", e.getMessage())));
       });
     });
+
+    return healthCheckHandler;
   }
 
   CorsHandler setupCorsHandler() {

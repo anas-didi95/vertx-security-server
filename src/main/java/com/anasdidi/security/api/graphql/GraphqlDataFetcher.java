@@ -49,8 +49,8 @@ class GraphqlDataFetcher {
       logger.debug("[{}:{}] message\n{}", tag, requestId, message.encodePrettily());
     }
 
-    eventBus.rxRequest(CommonConstants.EVT_USER_GET_LIST, message.encode()).subscribe(reply -> {
-      JsonArray resultList = new JsonArray((String) reply.body());
+    eventBus.rxRequest(CommonConstants.EVT_USER_GET_LIST, message).subscribe(reply -> {
+      JsonArray resultList = (JsonArray) reply.body();
       future.complete(resultList.stream().map(o -> (JsonObject) o).map(json -> json.getMap())
           .collect(Collectors.toList()));
     }, e -> future.fail(e));
@@ -67,8 +67,8 @@ class GraphqlDataFetcher {
       logger.debug("[{}:{}] message\n{}", tag, requestId, message.encodePrettily());
     }
 
-    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_ID, message.encode()).subscribe(reply -> {
-      JsonObject body = new JsonObject((String) reply.body());
+    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_ID, message).subscribe(reply -> {
+      JsonObject body = (JsonObject) reply.body();
       future.complete(body.getMap());
     }, e -> future.fail(e));
   }

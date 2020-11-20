@@ -102,82 +102,49 @@ class UserController extends CommonController {
         CommonConstants.MSG_OK_RECORD_DELETE);
   }
 
-  void reqGetUserByUsername(Message<Object> message) {
-    String tag = "reqGetUserByUsername";
-    JsonObject body = new JsonObject((String) message.body());
-    String requestId = body.getString("requestId");
+  void doGetUserByUsername(Message<Object> request) {
+    final String TAG = "doGetUserByUsername";
+    JsonObject requestBody = (JsonObject) request.body();
+    String requestId = requestBody.getString("requestId");
 
-    Single.just(body)//
-        .map(json -> {
-          if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Convert body to vo", tag, requestId);
-          }
-          return UserVO.fromJson(json);
-        }).flatMap(vo -> {
-          if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Get user by username", tag, requestId);
-          }
-          return userService.getUserByUsername(vo);
-        }).map(vo -> {
-          if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Convert vo to reply message", tag, requestId);
-          }
-          return UserUtils.toJson(vo).encode();
-        }).subscribe(reply -> {
-          message.reply(reply);
-        });
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
+    }
+
+    Single.just(requestBody)//
+        .map(json -> UserVO.fromJson(json)).flatMap(vo -> userService.getUserByUsername(vo))
+        .map(vo -> UserVO.toJson(vo)).subscribe(response -> request.reply(response));
   }
 
-  void reqGetUserList(Message<Object> message) {
-    String tag = "reqGetUserList";
-    JsonObject body = new JsonObject((String) message.body());
-    String requestId = body.getString("requestId");
+  void doGetUserList(Message<Object> request) {
+    final String TAG = "doGetUserList";
+    JsonObject requestBody = (JsonObject) request.body();
+    String requestId = requestBody.getString("requestId");
 
-    Single.just(body)//
-        .map(json -> {
-          if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Convert body to vo", tag, requestId);
-          }
-          return UserVO.fromJson(json);
-        })//
-        .flatMap(vo -> {
-          if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Get user list", tag, requestId);
-          }
-          return userService.getUserList(vo);
-        })//
-        .map(resultList -> {
-          if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Convert resultList to reply message", tag, requestId);
-          }
-          return new JsonArray(
-              resultList.stream().map(vo -> UserUtils.toJson(vo)).collect(Collectors.toList()));
-        }).subscribe(reply -> message.reply(reply.encode()));
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
+    }
+
+    Single.just(requestBody)//
+        .map(json -> UserVO.fromJson(json))//
+        .flatMap(vo -> userService.getUserList(vo))//
+        .map(resultList -> new JsonArray(
+            resultList.stream().map(vo -> UserVO.toJson(vo)).collect(Collectors.toList())))
+        .subscribe(response -> request.reply(response));
   }
 
-  void reqGetUserById(Message<Object> message) {
-    String tag = "reqGetUserById";
-    JsonObject body = new JsonObject((String) message.body());
-    String requestId = body.getString("requestId");
+  void doGetUserById(Message<Object> request) {
+    final String TAG = "doGetUserById";
+    JsonObject requestBody = (JsonObject) request.body();
+    String requestId = requestBody.getString("requestId");
 
-    Single.just(body)//
-        .map(json -> {
-          if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Convert body to vo", tag, requestId);
-          }
-          return UserVO.fromJson(json);
-        })//
-        .flatMap(vo -> {
-          if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Get user by id", tag, requestId);
-          }
-          return userService.getUserById(vo);
-        })//
-        .map(result -> {
-          if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] Convert result to reply message", tag, requestId);
-          }
-          return UserUtils.toJson(result);
-        }).subscribe(reply -> message.reply(reply.encode()));
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
+    }
+
+    Single.just(requestBody)//
+        .map(json -> UserVO.fromJson(json))//
+        .flatMap(vo -> userService.getUserById(vo))//
+        .map(result -> UserVO.toJson(result)).subscribe(response -> request.reply(response));
   }
 }

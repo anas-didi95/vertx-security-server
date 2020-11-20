@@ -49,9 +49,9 @@ public class UserVerticle extends AbstractVerticle {
     mainRouter.mountSubRouter(UserConstants.REQUEST_URI, router);
 
     eventBus.consumer(CommonConstants.EVT_USER_GET_BY_USERNAME,
-        userController::reqGetUserByUsername);
-    eventBus.consumer(CommonConstants.EVT_USER_GET_LIST, userController::reqGetUserList);
-    eventBus.consumer(CommonConstants.EVT_USER_GET_BY_ID, userController::reqGetUserById);
+        userController::doGetUserByUsername);
+    eventBus.consumer(CommonConstants.EVT_USER_GET_LIST, userController::doGetUserList);
+    eventBus.consumer(CommonConstants.EVT_USER_GET_BY_ID, userController::doGetUserById);
 
     logger.info("[start] Deployed success");
     startPromise.complete();

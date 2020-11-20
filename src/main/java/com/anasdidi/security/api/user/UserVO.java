@@ -39,6 +39,18 @@ class UserVO {
     return new UserVO(id, username, password, fullName, email, createDate, updateDate, version);
   }
 
+  static JsonObject toJson(UserVO vo) {
+    return new JsonObject()//
+        .put("id", vo.id)//
+        .put("username", vo.username)//
+        .put("password", vo.password)//
+        .put("fullName", vo.fullName)//
+        .put("email", vo.email)//
+        .put("createDate", vo.createDate)//
+        .put("updateDate", vo.updateDate)//
+        .put("version", vo.version);
+  }
+
   @Override
   public String toString() {
     return new JsonObject()//

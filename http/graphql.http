@@ -1,47 +1,64 @@
-@port = 5000
-@host = localhost
-@hostname = {{host}}:{{port}}
-@uri = /security/graphql
+@baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/graphql
 @accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaXNzIjoiYW5hc2RpZGkuZGV2IiwiaWF0IjoxNTE2MjM5MDIyfQ.fzLgJlshK6aJ135zy_fFMigGJVdN-myDMWOrTiah3zY
 // signature=secret, issuer=anasdidi.dev
 
-// @name getUserList
-POST http://{{hostname}}{{uri}}
+// @name ping
+
+POST {{baseUrl}}
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "query": "query { getUserList { id username fullName version } }",
-  "variables": null
+  "query": "query($value: String!) { ping(value: $value) { isSuccess testValue } }",
+  "variables": {
+    "value": "Hello world!"
+  }
+}
+
+###
+
+// @name getUserList
+POST {{baseUrl}}
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "query": "query ($format: String) { getUserList { id username fullName email lastModifiedDate(format: $format) version } }",
+  "variables": {
+    "format": "yyyy-MM-dd HH:mm:ss"
+  }
 }
 
 ###
 
 // @name getUserById
-POST http://{{hostname}}{{uri}}
+POST {{baseUrl}}
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "query": "query ($id: String!) { getUserById(id: $id) { id username version } }",
+  "query": "query($id: String!, $format: String) { getUserById(id: $id) { id username fullName email lastModifiedDate(format: $format) version } }",
   "variables": {
-    "id": "0B0A590B65684632AB8578E8793E67F6"
+    "id": "5fb8d7fafdaf9e6c6f63616f",
+    "format": "yyyy-MM-dd HH:mm:ss"
   }
 }
 
 ###
 
 // @name getUserByUsername
-POST http://{{hostname}}/graphql
+POST {{baseUrl}}
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "query": "query ($username: String!) { getUserByUsername(username: $username) { id username version } }",
+  "query": "query($username: String!, $format: String) { getUserByUsername(username: $username) { id username fullName email lastModifiedDate(format: $format) version } }",
   "variables": {
-    "username": "superadmin"
+    "username": "superadmin",
+    "format": "yyyy-MM-dd HH:mm:ss"
   }
 }

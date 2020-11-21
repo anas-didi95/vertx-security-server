@@ -13,7 +13,7 @@ class UserVO {
   final Instant lastModifiedDate;
   final Long version;
 
-  UserVO(String id, String username, String password, String fullName, String email,
+  private UserVO(String id, String username, String password, String fullName, String email,
       Instant lastModifiedDate, Long version) {
     this.id = id;
     this.username = username;

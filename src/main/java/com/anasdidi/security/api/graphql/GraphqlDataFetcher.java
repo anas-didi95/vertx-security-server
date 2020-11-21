@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.anasdidi.security.api.graphql.dto.UserDTO;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonUtils;
 import org.apache.logging.log4j.LogManager;
@@ -39,55 +40,70 @@ class GraphqlDataFetcher {
     promise.complete(result);
   }
 
-  void getUserList(DataFetchingEnvironment env, Promise<List<Map<String, Object>>> future) {
-    String tag = "getUserList";
+  void getUserList(DataFetchingEnvironment env, Promise<List<UserDTO>> future) {
+    final String TAG = "getUserList";
     String requestId = CommonUtils.generateId();
-    JsonObject message = new JsonObject()//
+    JsonObject requestBody = new JsonObject()//
         .put("requestId", requestId);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] message\n{}", tag, requestId, message.encodePrettily());
+      logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
     }
 
-    eventBus.rxRequest(CommonConstants.EVT_USER_GET_LIST, message).subscribe(reply -> {
-      JsonArray resultList = (JsonArray) reply.body();
-      future.complete(resultList.stream().map(o -> (JsonObject) o).map(json -> json.getMap())
-          .collect(Collectors.toList()));
+    eventBus.rxRequest(CommonConstants.EVT_USER_GET_LIST, requestBody).subscribe(response -> {
+      JsonArray responseBody = (JsonArray) response.body();
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] responseBody\n{}", TAG, requestId, responseBody.encodePrettily());
+      }
+
+      future.complete(responseBody.stream().map(o -> (JsonObject) o)
+          .map(json -> UserDTO.fromJson(json)).collect(Collectors.toList()));
     }, e -> future.fail(e));
   }
 
-  void getUserById(DataFetchingEnvironment env, Promise<Map<String, Object>> future) {
-    String tag = "getUserById";
+  void getUserById(DataFetchingEnvironment env, Promise<UserDTO> future) {
+    final String TAG = "getUserById";
     String requestId = CommonUtils.generateId();
-    JsonObject message = new JsonObject()//
+    JsonObject requestBody = new JsonObject()//
         .put("requestId", requestId)//
         .put("id", (String) env.getArgument("id"));
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] message\n{}", tag, requestId, message.encodePrettily());
+      logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
     }
 
-    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_ID, message).subscribe(reply -> {
-      JsonObject body = (JsonObject) reply.body();
-      future.complete(body.getMap());
+    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_ID, requestBody).subscribe(response -> {
+      JsonObject responseBody = (JsonObject) response.body();
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] responseBody\n{}", TAG, requestId, responseBody.encodePrettily());
+      }
+
+      future.complete(UserDTO.fromJson(responseBody));
     }, e -> future.fail(e));
   }
 
-  void getUserByUsername(DataFetchingEnvironment env, Promise<Map<String, Object>> future) {
-    String tag = "getUserByUsername";
+  void getUserByUsername(DataFetchingEnvironment env, Promise<UserDTO> future) {
+    final String TAG = "getUserByUsername";
     String requestId = CommonUtils.generateId();
-    JsonObject message = new JsonObject()//
+    JsonObject requestBody = new JsonObject()//
         .put("requestId", requestId)//
         .put("username", (String) env.getArgument("username"));
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] message\n{}", tag, requestId, message.encodePrettily());
+      logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
     }
 
-    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME, message.encode())
-        .subscribe(reply -> {
-          JsonObject body = new JsonObject((String) reply.body());
-          future.complete(body.getMap());
+    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME, requestBody.encode())
+        .subscribe(response -> {
+          JsonObject responseBody = new JsonObject((String) response.body());
+
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] responseBody\n{}", TAG, requestId, responseBody.encodePrettily());
+          }
+
+          future.complete(UserDTO.fromJson(responseBody));
         }, e -> future.fail(e));
   }
 }

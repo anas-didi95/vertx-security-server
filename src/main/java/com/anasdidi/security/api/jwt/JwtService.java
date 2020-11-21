@@ -1,15 +1,12 @@
 package com.anasdidi.security.api.jwt;
 
 import java.time.Instant;
-
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonUtils;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
-
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
@@ -28,7 +25,7 @@ class JwtService {
   }
 
   private JwtVO getAndSaveToken(String requestId, String username, String userId) throws Exception {
-    String tag = "getAndSaveToken";
+    final String TAG = "getAndSaveToken";
     AppConfig appConfig = AppConfig.instance();
 
     JsonObject claims = new JsonObject()//
@@ -47,8 +44,7 @@ class JwtService {
         .put("userId", userId);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] document\n{}", tag, requestId,
-          document.copy().put("accessToken", "***"));
+      logger.debug("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());
     }
 
     mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
@@ -60,12 +56,12 @@ class JwtService {
   }
 
   Single<JwtVO> login(String requestId, String username, String password, JsonObject user) {
-    String tag = "login";
+    final String TAG = "login";
     return Single.fromCallable(() -> {
       String uUsername = user.getString("username");
       String uPassword = user.getString("password");
       if (uUsername == null || uUsername.isBlank() || uPassword == null || uPassword.isBlank()) {
-        logger.error("[{}:{}] {} username={}", tag, requestId,
+        logger.error("[{}:{}] {} username={}", TAG, requestId,
             JwtConstants.MSG_ERR_INVALID_CREDENTIAL, username);
         throw new ApplicationException(JwtConstants.MSG_ERR_INVALID_CREDENTIAL, requestId,
             JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
@@ -74,7 +70,7 @@ class JwtService {
       boolean result1 = username.equals(uUsername);
       boolean result2 = BCrypt.checkpw(password, uPassword);
       if (!result1 || !result2) {
-        logger.error("[{}:{}] {} username={}", tag, requestId,
+        logger.error("[{}:{}] {} username={}", TAG, requestId,
             JwtConstants.MSG_ERR_INVALID_CREDENTIAL, username);
         throw new ApplicationException(JwtConstants.MSG_ERR_INVALID_CREDENTIAL, requestId,
             JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);

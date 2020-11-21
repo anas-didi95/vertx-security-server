@@ -90,7 +90,7 @@ public class MainVerticle extends AbstractVerticle {
   }
 
   void generateRequestId(RoutingContext routingContext) {
-    routingContext.put("requestId", CommonUtils.generateId());
+    routingContext.put("requestId", CommonUtils.generateUUID());
     routingContext.put("startTime", System.currentTimeMillis());
     routingContext.next();
   }

@@ -8,6 +8,7 @@ type User {
   username: String!
   fullName: String!
   email: String!
+  lastModifiedDate(format: String): String!
   version: Int!
 }
 

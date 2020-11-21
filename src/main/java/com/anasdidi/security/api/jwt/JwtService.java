@@ -38,7 +38,7 @@ class JwtService {
         .setIssuer(appConfig.getJwtIssuer())//
         .setExpiresInMinutes(appConfig.getJwtExpireInMinutes()));
 
-    String id = CommonUtils.generateId();
+    String id = CommonUtils.generateUUID();
     JsonObject document = new JsonObject()//
         .put("_id", id)//
         .put("hasRefresh", false)//

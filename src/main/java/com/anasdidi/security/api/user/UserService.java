@@ -26,8 +26,7 @@ class UserService {
         .put("password", UserUtils.encryptPassword(vo.password))//
         .put("fullName", vo.fullName)//
         .put("email", vo.email)//
-        .put("createDate", new JsonObject().put("$date", Instant.now()))//
-        .put("updateDate", "")//
+        .put("lastModifiedDate", new JsonObject().put("$date", Instant.now()))//
         .put("version", 0);
 
     if (logger.isDebugEnabled()) {
@@ -53,7 +52,7 @@ class UserService {
         .put("$set", new JsonObject()//
             .put("fullName", vo.fullName)//
             .put("email", vo.email)//
-            .put("updateDate", new JsonObject().put("$date", Instant.now()))//
+            .put("lastModifiedDate", new JsonObject().put("$date", Instant.now()))//
             .put("version", vo.version + 1));
 
     if (logger.isDebugEnabled()) {

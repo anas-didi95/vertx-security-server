@@ -66,18 +66,12 @@ class JwtController extends CommonController {
       }
       return eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME, new JsonObject()//
           .put("requestId", requestId)//
-          .put("username", vo.username)//
-          .encode());
-    }).map(msg -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Get reply from event", tag, requestId);
-      }
-      return new JsonObject((String) msg.body());
-    }).flatMap(user -> {
+          .put("username", vo.username));
+    }).flatMap(response -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Login user", tag, requestId);
       }
-      return jwtService.login(requestId, username, password, user);
+      return jwtService.login(requestId, username, password, (JsonObject) response.body());
     }).map(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Construct response body", tag, requestId);

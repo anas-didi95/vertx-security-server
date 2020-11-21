@@ -24,10 +24,10 @@ class GraphqlDataFetcher {
     this.eventBus = eventBus;
   }
 
-  void ping(DataFetchingEnvironment environment, Promise<Map<String, Object>> promise) {
+  void ping(DataFetchingEnvironment env, Promise<Map<String, Object>> promise) {
     final String TAG = "ping";
-    String requestId = CommonUtils.generateId();
-    String value = environment.getArgument("value");
+    String requestId = CommonUtils.generateUUID(env.getExecutionId());
+    String value = env.getArgument("value");
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] value={}", TAG, requestId, value);
@@ -42,7 +42,7 @@ class GraphqlDataFetcher {
 
   void getUserList(DataFetchingEnvironment env, Promise<List<UserDTO>> future) {
     final String TAG = "getUserList";
-    String requestId = CommonUtils.generateId();
+    String requestId = CommonUtils.generateUUID(env.getExecutionId());
     JsonObject requestBody = new JsonObject()//
         .put("requestId", requestId);
 
@@ -64,7 +64,7 @@ class GraphqlDataFetcher {
 
   void getUserById(DataFetchingEnvironment env, Promise<UserDTO> future) {
     final String TAG = "getUserById";
-    String requestId = CommonUtils.generateId();
+    String requestId = env.getExecutionId().toString();
     JsonObject requestBody = new JsonObject()//
         .put("requestId", requestId)//
         .put("id", (String) env.getArgument("id"));
@@ -86,7 +86,7 @@ class GraphqlDataFetcher {
 
   void getUserByUsername(DataFetchingEnvironment env, Promise<UserDTO> future) {
     final String TAG = "getUserByUsername";
-    String requestId = CommonUtils.generateId();
+    String requestId = env.getExecutionId().toString();
     JsonObject requestBody = new JsonObject()//
         .put("requestId", requestId)//
         .put("username", (String) env.getArgument("username"));

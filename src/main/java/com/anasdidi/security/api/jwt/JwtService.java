@@ -56,7 +56,7 @@ class JwtService {
     JsonObject json = new JsonObject()//
         .put("id", id)//
         .put("accessToken", accessToken);
-    return JwtUtils.toVO(json);
+    return JwtVO.fromJson(json);
   }
 
   Single<JwtVO> login(String requestId, String username, String password, JsonObject user) {

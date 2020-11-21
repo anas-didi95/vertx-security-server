@@ -44,7 +44,7 @@ class JwtController extends CommonController {
       }
 
       return requestBody;
-    }).map(json -> JwtUtils.toVO(json))
+    }).map(json -> JwtVO.fromJson(json))
         .map(vo -> jwtValidator.validate(requestId, JwtValidator.Validate.LOGIN, vo))
         .flatMap(vo -> eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME,
             new JsonObject().put("requestId", requestId).put("username", vo.username)))
@@ -102,7 +102,7 @@ class JwtController extends CommonController {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Convert json to vo");
       }
-      return JwtUtils.toVO(json);
+      return JwtVO.fromJson(json);
     }).map(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Validate vo", tag, requestId);

@@ -19,7 +19,7 @@ class JwtValidator {
     LOGIN, REFRESH
   }
 
-  void validate(String requestId, Validate val, JwtVO vo) throws ApplicationException {
+  JwtVO validate(String requestId, Validate val, JwtVO vo) throws ApplicationException {
     String tag = "validate";
     List<String> errorList = new ArrayList<>();
 
@@ -33,10 +33,13 @@ class JwtValidator {
     }
 
     if (!errorList.isEmpty()) {
-      logger.error("[{}:{}] {} validate={}\n{}", tag, requestId, CommonConstants.MSG_ERR_VALIDATE_ERROR, val,
-          vo.toString());
-      throw new ApplicationException(CommonConstants.MSG_ERR_VALIDATE_ERROR, requestId, new JsonArray(errorList));
+      logger.error("[{}:{}] {} validate={}\n{}", tag, requestId,
+          CommonConstants.MSG_ERR_VALIDATE_ERROR, val, vo.toString());
+      throw new ApplicationException(CommonConstants.MSG_ERR_VALIDATE_ERROR, requestId,
+          new JsonArray(errorList));
     }
+
+    return vo;
   }
 
   private List<String> validateLogin(JwtVO vo, List<String> errorList) {

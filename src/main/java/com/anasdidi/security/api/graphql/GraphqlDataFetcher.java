@@ -95,9 +95,9 @@ class GraphqlDataFetcher {
       logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
     }
 
-    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME, requestBody.encode())
+    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME, requestBody)
         .subscribe(response -> {
-          JsonObject responseBody = new JsonObject((String) response.body());
+          JsonObject responseBody = (JsonObject) response.body();
 
           if (logger.isDebugEnabled()) {
             logger.debug("[{}:{}] responseBody\n{}", TAG, requestId, responseBody.encodePrettily());

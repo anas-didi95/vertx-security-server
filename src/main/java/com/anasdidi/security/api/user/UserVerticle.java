@@ -2,6 +2,7 @@ package com.anasdidi.security.api.user;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import com.anasdidi.security.common.CommonConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -92,8 +93,8 @@ public class UserVerticle extends AbstractVerticle {
 
     mongoClient.listIndexes(UserConstants.COLLECTION_NAME, indexList -> {
       if (indexList.succeeded()) {
-        @SuppressWarnings({"unchecked"})
-        Set<String> indexSet = new HashSet<>(indexList.result().getList());
+        Set<String> indexSet = indexList.result().stream().map(o -> (JsonObject) o)
+            .map(json -> json.getString("name")).collect(Collectors.toSet());
 
         String idxUniqueUsername = "uq_username";
         if (!indexSet.contains(idxUniqueUsername)) {

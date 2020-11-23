@@ -73,55 +73,31 @@ class JwtController extends CommonController {
   }
 
   void doRefresh(RoutingContext routingContext) {
-    String tag = "doRefresh";
+    final String TAG = "doRefresh";
     String requestId = routingContext.get("requestId");
-
     JsonObject user = routingContext.user().principal();
     JsonObject requestBody = routingContext.getBodyAsJson();
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Get request body", tag, requestId);
-      }
-
       if (requestBody == null || requestBody.isEmpty()) {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY, requestId,
             CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
       } else {
         requestBody//
-            .put("username", user.getString("username", ""))//
+            .put("username", user.getString("username", ""))
             .put("userId", user.getString("sub", ""));
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
+        logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
       }
 
       return requestBody;
-    }).map(json -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Convert json to vo");
-      }
-      return JwtVO.fromJson(json);
-    }).map(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Validate vo", tag, requestId);
-      }
-      jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId);
-      return vo;
-    }).flatMap(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Refresh token", tag, requestId);
-      }
-      return jwtService.refresh(requestId, vo);
-    }).map(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Construct response body", tag, requestId);
-      }
-      return new JsonObject()//
-          .put("accessToken", vo.accessToken)//
-          .put("refreshId", vo.id);
-    });
+    }).map(json -> JwtVO.fromJson(json))
+        .map(vo -> jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId))
+        .flatMap(vo -> jwtService.refresh(requestId, vo)).map(vo -> new JsonObject()//
+            .put("accessToken", vo.accessToken)//
+            .put("refreshId", vo.id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         JwtConstants.MSG_OK_TOKEN_REFRESHED);

@@ -19,7 +19,7 @@ class UserValidator {
     CREATE, UPDATE, DELETE;
   }
 
-  UserVO validate(String requestId, Validate val, UserVO vo) throws ApplicationException {
+  UserVO validate(Validate val, UserVO vo, String requestId) throws ApplicationException {
     String tag = "validate";
     List<String> errorList = new ArrayList<>();
 

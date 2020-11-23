@@ -26,60 +26,33 @@ class JwtController extends CommonController {
   }
 
   void doLogin(RoutingContext routingContext) {
-    String tag = "doLogin";
+    final String TAG = "doLogin";
     String requestId = routingContext.get("requestId");
-
     JsonObject requestBody = routingContext.getBodyAsJson();
     String username = requestBody != null ? requestBody.getString("username") : "";
     String password = requestBody != null ? requestBody.getString("password") : "";
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Get request body", tag, requestId);
-      }
-
       if (requestBody == null || requestBody.isEmpty()) {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
             CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] requestBody\n{}", tag, requestId,
-            requestBody.copy().put("password", "-").encodePrettily());
+        logger.debug("[{}:{}] requestBody\n{}", TAG, requestId,
+            requestBody.copy().put("password", "*****").encodePrettily());
       }
 
       return requestBody;
-    }).map(json -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Convert to vo", tag, requestId);
-      }
-      return JwtUtils.toVO(json);
-    }).map(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Validate vo", tag, requestId);
-      }
-      jwtValidator.validate(requestId, JwtValidator.Validate.LOGIN, vo);
-      return vo;
-    }).flatMap(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Request event to get user", tag, requestId);
-      }
-      return eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME, new JsonObject()//
-          .put("requestId", requestId)//
-          .put("username", vo.username));
-    }).flatMap(response -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Login user", tag, requestId);
-      }
-      return jwtService.login(requestId, username, password, (JsonObject) response.body());
-    }).map(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Construct response body", tag, requestId);
-      }
-      return new JsonObject()//
-          .put("accessToken", vo.accessToken)//
-          .put("refreshId", vo.id);
-    });
+    }).map(json -> JwtVO.fromJson(json))
+        .map(vo -> jwtValidator.validate(JwtValidator.Validate.LOGIN, vo, requestId))
+        .flatMap(vo -> eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME,
+            new JsonObject().put("requestId", requestId).put("username", vo.username)))
+        .flatMap(response -> jwtService
+            .login(username, password, (JsonObject) response.body(), requestId))
+        .map(vo -> new JsonObject()//
+            .put("accessToken", vo.accessToken)//
+            .put("refreshId", vo.id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_USER_VALIDATE);
@@ -129,12 +102,12 @@ class JwtController extends CommonController {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Convert json to vo");
       }
-      return JwtUtils.toVO(json);
+      return JwtVO.fromJson(json);
     }).map(vo -> {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Validate vo", tag, requestId);
       }
-      jwtValidator.validate(requestId, JwtValidator.Validate.REFRESH, vo);
+      jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId);
       return vo;
     }).flatMap(vo -> {
       if (logger.isDebugEnabled()) {

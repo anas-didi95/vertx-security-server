@@ -1,15 +1,12 @@
 package com.anasdidi.security.api.jwt;
 
 import java.time.Instant;
-
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonUtils;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
-
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
@@ -27,8 +24,8 @@ class JwtService {
     this.mongoClient = mongoClient;
   }
 
-  private JwtVO getAndSaveToken(String requestId, String username, String userId) throws Exception {
-    String tag = "getAndSaveToken";
+  private JwtVO getAndSaveToken(String username, String userId, String requestId) throws Exception {
+    final String TAG = "getAndSaveToken";
     AppConfig appConfig = AppConfig.instance();
 
     JsonObject claims = new JsonObject()//
@@ -41,14 +38,13 @@ class JwtService {
     String id = CommonUtils.generateUUID();
     JsonObject document = new JsonObject()//
         .put("_id", id)//
-        .put("hasRefresh", false)//
-        .put("createDate", Instant.now())//
+        .put("used", false)//
+        .put("issuedDate", new JsonObject().put("$date", Instant.now()))//
         .put("username", username)//
         .put("userId", userId);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] document\n{}", tag, requestId,
-          document.copy().put("accessToken", "***"));
+      logger.debug("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());
     }
 
     mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
@@ -56,16 +52,16 @@ class JwtService {
     JsonObject json = new JsonObject()//
         .put("id", id)//
         .put("accessToken", accessToken);
-    return JwtUtils.toVO(json);
+    return JwtVO.fromJson(json);
   }
 
-  Single<JwtVO> login(String requestId, String username, String password, JsonObject user) {
-    String tag = "login";
+  Single<JwtVO> login(String username, String password, JsonObject user, String requestId) {
+    final String TAG = "login";
     return Single.fromCallable(() -> {
       String uUsername = user.getString("username");
       String uPassword = user.getString("password");
       if (uUsername == null || uUsername.isBlank() || uPassword == null || uPassword.isBlank()) {
-        logger.error("[{}:{}] {} username={}", tag, requestId,
+        logger.error("[{}:{}] {} username={}", TAG, requestId,
             JwtConstants.MSG_ERR_INVALID_CREDENTIAL, username);
         throw new ApplicationException(JwtConstants.MSG_ERR_INVALID_CREDENTIAL, requestId,
             JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
@@ -74,13 +70,13 @@ class JwtService {
       boolean result1 = username.equals(uUsername);
       boolean result2 = BCrypt.checkpw(password, uPassword);
       if (!result1 || !result2) {
-        logger.error("[{}:{}] {} username={}", tag, requestId,
+        logger.error("[{}:{}] {} username={}", TAG, requestId,
             JwtConstants.MSG_ERR_INVALID_CREDENTIAL, username);
         throw new ApplicationException(JwtConstants.MSG_ERR_INVALID_CREDENTIAL, requestId,
             JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
       }
 
-      return getAndSaveToken(requestId, username, user.getString("id"));
+      return getAndSaveToken(username, user.getString("id"), requestId);
     });
   }
 
@@ -88,7 +84,7 @@ class JwtService {
     String tag = "refresh";
     JsonObject query = new JsonObject()//
         .put("_id", vo.id)//
-        .put("hasRefresh", false);
+        .put("used", false);
     JsonObject update = new JsonObject()//
         .put("$set", new JsonObject()//
             .put("hasRefresh", true));
@@ -115,7 +111,7 @@ class JwtService {
                 JwtConstants.MSG_ERR_REFRESH_TOKEN_CREDENTIAL_MISMATCH);
           }
 
-          return getAndSaveToken(requestId, username, userId);
+          return getAndSaveToken(username, userId, requestId);
         })//
         .toSingle();
   }

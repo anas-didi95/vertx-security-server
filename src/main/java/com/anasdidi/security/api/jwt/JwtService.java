@@ -38,8 +38,8 @@ class JwtService {
     String id = CommonUtils.generateUUID();
     JsonObject document = new JsonObject()//
         .put("_id", id)//
-        .put("hasRefresh", false)//
-        .put("createDate", Instant.now())//
+        .put("used", false)//
+        .put("issuedDate", new JsonObject().put("$date", Instant.now()))//
         .put("username", username)//
         .put("userId", userId);
 
@@ -84,7 +84,7 @@ class JwtService {
     String tag = "refresh";
     JsonObject query = new JsonObject()//
         .put("_id", vo.id)//
-        .put("hasRefresh", false);
+        .put("used", false);
     JsonObject update = new JsonObject()//
         .put("$set", new JsonObject()//
             .put("hasRefresh", true));

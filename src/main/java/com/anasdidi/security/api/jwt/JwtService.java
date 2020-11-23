@@ -24,7 +24,7 @@ class JwtService {
     this.mongoClient = mongoClient;
   }
 
-  private JwtVO getAndSaveToken(String requestId, String username, String userId) throws Exception {
+  private JwtVO getAndSaveToken(String username, String userId, String requestId) throws Exception {
     final String TAG = "getAndSaveToken";
     AppConfig appConfig = AppConfig.instance();
 
@@ -55,7 +55,7 @@ class JwtService {
     return JwtVO.fromJson(json);
   }
 
-  Single<JwtVO> login(String requestId, String username, String password, JsonObject user) {
+  Single<JwtVO> login(String username, String password, JsonObject user, String requestId) {
     final String TAG = "login";
     return Single.fromCallable(() -> {
       String uUsername = user.getString("username");
@@ -76,7 +76,7 @@ class JwtService {
             JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
       }
 
-      return getAndSaveToken(requestId, username, user.getString("id"));
+      return getAndSaveToken(username, user.getString("id"), requestId);
     });
   }
 
@@ -111,7 +111,7 @@ class JwtService {
                 JwtConstants.MSG_ERR_REFRESH_TOKEN_CREDENTIAL_MISMATCH);
           }
 
-          return getAndSaveToken(requestId, username, userId);
+          return getAndSaveToken(username, userId, requestId);
         })//
         .toSingle();
   }

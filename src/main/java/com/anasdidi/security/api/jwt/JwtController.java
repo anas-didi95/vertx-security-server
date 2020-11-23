@@ -45,11 +45,11 @@ class JwtController extends CommonController {
 
       return requestBody;
     }).map(json -> JwtVO.fromJson(json))
-        .map(vo -> jwtValidator.validate(requestId, JwtValidator.Validate.LOGIN, vo))
+        .map(vo -> jwtValidator.validate(JwtValidator.Validate.LOGIN, vo, requestId))
         .flatMap(vo -> eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME,
             new JsonObject().put("requestId", requestId).put("username", vo.username)))
         .flatMap(response -> jwtService
-            .login(requestId, username, password, (JsonObject) response.body()))
+            .login(username, password, (JsonObject) response.body(), requestId))
         .map(vo -> new JsonObject()//
             .put("accessToken", vo.accessToken)//
             .put("refreshId", vo.id));
@@ -107,7 +107,7 @@ class JwtController extends CommonController {
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] Validate vo", tag, requestId);
       }
-      jwtValidator.validate(requestId, JwtValidator.Validate.REFRESH, vo);
+      jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId);
       return vo;
     }).flatMap(vo -> {
       if (logger.isDebugEnabled()) {

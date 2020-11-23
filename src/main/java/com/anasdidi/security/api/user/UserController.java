@@ -41,7 +41,7 @@ class UserController extends CommonController {
 
       return requestBody;
     }).map(json -> UserVO.fromJson(json))
-        .map(vo -> userValidator.validate(requestId, UserValidator.Validate.CREATE, vo))
+        .map(vo -> userValidator.validate(UserValidator.Validate.CREATE, vo, requestId))
         .flatMap(vo -> userService.create(vo, requestId)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_CREATED,
@@ -68,7 +68,7 @@ class UserController extends CommonController {
 
       return requestBody;
     }).map(json -> UserVO.fromJson(json))
-        .map(vo -> userValidator.validate(requestId, UserValidator.Validate.UPDATE, vo))
+        .map(vo -> userValidator.validate(UserValidator.Validate.UPDATE, vo, requestId))
         .flatMap(vo -> userService.update(vo, requestId)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
@@ -95,7 +95,7 @@ class UserController extends CommonController {
 
       return requestBody;
     }).map(json -> UserVO.fromJson(json))
-        .map(vo -> userValidator.validate(requestId, UserValidator.Validate.DELETE, vo))
+        .map(vo -> userValidator.validate(UserValidator.Validate.DELETE, vo, requestId))
         .flatMap(vo -> userService.delete(vo, requestId)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,

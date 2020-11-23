@@ -19,7 +19,7 @@ class JwtValidator {
     LOGIN, REFRESH
   }
 
-  JwtVO validate(String requestId, Validate val, JwtVO vo) throws ApplicationException {
+  JwtVO validate(Validate val, JwtVO vo, String requestId) throws ApplicationException {
     String tag = "validate";
     List<String> errorList = new ArrayList<>();
 

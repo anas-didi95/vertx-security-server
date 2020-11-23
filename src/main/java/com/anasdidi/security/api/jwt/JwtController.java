@@ -8,8 +8,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import io.reactivex.Single;
+import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.eventbus.EventBus;
+import io.vertx.reactivex.core.http.Cookie;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 class JwtController extends CommonController {
@@ -48,11 +50,16 @@ class JwtController extends CommonController {
         .map(vo -> jwtValidator.validate(JwtValidator.Validate.LOGIN, vo, requestId))
         .flatMap(vo -> eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME,
             new JsonObject().put("requestId", requestId).put("username", vo.username)))
-        .flatMap(response -> jwtService
-            .login(username, password, (JsonObject) response.body(), requestId))
-        .map(vo -> new JsonObject()//
-            .put("accessToken", vo.accessToken)//
-            .put("refreshId", vo.id));
+        .flatMap(response -> jwtService.login(username, password, (JsonObject) response.body(),
+            requestId))
+        .map(vo -> {
+          routingContext.addCookie(Cookie.cookie("refreshToken", vo.id).setHttpOnly(true)
+              .setSameSite(CookieSameSite.STRICT).setSecure(false));
+
+          return new JsonObject()//
+              .put("accessToken", vo.accessToken)//
+              .put("refreshId", vo.id);
+        });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_USER_VALIDATE);
@@ -61,6 +68,12 @@ class JwtController extends CommonController {
   void doCheck(RoutingContext routingContext) {
     String tag = "doCheck";
     String requestId = routingContext.get("requestId");
+    Cookie refreshToken = routingContext.getCookie("refreshToken");
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] refreshToken={}", tag, requestId,
+          (refreshToken != null ? refreshToken.getValue() : null));
+    }
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       if (logger.isDebugEnabled()) {

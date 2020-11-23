@@ -1,15 +1,19 @@
+@baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/api/jwt
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaXNzIjoiYW5hc2RpZGkuZGV2IiwiaWF0IjoxNTE2MjM5MDIyfQ.fzLgJlshK6aJ135zy_fFMigGJVdN-myDMWOrTiah3zY
+// signature=secret, issuer=anasdidi.dev
+
 @host = localhost
 @port = 5000
 @hostname = {{host}}:{{port}}
 @uri = /security/api/jwt
 
 // @name login
-POST http://{{hostname}}{{uri}}/login
+POST {{baseUrl}}/login
 Accept: application/json
 Content-Type: application/json
 
 {
-  "username": "username",
+  "username": "superadmin",
   "password": "password"
 }
 
@@ -26,3 +30,10 @@ Authorization: Bearer {{login.response.body.$.data.accessToken}}
 {
   "id": "{{refreshId}}"
 }
+
+###
+
+GET {{baseUrl}}/check
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}

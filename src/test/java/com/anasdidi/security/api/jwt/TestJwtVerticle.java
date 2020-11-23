@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.jwt;
 
+import java.util.List;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.CommonConstants;
@@ -92,6 +93,10 @@ public class TestJwtVerticle {
               Assertions.assertNotNull(data);
               Assertions.assertNotNull(data.getString("accessToken"));
               Assertions.assertNotNull(data.getString("refreshId"));
+
+              // cookie
+              List<String> cookies = response.cookies();
+              Assertions.assertEquals(true, !cookies.isEmpty());
 
               webClient.get(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/check")
                   .putHeader("Authorization", "Bearer " + data.getString("accessToken")).rxSend()

@@ -80,8 +80,8 @@ class JwtService {
     });
   }
 
-  Single<JwtVO> refresh(String requestId, JwtVO vo) {
-    String tag = "refresh";
+  Single<JwtVO> refresh(JwtVO vo, String requestId) {
+    final String TAG = "refresh";
     JsonObject query = new JsonObject()//
         .put("_id", vo.id)//
         .put("used", false);
@@ -90,15 +90,15 @@ class JwtService {
             .put("hasRefresh", true));
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] query\n{}", tag, requestId, query.encodePrettily());
-      logger.debug("[{}:{}] update\n{}", tag, requestId, update.encodePrettily());
+      logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
+      logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
     }
 
     return mongoClient.rxFindOneAndUpdate(JwtConstants.COLLECTION_NAME, query, update)//
         .doOnComplete(() -> {
-          logger.error("[{}:{}] {}", tag, requestId, JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
-          logger.debug("[{}:{}] query\n{}", tag, requestId, query.encodePrettily());
-          logger.debug("[{}:{}] update\n{}", tag, requestId, update.encodePrettily());
+          logger.error("[{}:{}] {}", TAG, requestId, JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
+          logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
+          logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
           throw new ApplicationException(JwtConstants.MSG_ERR_REFRESH_TOKEN_FAILED, requestId,
               JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
         })//

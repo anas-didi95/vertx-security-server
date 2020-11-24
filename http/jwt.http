@@ -19,17 +19,10 @@ Content-Type: application/json
 
 ###
 
-@refreshId = {{login.response.body.$.data.refreshId}}
-
 // @name refresh
-POST http://{{hostname}}{{uri}}/refresh
+GET {{baseUrl}}/refresh
 Accept: application/json
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.$.data.accessToken}}
-
-{
-  "id": "{{refreshId}}"
-}
 
 ###
 

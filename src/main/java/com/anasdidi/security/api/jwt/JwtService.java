@@ -36,12 +36,10 @@ class JwtService {
         .setExpiresInMinutes(appConfig.getJwtExpireInMinutes()));
 
     String id = CommonUtils.generateUUID();
-    String salt = BCrypt.gensalt();
-    String hash = BCrypt.hashpw(id, salt);
     JsonObject document = new JsonObject()//
         .put("_id", id)//
-        .put("salt", salt)//
-        .put("hash", hash)//
+        .put("userId", userId)//
+        .put("username", username)//
         .put("isUsed", false)//
         .put("issuedDate", new JsonObject().put("$date", Instant.now()));
 
@@ -86,10 +84,10 @@ class JwtService {
     final String TAG = "refresh";
     JsonObject query = new JsonObject()//
         .put("_id", vo.id)//
-        .put("used", false);
+        .put("isUsed", false);
     JsonObject update = new JsonObject()//
         .put("$set", new JsonObject()//
-            .put("hasRefresh", true));
+            .put("isUsed", true));
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
@@ -107,11 +105,6 @@ class JwtService {
         .map(rst -> {
           String username = rst.getString("username");
           String userId = rst.getString("userId");
-
-          if (!vo.username.equals(username) || !vo.userId.equals(userId)) {
-            throw new ApplicationException(JwtConstants.MSG_ERR_REFRESH_TOKEN_INVALID, requestId,
-                JwtConstants.MSG_ERR_REFRESH_TOKEN_CREDENTIAL_MISMATCH);
-          }
 
           return getAndSaveToken(username, userId, requestId);
         })//

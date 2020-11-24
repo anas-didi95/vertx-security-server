@@ -57,8 +57,7 @@ class JwtController extends CommonController {
               .setSameSite(CookieSameSite.STRICT).setSecure(false));
 
           return new JsonObject()//
-              .put("accessToken", vo.accessToken)//
-              .put("refreshId", vo.id);
+              .put("accessToken", vo.accessToken);
         });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
@@ -82,7 +81,7 @@ class JwtController extends CommonController {
       return new JsonObject();
     });
 
-    sendResponse(requestId, subscriber, routingContext, 200, "Ok");
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK, "Ok");
   }
 
   void doRefresh(RoutingContext routingContext) {

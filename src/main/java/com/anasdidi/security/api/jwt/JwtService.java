@@ -36,12 +36,14 @@ class JwtService {
         .setExpiresInMinutes(appConfig.getJwtExpireInMinutes()));
 
     String id = CommonUtils.generateUUID();
+    String salt = BCrypt.gensalt();
+    String hash = BCrypt.hashpw(id, salt);
     JsonObject document = new JsonObject()//
         .put("_id", id)//
-        .put("used", false)//
-        .put("issuedDate", new JsonObject().put("$date", Instant.now()))//
-        .put("username", username)//
-        .put("userId", userId);
+        .put("salt", salt)//
+        .put("hash", hash)//
+        .put("isUsed", false)//
+        .put("issuedDate", new JsonObject().put("$date", Instant.now()));
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());

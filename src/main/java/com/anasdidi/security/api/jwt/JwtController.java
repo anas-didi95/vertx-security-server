@@ -3,13 +3,12 @@ package com.anasdidi.security.api.jwt;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonController;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.eventbus.EventBus;
+import io.vertx.reactivex.core.http.Cookie;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 class JwtController extends CommonController {
@@ -48,11 +47,12 @@ class JwtController extends CommonController {
         .map(vo -> jwtValidator.validate(JwtValidator.Validate.LOGIN, vo, requestId))
         .flatMap(vo -> eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME,
             new JsonObject().put("requestId", requestId).put("username", vo.username)))
-        .flatMap(response -> jwtService
-            .login(username, password, (JsonObject) response.body(), requestId))
-        .map(vo -> new JsonObject()//
-            .put("accessToken", vo.accessToken)//
-            .put("refreshId", vo.id));
+        .flatMap(response -> jwtService.login(username, password, (JsonObject) response.body(),
+            requestId))
+        .map(vo -> {
+          routingContext.addCookie(JwtUtils.generateRefreshTokenCookie(vo.id));
+          return new JsonObject().put("accessToken", vo.accessToken);
+        });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_USER_VALIDATE);
@@ -61,6 +61,12 @@ class JwtController extends CommonController {
   void doCheck(RoutingContext routingContext) {
     String tag = "doCheck";
     String requestId = routingContext.get("requestId");
+    Cookie refreshToken = routingContext.getCookie("refreshToken");
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] refreshToken={}", tag, requestId,
+          (refreshToken != null ? refreshToken.getValue() : null));
+    }
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       if (logger.isDebugEnabled()) {
@@ -69,59 +75,31 @@ class JwtController extends CommonController {
       return new JsonObject();
     });
 
-    sendResponse(requestId, subscriber, routingContext, 200, "Ok");
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK, "Ok");
   }
 
   void doRefresh(RoutingContext routingContext) {
-    String tag = "doRefresh";
+    final String TAG = "doRefresh";
     String requestId = routingContext.get("requestId");
-
-    JsonObject user = routingContext.user().principal();
-    JsonObject requestBody = routingContext.getBodyAsJson();
+    Cookie refreshToken = routingContext.getCookie("refreshToken");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Get request body", tag, requestId);
-      }
-
-      if (requestBody == null || requestBody.isEmpty()) {
-        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY, requestId,
-            CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
-      } else {
-        requestBody//
-            .put("username", user.getString("username", ""))//
-            .put("userId", user.getString("sub", ""));
+      if (refreshToken == null) {
+        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
+            JwtConstants.MSG_ERR_REFRESH_TOKEN_EMPTY);
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] requestBody\n{}", tag, requestId, requestBody.encodePrettily());
+        logger.debug("[{}:{}] refreshToken={}", TAG, requestId, refreshToken.getValue());
       }
 
-      return requestBody;
-    }).map(json -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Convert json to vo");
-      }
-      return JwtVO.fromJson(json);
-    }).map(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Validate vo", tag, requestId);
-      }
-      jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId);
-      return vo;
-    }).flatMap(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Refresh token", tag, requestId);
-      }
-      return jwtService.refresh(requestId, vo);
-    }).map(vo -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] Construct response body", tag, requestId);
-      }
-      return new JsonObject()//
-          .put("accessToken", vo.accessToken)//
-          .put("refreshId", vo.id);
-    });
+      return new JsonObject().put("id", refreshToken.getValue());
+    }).map(json -> JwtVO.fromJson(json))
+        .map(vo -> jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId))
+        .flatMap(vo -> jwtService.refresh(vo, requestId)).map(vo -> {
+          routingContext.addCookie(JwtUtils.generateRefreshTokenCookie(vo.id));
+          return new JsonObject().put("accessToken", vo.accessToken);
+        });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         JwtConstants.MSG_OK_TOKEN_REFRESHED);

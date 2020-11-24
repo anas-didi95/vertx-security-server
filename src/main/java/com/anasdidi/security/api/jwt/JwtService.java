@@ -38,10 +38,10 @@ class JwtService {
     String id = CommonUtils.generateUUID();
     JsonObject document = new JsonObject()//
         .put("_id", id)//
-        .put("used", false)//
-        .put("issuedDate", new JsonObject().put("$date", Instant.now()))//
+        .put("userId", userId)//
         .put("username", username)//
-        .put("userId", userId);
+        .put("isUsed", false)//
+        .put("issuedDate", new JsonObject().put("$date", Instant.now()));
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());
@@ -80,36 +80,31 @@ class JwtService {
     });
   }
 
-  Single<JwtVO> refresh(String requestId, JwtVO vo) {
-    String tag = "refresh";
+  Single<JwtVO> refresh(JwtVO vo, String requestId) {
+    final String TAG = "refresh";
     JsonObject query = new JsonObject()//
         .put("_id", vo.id)//
-        .put("used", false);
+        .put("isUsed", false);
     JsonObject update = new JsonObject()//
         .put("$set", new JsonObject()//
-            .put("hasRefresh", true));
+            .put("isUsed", true));
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] query\n{}", tag, requestId, query.encodePrettily());
-      logger.debug("[{}:{}] update\n{}", tag, requestId, update.encodePrettily());
+      logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
+      logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
     }
 
     return mongoClient.rxFindOneAndUpdate(JwtConstants.COLLECTION_NAME, query, update)//
         .doOnComplete(() -> {
-          logger.error("[{}:{}] {}", tag, requestId, JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
-          logger.debug("[{}:{}] query\n{}", tag, requestId, query.encodePrettily());
-          logger.debug("[{}:{}] update\n{}", tag, requestId, update.encodePrettily());
+          logger.error("[{}:{}] {}", TAG, requestId, JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
+          logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
+          logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
           throw new ApplicationException(JwtConstants.MSG_ERR_REFRESH_TOKEN_FAILED, requestId,
               JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
         })//
         .map(rst -> {
           String username = rst.getString("username");
           String userId = rst.getString("userId");
-
-          if (!vo.username.equals(username) || !vo.userId.equals(userId)) {
-            throw new ApplicationException(JwtConstants.MSG_ERR_REFRESH_TOKEN_INVALID, requestId,
-                JwtConstants.MSG_ERR_REFRESH_TOKEN_CREDENTIAL_MISMATCH);
-          }
 
           return getAndSaveToken(username, userId, requestId);
         })//

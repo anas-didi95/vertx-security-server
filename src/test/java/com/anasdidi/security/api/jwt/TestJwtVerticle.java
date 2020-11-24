@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.jwt;
 
+import java.util.List;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.CommonConstants;
@@ -22,9 +23,6 @@ import io.vertx.reactivex.ext.web.client.WebClient;
 public class TestJwtVerticle {
 
   private String requestURI = CommonConstants.CONTEXT_PATH + JwtConstants.REQUEST_URI;
-  // payload = { "iss": "anasdidi.dev" }, secret = secret
-  private String accessToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYifQ.F5jwo_F1RkC5cSLKyKFTX2taKqRpCasfSQDMf13o5PA";
 
   private JsonObject generateDocument() {
     return new JsonObject()//
@@ -54,7 +52,6 @@ public class TestJwtVerticle {
     Single.zip(delUsers, delJwts, (r1, r2) -> true).subscribe(result -> {
       testContext.verify(() -> {
         Assertions.assertEquals(true, result);
-
         testContext.completeNow();
       });
     }, e -> testContext.failNow(e));
@@ -91,7 +88,10 @@ public class TestJwtVerticle {
               JsonObject data = responseBody.getJsonObject("data");
               Assertions.assertNotNull(data);
               Assertions.assertNotNull(data.getString("accessToken"));
-              Assertions.assertNotNull(data.getString("refreshId"));
+
+              // cookie
+              List<String> cookies = response.cookies();
+              Assertions.assertEquals(true, !cookies.isEmpty());
 
               webClient.get(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/check")
                   .putHeader("Authorization", "Bearer " + data.getString("accessToken")).rxSend()
@@ -220,280 +220,5 @@ public class TestJwtVerticle {
             testContext.completeNow();
           });
         }, e -> testContext.failNow(e));
-  }
-
-  @Test
-  void testJwtRefreshSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
-    AppConfig appConfig = AppConfig.instance();
-    WebClient webClient = WebClient.create(vertx);
-    MongoClient mongoClient = getMongoClient(vertx);
-    JsonObject user = generateDocument();
-
-    mongoClient.rxSave("users", user).subscribe(id -> {
-      user.put("password", "password");
-      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
-          .rxSendJsonObject(user).subscribe(response1 -> {
-            JsonObject data1 = response1.bodyAsJsonObject().getJsonObject("data");
-            String accessToken = data1.getString("accessToken");
-            JsonObject requestBody = new JsonObject().put("id", data1.getString("refreshId"));
-
-            Thread.sleep(1000);
-            webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/refresh")
-                .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
-                .subscribe(response2 -> {
-                  testContext.verify(() -> {
-                    Assertions.assertEquals(200, response2.statusCode());
-                    Assertions.assertEquals("application/json",
-                        response2.getHeader("Content-Type"));
-                    Assertions.assertEquals("no-store, no-cache",
-                        response2.getHeader("Cache-Control"));
-                    Assertions.assertEquals("nosniff",
-                        response2.getHeader("X-Content-Type-Options"));
-                    Assertions.assertEquals("1; mode=block",
-                        response2.getHeader("X-XSS-Protection"));
-                    Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
-
-                    JsonObject responseBody2 = response2.bodyAsJsonObject();
-                    Assertions.assertNotNull(responseBody2);
-
-                    // status
-                    JsonObject status2 = responseBody2.getJsonObject("status");
-                    Assertions.assertNotNull(status2);
-                    Assertions.assertEquals(true, status2.getBoolean("isSuccess"));
-                    Assertions.assertEquals("Token refreshed.", status2.getString("message"));
-
-                    // data
-                    JsonObject data2 = responseBody2.getJsonObject("data");
-                    Assertions.assertNotNull(data2);
-                    Assertions.assertNotNull(data2.getString("accessToken"));
-                    Assertions.assertNotNull(data2.getString("refreshId"));
-                    Assertions.assertNotEquals(data1.getString("accessToken"),
-                        data2.getString("accessToken"));
-                    Assertions.assertNotEquals(data1.getString("refreshId"),
-                        data2.getString("refreshId"));
-
-                    testContext.completeNow();
-                  });
-                }, e -> testContext.failNow(e));
-          }, e -> testContext.failNow(e));
-    }, e -> testContext.failNow(e));
-  }
-
-  @Test
-  void testJwtRefreshValidationError(Vertx vertx, VertxTestContext testContext) throws Exception {
-    AppConfig appConfig = AppConfig.instance();
-    WebClient webClient = WebClient.create(vertx);
-    MongoClient mongoClient = getMongoClient(vertx);
-    JsonObject user = generateDocument();
-
-    mongoClient.rxSave("users", user).subscribe(id -> {
-      user.put("password", "password");
-      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
-          .rxSendJsonObject(user).subscribe(response1 -> {
-            JsonObject data1 = response1.bodyAsJsonObject().getJsonObject("data");
-            String accessToken = data1.getString("accessToken");
-            JsonObject requestBody = new JsonObject().put("id", "");
-
-            webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/refresh")
-                .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
-                .subscribe(response2 -> {
-                  testContext.verify(() -> {
-                    Assertions.assertEquals(400, response2.statusCode());
-                    Assertions.assertEquals("application/json",
-                        response2.getHeader("Content-Type"));
-                    Assertions.assertEquals("no-store, no-cache",
-                        response2.getHeader("Cache-Control"));
-                    Assertions.assertEquals("nosniff",
-                        response2.getHeader("X-Content-Type-Options"));
-                    Assertions.assertEquals("1; mode=block",
-                        response2.getHeader("X-XSS-Protection"));
-                    Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
-
-                    JsonObject responseBody2 = response2.bodyAsJsonObject();
-                    Assertions.assertNotNull(responseBody2);
-
-                    // status
-                    JsonObject status2 = responseBody2.getJsonObject("status");
-                    Assertions.assertNotNull(status2);
-                    Assertions.assertEquals(false, status2.getBoolean("isSuccess"));
-                    Assertions.assertEquals("Validation error!", status2.getString("message"));
-
-                    // data
-                    JsonObject data2 = responseBody2.getJsonObject("data");
-                    Assertions.assertNotNull(data2);
-                    Assertions.assertNotNull(data2.getString("requestId"));
-                    Assertions.assertNotNull(data2.getInstant("instant"));
-                    Assertions.assertNotNull(data2.getJsonArray("errorList"));
-                    Assertions.assertTrue(!data2.getJsonArray("errorList").isEmpty());
-
-                    testContext.completeNow();
-                  });
-                }, e -> testContext.failNow(e));
-          }, e -> testContext.failNow(e));
-    }, e -> testContext.failNow(e));
-  }
-
-  @Test
-  void testJwtRefreshRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext)
-      throws Exception {
-    AppConfig appConfig = AppConfig.instance();
-    WebClient webClient = WebClient.create(vertx);
-    MongoClient mongoClient = getMongoClient(vertx);
-    JsonObject user = generateDocument();
-
-    mongoClient.rxSave("users", user).subscribe(id -> {
-      user.put("password", "password");
-      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
-          .rxSendJsonObject(user).subscribe(response1 -> {
-            JsonObject data1 = response1.bodyAsJsonObject().getJsonObject("data");
-            String accessToken = data1.getString("accessToken");
-
-            webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/refresh")
-                .putHeader("Authorization", "Bearer " + accessToken).rxSend()
-                .subscribe(response2 -> {
-                  testContext.verify(() -> {
-                    Assertions.assertEquals(400, response2.statusCode());
-                    Assertions.assertEquals("application/json",
-                        response2.getHeader("Content-Type"));
-                    Assertions.assertEquals("no-store, no-cache",
-                        response2.getHeader("Cache-Control"));
-                    Assertions.assertEquals("nosniff",
-                        response2.getHeader("X-Content-Type-Options"));
-                    Assertions.assertEquals("1; mode=block",
-                        response2.getHeader("X-XSS-Protection"));
-                    Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
-
-                    JsonObject responseBody2 = response2.bodyAsJsonObject();
-                    Assertions.assertNotNull(responseBody2);
-
-                    // status
-                    JsonObject status2 = responseBody2.getJsonObject("status");
-                    Assertions.assertNotNull(status2);
-                    Assertions.assertEquals(false, status2.getBoolean("isSuccess"));
-                    Assertions.assertEquals("Request body is empty!", status2.getString("message"));
-
-                    // data
-                    JsonObject data2 = responseBody2.getJsonObject("data");
-                    Assertions.assertNotNull(data2);
-                    Assertions.assertNotNull(data2.getString("requestId"));
-                    Assertions.assertNotNull(data2.getInstant("instant"));
-                    Assertions.assertNotNull(data2.getJsonArray("errorList"));
-                    Assertions.assertTrue(!data2.getJsonArray("errorList").isEmpty());
-
-                    testContext.completeNow();
-                  });
-                }, e -> testContext.failNow(e));
-          }, e -> testContext.failNow(e));
-    }, e -> testContext.failNow(e));
-  }
-
-  @Test
-  void testJwtRefreshRecordNotFoundError(Vertx vertx, VertxTestContext testContext)
-      throws Exception {
-    AppConfig appConfig = AppConfig.instance();
-    WebClient webClient = WebClient.create(vertx);
-    MongoClient mongoClient = getMongoClient(vertx);
-    JsonObject user = generateDocument();
-
-    mongoClient.rxSave("users", user).subscribe(id -> {
-      user.put("password", "password");
-      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
-          .rxSendJsonObject(user).subscribe(response1 -> {
-            JsonObject data1 = response1.bodyAsJsonObject().getJsonObject("data");
-            String accessToken = data1.getString("accessToken");
-            JsonObject requestBody = new JsonObject().put("id", "" + System.currentTimeMillis());
-
-            webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/refresh")
-                .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
-                .subscribe(response2 -> {
-                  testContext.verify(() -> {
-                    Assertions.assertEquals(400, response2.statusCode());
-                    Assertions.assertEquals("application/json",
-                        response2.getHeader("Content-Type"));
-                    Assertions.assertEquals("no-store, no-cache",
-                        response2.getHeader("Cache-Control"));
-                    Assertions.assertEquals("nosniff",
-                        response2.getHeader("X-Content-Type-Options"));
-                    Assertions.assertEquals("1; mode=block",
-                        response2.getHeader("X-XSS-Protection"));
-                    Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
-
-                    JsonObject responseBody2 = response2.bodyAsJsonObject();
-                    Assertions.assertNotNull(responseBody2);
-
-                    // status
-                    JsonObject status2 = responseBody2.getJsonObject("status");
-                    Assertions.assertNotNull(status2);
-                    Assertions.assertEquals(false, status2.getBoolean("isSuccess"));
-                    Assertions.assertEquals("Refresh token failed!", status2.getString("message"));
-
-                    // data
-                    JsonObject data2 = responseBody2.getJsonObject("data");
-                    Assertions.assertNotNull(data2);
-                    Assertions.assertNotNull(data2.getString("requestId"));
-                    Assertions.assertNotNull(data2.getInstant("instant"));
-                    Assertions.assertNotNull(data2.getJsonArray("errorList"));
-                    Assertions.assertTrue(!data2.getJsonArray("errorList").isEmpty());
-
-                    testContext.completeNow();
-                  });
-                }, e -> testContext.failNow(e));
-          }, e -> testContext.failNow(e));
-    }, e -> testContext.failNow(e));
-  }
-
-  @Test
-  void testJwtRefreshInvalidCredentialError(Vertx vertx, VertxTestContext testContext)
-      throws Exception {
-    AppConfig appConfig = AppConfig.instance();
-    WebClient webClient = WebClient.create(vertx);
-    MongoClient mongoClient = getMongoClient(vertx);
-    JsonObject user = generateDocument();
-
-    mongoClient.rxSave("users", user).subscribe(id -> {
-      user.put("password", "password");
-      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
-          .rxSendJsonObject(user).subscribe(response1 -> {
-            JsonObject data1 = response1.bodyAsJsonObject().getJsonObject("data");
-            // String accessToken = data1.getString("accessToken");
-            JsonObject requestBody = new JsonObject().put("id", data1.getString("refreshId"));
-
-            webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/refresh")
-                .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
-                .subscribe(response2 -> {
-                  testContext.verify(() -> {
-                    Assertions.assertEquals(400, response2.statusCode());
-                    Assertions.assertEquals("application/json",
-                        response2.getHeader("Content-Type"));
-                    Assertions.assertEquals("no-store, no-cache",
-                        response2.getHeader("Cache-Control"));
-                    Assertions.assertEquals("nosniff",
-                        response2.getHeader("X-Content-Type-Options"));
-                    Assertions.assertEquals("1; mode=block",
-                        response2.getHeader("X-XSS-Protection"));
-                    Assertions.assertEquals("deny", response2.getHeader("X-Frame-Options"));
-
-                    JsonObject responseBody2 = response2.bodyAsJsonObject();
-                    Assertions.assertNotNull(responseBody2);
-
-                    // status
-                    JsonObject status2 = responseBody2.getJsonObject("status");
-                    Assertions.assertNotNull(status2);
-                    Assertions.assertEquals(false, status2.getBoolean("isSuccess"));
-                    Assertions.assertEquals("Refresh token invalid!", status2.getString("message"));
-
-                    // data
-                    JsonObject data2 = responseBody2.getJsonObject("data");
-                    Assertions.assertNotNull(data2);
-                    Assertions.assertNotNull(data2.getString("requestId"));
-                    Assertions.assertNotNull(data2.getInstant("instant"));
-                    Assertions.assertNotNull(data2.getJsonArray("errorList"));
-                    Assertions.assertTrue(!data2.getJsonArray("errorList").isEmpty());
-
-                    testContext.completeNow();
-                  });
-                }, e -> testContext.failNow(e));
-          }, e -> testContext.failNow(e));
-    }, e -> testContext.failNow(e));
   }
 }

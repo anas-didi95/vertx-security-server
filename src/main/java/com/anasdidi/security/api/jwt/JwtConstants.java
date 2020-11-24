@@ -1,6 +1,6 @@
 package com.anasdidi.security.api.jwt;
 
-class JwtConstants {
+final class JwtConstants {
 
   static final String REQUEST_URI = "/api/jwt";
 
@@ -13,6 +13,7 @@ class JwtConstants {
   static final String MSG_ERR_REFRESH_TOKEN_INVALID = "Refresh token invalid!";
   static final String MSG_ERR_REFRESH_TOKEN_CREDENTIAL_MISMATCH =
       "Refresh token credential mismatch!";
+  static final String MSG_ERR_REFRESH_TOKEN_EMPTY = "Refresh token is empty!";
 
   static final String MSG_OK_TOKEN_REFRESHED = "Token refreshed.";
 }

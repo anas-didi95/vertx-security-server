@@ -1,28 +1,27 @@
-@host = localhost
-@port = 5000
-@hostname = {{host}}:{{port}}
-@uri = /security/api/jwt
+@baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/api/jwt
 
 // @name login
-POST http://{{hostname}}{{uri}}/login
+POST {{baseUrl}}/login
 Accept: application/json
 Content-Type: application/json
 
 {
-  "username": "username",
+  "username": "superadmin",
   "password": "password"
 }
 
 ###
 
-@refreshId = {{login.response.body.$.data.refreshId}}
-
 // @name refresh
-POST http://{{hostname}}{{uri}}/refresh
+GET {{baseUrl}}/refresh
 Accept: application/json
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.$.data.accessToken}}
 
-{
-  "id": "{{refreshId}}"
-}
+###
+
+@accessToken = {{login.response.body.$.data.accessToken}}
+
+GET {{baseUrl}}/check
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}

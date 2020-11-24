@@ -84,14 +84,13 @@ class JwtController extends CommonController {
     Cookie refreshToken = routingContext.getCookie("refreshToken");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] refreshToken={}", TAG, requestId,
-            (refreshToken != null ? refreshToken.getValue() : "null"));
-      }
-
       if (refreshToken == null) {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
-            "Refresh token is null!");
+            JwtConstants.MSG_ERR_REFRESH_TOKEN_EMPTY);
+      }
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] refreshToken={}", TAG, requestId, refreshToken.getValue());
       }
 
       return new JsonObject().put("id", refreshToken.getValue());

@@ -1,14 +1,14 @@
 package com.anasdidi.security.api.jwt;
 
-import java.time.Instant;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
@@ -52,65 +52,63 @@ public class JwtVerticle extends AbstractVerticle {
 
     mainRouter.mountSubRouter(JwtConstants.REQUEST_URI, router);
 
-    long periodicCleanup = 1000L * 60 * 60;
-    vertx.setPeriodic(periodicCleanup, r -> {
-      String tag = "" + System.currentTimeMillis();
-      Instant deleteLessThanDate = Instant.now().minusMillis(periodicCleanup);
-      JsonObject query = new JsonObject()//
-          .put("createDate", new JsonObject().put("$lt", deleteLessThanDate));
-
-      if (logger.isDebugEnabled()) {
-        logger.debug("[start] {} Periodic mongo cleanup: periodic={}, query\n{}", tag,
-            periodicCleanup, query.encodePrettily());
-      }
-
-      mongoClient.rxFind(JwtConstants.COLLECTION_NAME, query).subscribe(resultList -> {
-        logger.info("[start] {} Periodic mongo cleanup: deleteLessThanDate={}, resultList={}", tag,
-            deleteLessThanDate, (resultList == null ? -1 : resultList.size()));
-
-        resultList.stream().forEach(result -> {
-          if (logger.isDebugEnabled()) {
-            logger.debug("[start] {} Periodic mongo cleanup: result.createDate={}", tag,
-                result.getString("createDate"));
-          }
-          mongoClient.rxFindOneAndDelete(JwtConstants.COLLECTION_NAME,
-              new JsonObject().put("_id", result.getString("_id"))).subscribe();
-        });
-      });
-    });
-
     logger.info("[start] Deployed success");
     startPromise.complete();
   }
 
   void configureMongoCollection(Promise<Void> startPromise) {
+    final String TAG = "configureMongoCollection";
+
     mongoClient.getCollections(collectionList -> {
       if (collectionList.succeeded()) {
-        List<String> resultList = collectionList.result().stream()//
-            .filter(collection -> collection.equals(JwtConstants.COLLECTION_NAME))//
-            .collect(Collectors.toList());
+        Set<String> resultSet = new HashSet<>(collectionList.result());
 
-        if (resultList.isEmpty()) {
+        if (!resultSet.contains(JwtConstants.COLLECTION_NAME)) {
           mongoClient.createCollection(JwtConstants.COLLECTION_NAME, result -> {
             if (result.succeeded()) {
-              logger.info("[configureMongoCollection] Mongo create collection '{}' succeed.",
+              logger.info("[{}] Mongo create collection '{}' succeed.", TAG,
                   JwtConstants.COLLECTION_NAME);
             } else {
-              logger.error("[configureMongoCollection] Mongo create collection '{}' failed!",
+              logger.error("[{}] Mongo create collection '{}' failed!", TAG,
                   JwtConstants.COLLECTION_NAME);
               startPromise.fail(result.cause());
             }
           });
+        } else {
+          logger.info("[{}] Mongo collection '{}' found.", TAG, JwtConstants.COLLECTION_NAME);
         }
 
         configureMongoCollectionIndexes(startPromise);
       } else {
-        logger.error("[configureMongoCollection] Mongo get collection list failed!");
+        logger.error("[{}] Mongo get collection list failed!", TAG);
         startPromise.fail(collectionList.cause());
       }
     });
   }
 
   void configureMongoCollectionIndexes(Promise<Void> startPromise) {
+    final String TAG = "configureMongoCollectionIndexes";
+
+    mongoClient.rxListIndexes(JwtConstants.COLLECTION_NAME).subscribe(resultList -> {
+      Set<String> indexSet = resultList.stream().map(o -> (JsonObject) o)
+          .map(o -> o.getString("name")).collect(Collectors.toSet());
+
+      String indexIssuedDateTTL = "ttl_issuedDate";
+      if (!indexSet.contains(indexIssuedDateTTL)) {
+        mongoClient
+            .rxCreateIndexWithOptions(JwtConstants.COLLECTION_NAME,
+                new JsonObject().put("issuedDate", 1),
+                new IndexOptions().name(indexIssuedDateTTL).expireAfter(Long.valueOf(1),
+                    TimeUnit.MINUTES))
+            .subscribe(() -> logger.info("[{}:{} Mongo create index '{}' succeed.", TAG,
+                JwtConstants.COLLECTION_NAME, indexIssuedDateTTL));
+      } else {
+        logger.info("[{}:{}] Mongo index '{}' found.", TAG, JwtConstants.COLLECTION_NAME,
+            indexIssuedDateTTL);
+      }
+    }, e -> {
+      logger.error("[{}:{}] Mongo get index list failed!", TAG, JwtConstants.COLLECTION_NAME);
+      startPromise.fail(e);
+    });
   }
 }

@@ -48,6 +48,7 @@ Following table is a **optional** environment variables used in this project.
 | APP_HOST | String | Server host | localhost |
 | LOG_LEVEL | String | Log level | error |
 | GRAPHIQL_IS_ENABLE | Boolean | Flag to enable `/graphiql` path | false
+| COOKIE_SECURE | Boolean | Enable secure cookie | false |
 
 ---
 

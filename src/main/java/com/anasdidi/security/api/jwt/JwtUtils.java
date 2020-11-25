@@ -11,6 +11,7 @@ final class JwtUtils {
     String value = refreshToken + JwtConstants.REFRESH_TOKEN_DELIMITER + salt;
 
     return Cookie.cookie("refreshToken", value).setSameSite(CookieSameSite.STRICT).setHttpOnly(true)
-        .setSecure(appConfig.getCookieSecure());
+        .setSecure(appConfig.getCookieSecure())
+        .setMaxAge(appConfig.getRefreshTokenExpireInMinutes() * 60);
   }
 }

@@ -16,4 +16,6 @@ final class JwtConstants {
   static final String MSG_ERR_REFRESH_TOKEN_EMPTY = "Refresh token is empty!";
 
   static final String MSG_OK_TOKEN_REFRESHED = "Token refreshed.";
+
+  static final String REFRESH_TOKEN_DELIMITER = ":";
 }

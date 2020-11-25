@@ -98,8 +98,8 @@ public class JwtVerticle extends AbstractVerticle {
         mongoClient
             .rxCreateIndexWithOptions(JwtConstants.COLLECTION_NAME,
                 new JsonObject().put("issuedDate", 1),
-                new IndexOptions().name(indexIssuedDateTTL).expireAfter(Long.valueOf(1),
-                    TimeUnit.MINUTES))
+                new IndexOptions().name(indexIssuedDateTTL).expireAfter(Long.valueOf(2592000),
+                    TimeUnit.SECONDS))
             .subscribe(() -> logger.info("[{}:{} Mongo create index '{}' succeed.", TAG,
                 JwtConstants.COLLECTION_NAME, indexIssuedDateTTL));
       } else {

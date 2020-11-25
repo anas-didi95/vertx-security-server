@@ -30,17 +30,15 @@ public class TestMainVerticle {
 
     testContext.verify(() -> {
       Assertions.assertNotNull(appConfig);
-
       Assertions.assertNotNull(appConfig.getAppPort());
       Assertions.assertNotNull(appConfig.getAppHost());
-
       Assertions.assertNotNull(appConfig.getJwtSecret());
       Assertions.assertNotNull(appConfig.getJwtIssuer());
       Assertions.assertNotNull(appConfig.getJwtExpireInMinutes());
-
+      Assertions.assertNotNull(appConfig.getRefreshTokenExpireInMinutes());
       Assertions.assertNotNull(appConfig.getMongoConfig());
-
       Assertions.assertNotNull(appConfig.getGraphiqlIsEnable());
+      Assertions.assertNotNull(appConfig.getCookieSecure());
 
       testContext.completeNow();
     });

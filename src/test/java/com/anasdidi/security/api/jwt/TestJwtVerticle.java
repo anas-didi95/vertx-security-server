@@ -1,6 +1,7 @@
 package com.anasdidi.security.api.jwt;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.CommonConstants;
@@ -220,5 +221,74 @@ public class TestJwtVerticle {
             testContext.completeNow();
           });
         }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testJwtLogoutSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    MongoClient mongoClient = getMongoClient(vertx);
+    WebClient webClient = WebClient.create(vertx);
+    JsonObject user = generateDocument();
+
+    mongoClient.rxSave("users", user).subscribe(id -> {
+      user.put("password", "password");
+      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
+          .rxSendJsonObject(user).subscribe(response -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(200, response.statusCode());
+              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+              JsonObject responseBody = response.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody);
+
+              // status
+              JsonObject status = responseBody.getJsonObject("status");
+              Assertions.assertEquals(true, status.getBoolean("isSuccess"));
+              Assertions.assertEquals("User successfully validated.", status.getString("message"));
+
+              // data
+              JsonObject data = responseBody.getJsonObject("data");
+              Assertions.assertNotNull(data);
+              Assertions.assertNotNull(data.getString("accessToken"));
+
+              webClient.get(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/logout")
+                  .putHeader("Authorization", "Bearer " + data.getString("accessToken")).rxSend()
+                  .subscribe(resLogout -> {
+                    testContext.verify(() -> {
+                      Assertions.assertEquals(200, response.statusCode());
+                      Assertions.assertEquals("application/json",
+                          response.getHeader("Content-Type"));
+                      Assertions.assertEquals("no-store, no-cache",
+                          response.getHeader("Cache-Control"));
+                      Assertions.assertEquals("nosniff",
+                          response.getHeader("X-Content-Type-Options"));
+                      Assertions.assertEquals("1; mode=block",
+                          response.getHeader("X-XSS-Protection"));
+                      Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+                      JsonObject resBodyLogout = resLogout.bodyAsJsonObject();
+                      Assertions.assertNotNull(resBodyLogout);
+
+                      // status
+                      JsonObject statusLogout = resBodyLogout.getJsonObject("status");
+                      Assertions.assertNotNull(statusLogout);
+                      Assertions.assertEquals(true, statusLogout.getBoolean("isSuccess"));
+                      Assertions.assertEquals("User successfully logout.",
+                          statusLogout.getString("message"));
+
+                      List<String> cookies = resLogout.cookies().stream()
+                          .filter(s -> s.contains("refreshToken")).collect(Collectors.toList());
+                      Assertions.assertEquals(true, cookies.isEmpty());
+
+                      testContext.completeNow();
+                    });
+                  }, e -> testContext.failNow(e));
+            });
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
   }
 }

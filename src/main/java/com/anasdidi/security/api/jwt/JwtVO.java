@@ -9,13 +9,16 @@ class JwtVO {
   final String username;
   final String password;
   final String userId;
+  final String salt;
 
-  private JwtVO(String id, String accessToken, String username, String password, String userId) {
+  private JwtVO(String id, String accessToken, String username, String password, String userId,
+      String salt) {
     this.id = id;
     this.accessToken = accessToken;
     this.username = username;
     this.password = password;
     this.userId = userId;
+    this.salt = salt;
   }
 
   static JwtVO fromJson(JsonObject json) {
@@ -24,8 +27,9 @@ class JwtVO {
     String username = json.getString("username");
     String password = json.getString("password");
     String userId = json.getString("userId");
+    String salt = json.getString("salt");
 
-    return new JwtVO(id, accessToken, username, password, userId);
+    return new JwtVO(id, accessToken, username, password, userId, salt);
   }
 
   @Override
@@ -36,6 +40,7 @@ class JwtVO {
         .put("username", username)//
         .put("password", (password != null ? "*****" : ""))//
         .put("userId", userId)//
+        .put("salt", salt)//
         .encodePrettily();
   }
 }

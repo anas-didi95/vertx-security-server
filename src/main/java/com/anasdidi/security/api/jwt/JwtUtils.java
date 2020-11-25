@@ -6,9 +6,12 @@ import io.vertx.reactivex.core.http.Cookie;
 
 final class JwtUtils {
 
-  static Cookie generateRefreshTokenCookie(String refreshToken) throws Exception {
+  static Cookie generateRefreshTokenCookie(String refreshToken, String salt) throws Exception {
     AppConfig appConfig = AppConfig.instance();
-    return Cookie.cookie("refreshToken", refreshToken).setSameSite(CookieSameSite.STRICT)
-        .setHttpOnly(true).setSecure(appConfig.getCookieSecure());
+    String value = refreshToken + JwtConstants.REFRESH_TOKEN_DELIMITER + salt;
+
+    return Cookie.cookie("refreshToken", value).setSameSite(CookieSameSite.STRICT).setHttpOnly(true)
+        .setSecure(appConfig.getCookieSecure())
+        .setMaxAge(appConfig.getRefreshTokenExpireInMinutes() * 60);
   }
 }

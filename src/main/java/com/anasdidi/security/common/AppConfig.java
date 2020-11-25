@@ -31,6 +31,7 @@ public class AppConfig {
         .put("JWT_SECRET", getJwtSecret())//
         .put("JWT_ISSUER", getJwtIssuer())//
         .put("JWT_EXPIRE_IN_MINUTES", getJwtExpireInMinutes())//
+        .put("REFRESH_TOKEN_EXPIRE_IN_MINUTES", getRefreshTokenExpireInMinutes())//
         .put("MONGO_CONFIG", getMongoConfig())//
         .put("GRAPHIQL_IS_ENABLE", getGraphiqlIsEnable())//
         .put("COOKIE_SECURE", getCookieSecure())//
@@ -55,6 +56,10 @@ public class AppConfig {
 
   public int getJwtExpireInMinutes() {
     return cfg.getInteger("JWT_EXPIRE_IN_MINUTES");
+  }
+
+  public Long getRefreshTokenExpireInMinutes() {
+    return cfg.getLong("REFRESH_TOKEN_EXPIRE_IN_MINUTES", Long.valueOf(43200));
   }
 
   public JsonObject getMongoConfig() {

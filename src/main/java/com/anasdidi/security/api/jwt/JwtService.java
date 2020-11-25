@@ -36,11 +36,12 @@ class JwtService {
         .setExpiresInMinutes(appConfig.getJwtExpireInMinutes()));
 
     String id = CommonUtils.generateUUID();
+    String salt = BCrypt.gensalt().replace(JwtConstants.REFRESH_TOKEN_DELIMITER, "#");
     JsonObject document = new JsonObject()//
         .put("_id", id)//
         .put("userId", userId)//
         .put("username", username)//
-        .put("isUsed", false)//
+        .put("salt", salt)//
         .put("issuedDate", new JsonObject().put("$date", Instant.now()));
 
     if (logger.isDebugEnabled()) {
@@ -51,7 +52,8 @@ class JwtService {
 
     JsonObject json = new JsonObject()//
         .put("id", id)//
-        .put("accessToken", accessToken);
+        .put("accessToken", accessToken)//
+        .put("salt", salt);
     return JwtVO.fromJson(json);
   }
 
@@ -84,21 +86,16 @@ class JwtService {
     final String TAG = "refresh";
     JsonObject query = new JsonObject()//
         .put("_id", vo.id)//
-        .put("isUsed", false);
-    JsonObject update = new JsonObject()//
-        .put("$set", new JsonObject()//
-            .put("isUsed", true));
+        .put("salt", vo.salt);
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
-      logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
     }
 
-    return mongoClient.rxFindOneAndUpdate(JwtConstants.COLLECTION_NAME, query, update)//
+    return mongoClient.rxFindOneAndDelete(JwtConstants.COLLECTION_NAME, query)//
         .doOnComplete(() -> {
           logger.error("[{}:{}] {}", TAG, requestId, JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
           logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
-          logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
           throw new ApplicationException(JwtConstants.MSG_ERR_REFRESH_TOKEN_FAILED, requestId,
               JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
         })//

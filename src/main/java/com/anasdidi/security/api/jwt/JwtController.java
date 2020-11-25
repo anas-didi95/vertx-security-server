@@ -50,7 +50,7 @@ class JwtController extends CommonController {
         .flatMap(response -> jwtService.login(username, password, (JsonObject) response.body(),
             requestId))
         .map(vo -> {
-          routingContext.addCookie(JwtUtils.generateRefreshTokenCookie(vo.id));
+          routingContext.addCookie(JwtUtils.generateRefreshTokenCookie(vo.id, vo.salt));
           return new JsonObject().put("accessToken", vo.accessToken);
         });
 
@@ -93,11 +93,17 @@ class JwtController extends CommonController {
         logger.debug("[{}:{}] refreshToken={}", TAG, requestId, refreshToken.getValue());
       }
 
-      return new JsonObject().put("id", refreshToken.getValue());
+      String[] values = refreshToken.getValue().split(JwtConstants.REFRESH_TOKEN_DELIMITER);
+      if (values.length < 2) {
+        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
+            "Refresh token is invalid!");
+      }
+
+      return new JsonObject().put("id", values[0]).put("salt", values[1]);
     }).map(json -> JwtVO.fromJson(json))
         .map(vo -> jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId))
         .flatMap(vo -> jwtService.refresh(vo, requestId)).map(vo -> {
-          routingContext.addCookie(JwtUtils.generateRefreshTokenCookie(vo.id));
+          routingContext.addCookie(JwtUtils.generateRefreshTokenCookie(vo.id, vo.salt));
           return new JsonObject().put("accessToken", vo.accessToken);
         });
 

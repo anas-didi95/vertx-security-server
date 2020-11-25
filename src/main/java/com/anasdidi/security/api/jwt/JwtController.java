@@ -110,4 +110,28 @@ class JwtController extends CommonController {
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         JwtConstants.MSG_OK_TOKEN_REFRESHED);
   }
+
+  void doLogout(RoutingContext routingContext) {
+    final String TAG = "doLogout";
+    String requestId = routingContext.get("requestId");
+    Cookie refreshToken = routingContext.getCookie("refreshToken");
+
+    Single<JsonObject> subscriber = Single.fromCallable(() -> {
+      String refreshTokenValue = (refreshToken != null ? refreshToken.getValue() : "");
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] refreshTokenValue={}", TAG, requestId, refreshTokenValue);
+      }
+
+      String[] values = refreshTokenValue.split(JwtConstants.REFRESH_TOKEN_DELIMITER);
+      if (values.length < 2) {
+        return new JsonObject();
+      } else {
+        return new JsonObject().put("id", values[0]).put("salt", values[1]);
+      }
+    });
+
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
+        "User successfully logout.");
+  }
 }

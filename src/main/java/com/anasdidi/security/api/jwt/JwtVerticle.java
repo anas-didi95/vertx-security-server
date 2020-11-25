@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import com.anasdidi.security.common.AppConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.vertx.core.Promise;
@@ -78,7 +79,11 @@ public class JwtVerticle extends AbstractVerticle {
           logger.info("[{}] Mongo collection '{}' found.", TAG, JwtConstants.COLLECTION_NAME);
         }
 
-        configureMongoCollectionIndexes(startPromise);
+        try {
+          configureMongoCollectionIndexes(startPromise);
+        } catch (Exception e) {
+          startPromise.fail(e);
+        }
       } else {
         logger.error("[{}] Mongo get collection list failed!", TAG);
         startPromise.fail(collectionList.cause());
@@ -86,8 +91,9 @@ public class JwtVerticle extends AbstractVerticle {
     });
   }
 
-  void configureMongoCollectionIndexes(Promise<Void> startPromise) {
+  void configureMongoCollectionIndexes(Promise<Void> startPromise) throws Exception {
     final String TAG = "configureMongoCollectionIndexes";
+    AppConfig appConfig = AppConfig.instance();
 
     mongoClient.rxListIndexes(JwtConstants.COLLECTION_NAME).subscribe(resultList -> {
       Set<String> indexSet = resultList.stream().map(o -> (JsonObject) o)
@@ -98,8 +104,8 @@ public class JwtVerticle extends AbstractVerticle {
         mongoClient
             .rxCreateIndexWithOptions(JwtConstants.COLLECTION_NAME,
                 new JsonObject().put("issuedDate", 1),
-                new IndexOptions().name(indexIssuedDateTTL).expireAfter(Long.valueOf(2592000),
-                    TimeUnit.SECONDS))
+                new IndexOptions().name(indexIssuedDateTTL)
+                    .expireAfter(appConfig.getRefreshTokenExpireInMinutes(), TimeUnit.MINUTES))
             .subscribe(() -> logger.info("[{}:{} Mongo create index '{}' succeed.", TAG,
                 JwtConstants.COLLECTION_NAME, indexIssuedDateTTL));
       } else {

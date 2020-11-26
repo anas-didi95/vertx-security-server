@@ -25,3 +25,12 @@ GET {{baseUrl}}/check
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
+
+###
+
+@accessToken = {{login.response.body.$.data.accessToken}}
+
+GET {{baseUrl}}/logout
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}

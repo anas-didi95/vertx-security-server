@@ -1,6 +1,7 @@
 package com.anasdidi.security.api.user;
 
 import java.time.Instant;
+import com.anasdidi.security.common.CommonUtils;
 import io.vertx.core.json.JsonObject;
 
 class UserVO {
@@ -30,13 +31,8 @@ class UserVO {
     String password = json.getString("password");
     String fullName = json.getString("fullName");
     String email = json.getString("email");
-    Instant lastModifiedDate = null;
+    Instant lastModifiedDate = CommonUtils.getInstantMongoDate(json, "lastModifiedDate");
     Long version = json.getLong("version");
-
-    JsonObject lastModifiedDateJson = json.getJsonObject("lastModifiedDate");
-    if (lastModifiedDateJson != null && !lastModifiedDateJson.isEmpty()) {
-      lastModifiedDate = lastModifiedDateJson.getInstant("$date");
-    }
 
     return new UserVO(id, username, password, fullName, email, lastModifiedDate, version);
   }

@@ -129,7 +129,8 @@ class JwtController extends CommonController {
       } else {
         return new JsonObject().put("id", values[0]).put("salt", values[1]);
       }
-    });
+    }).map(json -> JwtVO.fromJson(json)).flatMap(vo -> jwtService.logout(vo, requestId))
+        .map(isDelete -> new JsonObject());
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         "User successfully logout.");

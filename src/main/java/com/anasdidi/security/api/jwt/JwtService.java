@@ -108,7 +108,7 @@ class JwtService {
         .toSingle();
   }
 
-  Single<Boolean> logout(JwtVO vo, String requestId) {
+  Single<JsonObject> logout(JwtVO vo, String requestId) {
     final String TAG = "logout";
     JsonObject query = new JsonObject()//
         .put("_id", vo.id)//
@@ -121,6 +121,8 @@ class JwtService {
     return mongoClient.rxFindOneAndDelete(JwtConstants.COLLECTION_NAME, query).doOnComplete(() -> {
       logger.error("[{}:{}] Refresh token not found!", TAG, requestId);
       logger.error("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
-    }).defaultIfEmpty(new JsonObject()).map(rst -> true).toSingle();
+    }).defaultIfEmpty(new JsonObject().put("isDelete", false).put("issuedDate", ""))//
+        .map(rst -> rst.put("isDelete", true))//
+        .toSingle();
   }
 }

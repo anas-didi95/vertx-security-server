@@ -94,10 +94,10 @@ class JwtService {
 
     return mongoClient.rxFindOneAndDelete(JwtConstants.COLLECTION_NAME, query)//
         .doOnComplete(() -> {
-          logger.error("[{}:{}] {}", TAG, requestId, JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
+          logger.error("[{}:{}] {}", TAG, requestId, JwtConstants.MSG_ERR_REFRESH_TOKEN_NOT_FOUND);
           logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
           throw new ApplicationException(JwtConstants.MSG_ERR_REFRESH_TOKEN_FAILED, requestId,
-              JwtConstants.MSG_ERR_JWT_RECORD_NOT_FOUND);
+              JwtConstants.MSG_ERR_REFRESH_TOKEN_NOT_FOUND);
         })//
         .map(rst -> {
           String username = rst.getString("username");
@@ -119,7 +119,7 @@ class JwtService {
     }
 
     return mongoClient.rxFindOneAndDelete(JwtConstants.COLLECTION_NAME, query).doOnComplete(() -> {
-      logger.error("[{}:{}] Refresh token not found!", TAG, requestId);
+      logger.error("[{}:{}] {}", TAG, requestId, JwtConstants.MSG_ERR_REFRESH_TOKEN_NOT_FOUND);
       logger.error("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
     }).defaultIfEmpty(new JsonObject()).map(json -> JwtVO.fromJson(json)).toSingle();
   }

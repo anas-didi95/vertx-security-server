@@ -8,7 +8,7 @@ final class JwtConstants {
 
   static final String MSG_ERR_INVALID_CREDENTIAL = "Invalid credential!";
   static final String MSG_ERR_INVALID_USERNAME_PASSWORD = "Invalid username/password!";
-  static final String MSG_ERR_JWT_RECORD_NOT_FOUND = "Jwt record not found!";
+  static final String MSG_ERR_REFRESH_TOKEN_NOT_FOUND = "Refresh token not found!";
   static final String MSG_ERR_REFRESH_TOKEN_FAILED = "Refresh token failed!";
   static final String MSG_ERR_REFRESH_TOKEN_INVALID = "Refresh token is invalid!";
   static final String MSG_ERR_REFRESH_TOKEN_CREDENTIAL_MISMATCH =

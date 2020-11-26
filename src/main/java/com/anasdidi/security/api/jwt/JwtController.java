@@ -66,7 +66,10 @@ class JwtController extends CommonController {
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] refreshToken={}", TAG, requestId,
           (refreshToken != null ? refreshToken.getValue() : null));
-      logger.debug("[{}:{}] principal={}", TAG, requestId, routingContext.user() == null);
+      logger.debug("[{}:{}] principal\n{}", TAG, requestId,
+          routingContext.user().principal() != null
+              ? routingContext.user().principal().encodePrettily()
+              : null);
     }
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> new JsonObject());

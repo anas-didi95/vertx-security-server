@@ -284,8 +284,7 @@ public class TestJwtVerticle {
                       JsonObject dataLogout = resBodyLogout.getJsonObject("data");
                       Assertions.assertNotNull(dataLogout);
                       Assertions.assertNotNull(dataLogout.getString("requestId"));
-                      Assertions.assertNotNull(dataLogout.getBoolean("isDelete"));
-                      Assertions.assertNotNull(dataLogout.getString("issuedDate"));
+                      Assertions.assertNotNull(dataLogout.getString("tokenIssuedDate"));
 
                       List<String> cookies = resLogout.cookies().stream()
                           .filter(s -> s.contains("refreshToken")).collect(Collectors.toList());

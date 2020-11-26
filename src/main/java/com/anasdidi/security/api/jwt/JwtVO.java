@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.jwt;
 
+import java.time.Instant;
 import io.vertx.core.json.JsonObject;
 
 class JwtVO {
@@ -10,15 +11,17 @@ class JwtVO {
   final String password;
   final String userId;
   final String salt;
+  final Instant issuedDate;
 
   private JwtVO(String id, String accessToken, String username, String password, String userId,
-      String salt) {
+      String salt, Instant issuedDate) {
     this.id = id;
     this.accessToken = accessToken;
     this.username = username;
     this.password = password;
     this.userId = userId;
     this.salt = salt;
+    this.issuedDate = issuedDate;
   }
 
   static JwtVO fromJson(JsonObject json) {
@@ -28,8 +31,14 @@ class JwtVO {
     String password = json.getString("password");
     String userId = json.getString("userId");
     String salt = json.getString("salt");
+    Instant issuedDate = null;
 
-    return new JwtVO(id, accessToken, username, password, userId, salt);
+    JsonObject issuedDateJson = json.getJsonObject("issuedDate");
+    if (issuedDateJson != null && !issuedDateJson.isEmpty()) {
+      issuedDate = issuedDateJson.getInstant("$date");
+    }
+
+    return new JwtVO(id, accessToken, username, password, userId, salt, issuedDate);
   }
 
   @Override
@@ -41,6 +50,7 @@ class JwtVO {
         .put("password", (password != null ? "*****" : ""))//
         .put("userId", userId)//
         .put("salt", salt)//
+        .put("issuedDate", issuedDate)//
         .encodePrettily();
   }
 }

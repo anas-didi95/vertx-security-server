@@ -125,14 +125,12 @@ class JwtController extends CommonController {
       } else {
         return new JsonObject().put("id", values[0]).put("salt", values[1]);
       }
-    }).map(json -> JwtVO.fromJson(json)).flatMap(vo -> jwtService.logout(vo, requestId))
-        .map(json -> {
-          routingContext.removeCookie("refreshToken", true);
-          return new JsonObject()//
-              .put("requestId", requestId)//
-              .put("isDelete", json.getBoolean("isDelete"))//
-              .put("issuedDate", json.getString("issuedDate"));
-        });
+    }).map(json -> JwtVO.fromJson(json)).flatMap(vo -> jwtService.logout(vo, requestId)).map(vo -> {
+      routingContext.removeCookie("refreshToken", true);
+      return new JsonObject()//
+          .put("requestId", requestId)//
+          .put("tokenIssuedDate", vo.issuedDate != null ? vo.issuedDate : "");
+    });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_USER_LOGOUT);

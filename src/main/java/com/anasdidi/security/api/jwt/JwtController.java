@@ -59,21 +59,17 @@ class JwtController extends CommonController {
   }
 
   void doCheck(RoutingContext routingContext) {
-    String tag = "doCheck";
+    final String TAG = "doCheck";
     String requestId = routingContext.get("requestId");
     Cookie refreshToken = routingContext.getCookie("refreshToken");
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] refreshToken={}", tag, requestId,
+      logger.debug("[{}:{}] refreshToken={}", TAG, requestId,
           (refreshToken != null ? refreshToken.getValue() : null));
+      logger.debug("[{}:{}] principal={}", TAG, requestId, routingContext.user() == null);
     }
 
-    Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] principal={}", tag, requestId, routingContext.user() == null);
-      }
-      return new JsonObject();
-    });
+    Single<JsonObject> subscriber = Single.fromCallable(() -> new JsonObject());
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK, "Ok");
   }
@@ -96,7 +92,7 @@ class JwtController extends CommonController {
       String[] values = refreshToken.getValue().split(JwtConstants.REFRESH_TOKEN_DELIMITER);
       if (values.length < 2) {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
-            "Refresh token is invalid!");
+            JwtConstants.MSG_ERR_REFRESH_TOKEN_INVALID);
       }
 
       return new JsonObject().put("id", values[0]).put("salt", values[1]);
@@ -139,6 +135,6 @@ class JwtController extends CommonController {
         });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
-        "User successfully logout.");
+        CommonConstants.MSG_OK_USER_LOGOUT);
   }
 }

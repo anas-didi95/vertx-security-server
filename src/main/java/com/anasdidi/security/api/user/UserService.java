@@ -26,6 +26,7 @@ class UserService {
         .put("password", UserUtils.encryptPassword(vo.password))//
         .put("fullName", vo.fullName)//
         .put("email", vo.email)//
+        .put("lastUpdatedBy", vo.lastUpdatedBy)//
         .put("lastModifiedDate", new JsonObject().put("$date", Instant.now()))//
         .put("version", 0);
 
@@ -52,6 +53,7 @@ class UserService {
         .put("$set", new JsonObject()//
             .put("fullName", vo.fullName)//
             .put("email", vo.email)//
+            .put("lastUpdatedBy", vo.lastUpdatedBy)//
             .put("lastModifiedDate", new JsonObject().put("$date", Instant.now()))//
             .put("version", vo.version + 1));
 

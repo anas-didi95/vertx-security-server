@@ -24,7 +24,6 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Required}
     volumes:
       - ./mongodump:/mongodump
-      - mongodata:/data/db
 
   mongotest:
     image: mongo:4.2.8
@@ -45,6 +44,3 @@ services:
       ME_CONFIG_MONGODB_PORT: ${MONGO_PORT:?Required}
     depends_on:
       - mongo
-
-volumes:
-  mongodata:

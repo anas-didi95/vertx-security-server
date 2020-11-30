@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.UUID;
 import graphql.execution.ExecutionId;
 import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.ext.auth.User;
 
 public class CommonUtils {
 
@@ -33,5 +34,9 @@ public class CommonUtils {
     } else {
       return dateJson.getInstant("$date");
     }
+  }
+
+  public static String getUserIdFromToken(User user) {
+    return user.principal().getString("sub");
   }
 }

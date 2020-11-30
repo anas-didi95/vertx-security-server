@@ -11,16 +11,18 @@ class UserVO {
   final String password;
   final String fullName;
   final String email;
+  final String lastUpdatedBy;
   final Instant lastModifiedDate;
   final Long version;
 
   private UserVO(String id, String username, String password, String fullName, String email,
-      Instant lastModifiedDate, Long version) {
+      String lastUpdatedBy, Instant lastModifiedDate, Long version) {
     this.id = id;
     this.username = username;
     this.password = password;
     this.fullName = fullName;
     this.email = email;
+    this.lastUpdatedBy = lastUpdatedBy;
     this.lastModifiedDate = lastModifiedDate;
     this.version = version;
   }
@@ -31,10 +33,12 @@ class UserVO {
     String password = json.getString("password");
     String fullName = json.getString("fullName");
     String email = json.getString("email");
+    String lastUpdatedBy = json.getString("lastUpdatedBy");
     Instant lastModifiedDate = CommonUtils.getInstantMongoDate(json, "lastModifiedDate");
     Long version = json.getLong("version");
 
-    return new UserVO(id, username, password, fullName, email, lastModifiedDate, version);
+    return new UserVO(id, username, password, fullName, email, lastUpdatedBy, lastModifiedDate,
+        version);
   }
 
   static JsonObject toJson(UserVO vo) {
@@ -44,6 +48,7 @@ class UserVO {
         .put("password", vo.password)//
         .put("fullName", vo.fullName)//
         .put("email", vo.email)//
+        .put("lastUpdatedBy", vo.lastUpdatedBy)//
         .put("lastModifiedDate", vo.lastModifiedDate)//
         .put("version", vo.version);
   }
@@ -56,6 +61,7 @@ class UserVO {
         .put("password", (password != null ? "*****" : ""))//
         .put("fullName", fullName)//
         .put("email", email)//
+        .put("lastUpdatedBy", lastUpdatedBy)//
         .put("lastModifiedDate", lastModifiedDate)//
         .put("version", version)//
         .encodePrettily();

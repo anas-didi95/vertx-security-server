@@ -4,6 +4,7 @@ import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonController;
+import com.anasdidi.security.common.CommonUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.Single;
@@ -26,7 +27,7 @@ class UserController extends CommonController {
   void doCreate(RoutingContext routingContext) {
     final String TAG = "doCreate";
     String requestId = routingContext.get("requestId");
-    String lastUpdatedBy = routingContext.user().principal().getString("sub");
+    String userId = CommonUtils.getUserIdFromToken(routingContext.user());
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
@@ -34,7 +35,7 @@ class UserController extends CommonController {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
             CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
       } else {
-        requestBody.put("lastUpdatedBy", lastUpdatedBy);
+        requestBody.put("lastUpdatedBy", userId);
       }
 
       if (logger.isDebugEnabled()) {
@@ -55,6 +56,7 @@ class UserController extends CommonController {
     final String TAG = "doUpdate";
     String requestId = routingContext.get("requestId");
     String paramId = routingContext.request().getParam("id");
+    String userId = CommonUtils.getUserIdFromToken(routingContext.user());
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
@@ -62,7 +64,7 @@ class UserController extends CommonController {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
             CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
       } else {
-        requestBody.put("id", paramId);
+        requestBody.put("id", paramId).put("lastUpdatedBy", userId);
       }
 
       if (logger.isDebugEnabled()) {

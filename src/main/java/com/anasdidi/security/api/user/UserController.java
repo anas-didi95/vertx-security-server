@@ -26,12 +26,15 @@ class UserController extends CommonController {
   void doCreate(RoutingContext routingContext) {
     final String TAG = "doCreate";
     String requestId = routingContext.get("requestId");
+    String lastUpdatedBy = routingContext.user().principal().getString("sub");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
       if (requestBody == null || requestBody.isEmpty()) {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
             CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
+      } else {
+        requestBody.put("lastUpdatedBy", lastUpdatedBy);
       }
 
       if (logger.isDebugEnabled()) {

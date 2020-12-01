@@ -106,4 +106,16 @@ class GraphqlDataFetcher {
           future.complete(UserDTO.fromJson(responseBody));
         }, e -> future.fail(e));
   }
+
+  void getLastModifiedBy(DataFetchingEnvironment env, Promise<UserDTO> promise) {
+    final String TAG = "getLastModifiedBy";
+    String requestId = CommonUtils.generateUUID(env.getExecutionId());
+    UserDTO dto = env.getSource();
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] dto\n{}", TAG, requestId, dto);
+    }
+
+    promise.complete(dto);
+  }
 }

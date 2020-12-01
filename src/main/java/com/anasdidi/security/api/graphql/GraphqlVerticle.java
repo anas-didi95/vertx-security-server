@@ -70,6 +70,8 @@ public class GraphqlVerticle extends AbstractVerticle {
             .dataFetcher("getUserById", new VertxDataFetcher<>(dataFetcher::getUserById))//
             .dataFetcher("getUserByUsername",
                 new VertxDataFetcher<>(dataFetcher::getUserByUsername)))//
+        .type("User", builder -> builder//
+            .dataFetcher("lastModifiedBy", new VertxDataFetcher<>(dataFetcher::getLastModifiedBy)))
         .build();
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();

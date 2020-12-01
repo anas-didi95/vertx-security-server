@@ -64,4 +64,15 @@ public class UserDTO {
   public Long getVersion(DataFetchingEnvironment env) {
     return version;
   }
+
+  @Override
+  public String toString() {
+    return new JsonObject()//
+        .put("id", id)//
+        .put("username", username)//
+        .put("email", email)//
+        .put("lastModifiedDate", lastModifiedDate)//
+        .put("version", version)//
+        .encodePrettily();
+  }
 }

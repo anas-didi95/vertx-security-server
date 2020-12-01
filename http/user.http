@@ -1,5 +1,6 @@
 @baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/api/user
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.Xlvyw61s40V78oSR6lGUVrf7Husf0QzMc1Oy49xD4EU
+@accessToken = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InN1cGVyYWRtaW4iLCJpYXQiOjE2MDY4MjQ3NDksImV4cCI6MTYwNjgyNjU0OSwiaXNzIjoiYW5hc2RpZGkuZGV2Iiwic3ViIjoiNWZjNjMxNGI4NjQ1YWQxY2UxMjQ0NGEyIn0.yIrhCRmMwXYEp3N7-lbhQLbLsXGC_c-fwt2nDF4OIUA
+//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.Xlvyw61s40V78oSR6lGUVrf7Husf0QzMc1Oy49xD4EU
 // signature=secret, issuer=anasdidi.dev, subject=SYSTEM
 
 // @name createContent
@@ -9,10 +10,10 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "username": "superadmin",
-  "password": "password",
-  "fullName": "superadmin",
-  "email": "anas.didi95@gmail.com"
+  "username": "test",
+  "password": "test",
+  "fullName": "test",
+  "email": "test"
 }
 
 ###

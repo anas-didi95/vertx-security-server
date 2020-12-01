@@ -8,7 +8,7 @@ type User {
   username: String!
   fullName: String!
   email: String!
-  lastModifiedBy: String!
+  lastModifiedBy: User!
   lastModifiedDate(format: String): String!
   version: Int!
 }

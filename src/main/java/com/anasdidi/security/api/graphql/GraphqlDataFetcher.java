@@ -111,11 +111,23 @@ class GraphqlDataFetcher {
     final String TAG = "getLastModifiedBy";
     String requestId = CommonUtils.generateUUID(env.getExecutionId());
     UserDTO dto = env.getSource();
+    String userId = dto.getLastModifiedBy();
+    JsonObject requestBody = new JsonObject()//
+        .put("requestId", requestId)//
+        .put("id", userId);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] dto\n{}", TAG, requestId, dto);
+      logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
     }
 
-    promise.complete(dto);
+    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_ID, requestBody).subscribe(response -> {
+      JsonObject responseBody = (JsonObject) response.body();
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] responseBody\n{}", TAG, requestId, responseBody.encodePrettily());
+      }
+
+      promise.complete(UserDTO.fromJson(responseBody));
+    });
   }
 }

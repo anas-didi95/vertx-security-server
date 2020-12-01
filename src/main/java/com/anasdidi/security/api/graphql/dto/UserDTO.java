@@ -69,6 +69,10 @@ public class UserDTO {
     return version;
   }
 
+  public String getLastModifiedBy() {
+    return lastModifiedBy;
+  }
+
   @Override
   public String toString() {
     return new JsonObject()//

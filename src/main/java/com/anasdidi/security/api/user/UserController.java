@@ -35,7 +35,7 @@ class UserController extends CommonController {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
             CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
       } else {
-        requestBody.put("lastUpdatedBy", userId);
+        requestBody.put("lastModifiedBy", userId);
       }
 
       if (logger.isDebugEnabled()) {
@@ -64,7 +64,7 @@ class UserController extends CommonController {
         throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
             CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
       } else {
-        requestBody.put("id", paramId).put("lastUpdatedBy", userId);
+        requestBody.put("id", paramId).put("lastModifiedBy", userId);
       }
 
       if (logger.isDebugEnabled()) {

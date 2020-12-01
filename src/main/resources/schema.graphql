@@ -4,12 +4,13 @@ type Ping {
 }
 
 type User {
-  id: String!
-  username: String!
-  fullName: String!
-  email: String!
-  lastModifiedDate(format: String): String!
-  version: Int!
+  id: String
+  username: String
+  fullName: String
+  email: String
+  lastModifiedBy: User
+  lastModifiedDate(format: String): String
+  version: Int
 }
 
 type Query {

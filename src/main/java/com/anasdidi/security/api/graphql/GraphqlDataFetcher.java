@@ -64,7 +64,7 @@ class GraphqlDataFetcher {
 
   void getUserById(DataFetchingEnvironment env, Promise<UserDTO> future) {
     final String TAG = "getUserById";
-    String requestId = env.getExecutionId().toString();
+    String requestId = CommonUtils.generateUUID(env.getExecutionId());
     JsonObject requestBody = new JsonObject()//
         .put("requestId", requestId)//
         .put("id", (String) env.getArgument("id"));
@@ -86,7 +86,7 @@ class GraphqlDataFetcher {
 
   void getUserByUsername(DataFetchingEnvironment env, Promise<UserDTO> future) {
     final String TAG = "getUserByUsername";
-    String requestId = env.getExecutionId().toString();
+    String requestId = CommonUtils.generateUUID(env.getExecutionId());
     JsonObject requestBody = new JsonObject()//
         .put("requestId", requestId)//
         .put("username", (String) env.getArgument("username"));
@@ -105,5 +105,34 @@ class GraphqlDataFetcher {
 
           future.complete(UserDTO.fromJson(responseBody));
         }, e -> future.fail(e));
+  }
+
+  void getLastModifiedBy(DataFetchingEnvironment env, Promise<UserDTO> promise) {
+    final String TAG = "getLastModifiedBy";
+    String requestId = CommonUtils.generateUUID(env.getExecutionId());
+    UserDTO dto = env.getSource();
+    String id = dto.getLastModifiedBy();
+    JsonObject requestBody = new JsonObject()//
+        .put("requestId", requestId)//
+        .put("id", id);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
+    }
+
+    eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_ID, requestBody).subscribe(response -> {
+      JsonObject responseBody = (JsonObject) response.body();
+      String respId = responseBody.getString("id");
+
+      if (respId == null || respId.isBlank()) {
+        responseBody.put("id", id);
+      }
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] responseBody\n{}", TAG, requestId, responseBody.encodePrettily());
+      }
+
+      promise.complete(UserDTO.fromJson(responseBody));
+    });
   }
 }

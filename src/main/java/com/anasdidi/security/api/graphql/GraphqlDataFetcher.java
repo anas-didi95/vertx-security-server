@@ -64,7 +64,7 @@ class GraphqlDataFetcher {
 
   void getUserById(DataFetchingEnvironment env, Promise<UserDTO> future) {
     final String TAG = "getUserById";
-    String requestId = env.getExecutionId().toString();
+    String requestId = CommonUtils.generateUUID(env.getExecutionId());
     JsonObject requestBody = new JsonObject()//
         .put("requestId", requestId)//
         .put("id", (String) env.getArgument("id"));
@@ -86,7 +86,7 @@ class GraphqlDataFetcher {
 
   void getUserByUsername(DataFetchingEnvironment env, Promise<UserDTO> future) {
     final String TAG = "getUserByUsername";
-    String requestId = env.getExecutionId().toString();
+    String requestId = CommonUtils.generateUUID(env.getExecutionId());
     JsonObject requestBody = new JsonObject()//
         .put("requestId", requestId)//
         .put("username", (String) env.getArgument("username"));

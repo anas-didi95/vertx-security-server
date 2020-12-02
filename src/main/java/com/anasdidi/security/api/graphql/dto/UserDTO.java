@@ -14,9 +14,10 @@ public class UserDTO {
   private final String lastModifiedBy;
   private final Instant lastModifiedDate;
   private final Long version;
+  private final String telegramId;
 
   private UserDTO(String id, String username, String fullName, String email, String lastModifiedBy,
-      Instant lastModifiedDate, Long version) {
+      Instant lastModifiedDate, Long version, String telegramId) {
     this.id = id;
     this.username = username;
     this.fullName = fullName;
@@ -24,6 +25,7 @@ public class UserDTO {
     this.lastModifiedBy = lastModifiedBy;
     this.lastModifiedDate = lastModifiedDate;
     this.version = version;
+    this.telegramId = telegramId;
   }
 
 
@@ -35,8 +37,10 @@ public class UserDTO {
     String lastModifiedBy = json.getString("lastModifiedBy");
     Instant lastModifiedDate = json.getInstant("lastModifiedDate");
     Long version = json.getLong("version");
+    String telegramId = json.getString("telegramId");
 
-    return new UserDTO(id, username, fullName, email, lastModifiedBy, lastModifiedDate, version);
+    return new UserDTO(id, username, fullName, email, lastModifiedBy, lastModifiedDate, version,
+        telegramId);
   }
 
   public String getId(DataFetchingEnvironment env) {
@@ -73,6 +77,10 @@ public class UserDTO {
     return lastModifiedBy;
   }
 
+  public String getTelegramId(DataFetchingEnvironment env) {
+    return telegramId;
+  }
+
   @Override
   public String toString() {
     return new JsonObject()//
@@ -83,6 +91,7 @@ public class UserDTO {
         .put("lastModifiedBy", lastModifiedBy)//
         .put("lastModifiedDate", lastModifiedDate)//
         .put("version", version)//
+        .put("telegramId", telegramId)//
         .encodePrettily();
   }
 }

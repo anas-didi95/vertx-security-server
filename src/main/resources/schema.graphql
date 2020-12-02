@@ -11,6 +11,7 @@ type User {
   lastModifiedBy: User
   lastModifiedDate(format: String): String
   version: Int
+  telegramId: String
 }
 
 type Query {

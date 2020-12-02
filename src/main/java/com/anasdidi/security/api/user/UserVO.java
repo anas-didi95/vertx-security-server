@@ -14,9 +14,10 @@ class UserVO {
   final String lastModifiedBy;
   final Instant lastModifiedDate;
   final Long version;
+  final String telegramId;
 
   private UserVO(String id, String username, String password, String fullName, String email,
-      String lastModifiedBy, Instant lastModifiedDate, Long version) {
+      String lastModifiedBy, Instant lastModifiedDate, Long version, String telegramId) {
     this.id = id;
     this.username = username;
     this.password = password;
@@ -25,6 +26,7 @@ class UserVO {
     this.lastModifiedBy = lastModifiedBy;
     this.lastModifiedDate = lastModifiedDate;
     this.version = version;
+    this.telegramId = telegramId;
   }
 
   static UserVO fromJson(JsonObject json) {
@@ -36,9 +38,10 @@ class UserVO {
     String lastModifiedBy = json.getString("lastModifiedBy");
     Instant lastModifiedDate = CommonUtils.getInstantMongoDate(json, "lastModifiedDate");
     Long version = json.getLong("version");
+    String telegramId = json.getString("telegramId");
 
     return new UserVO(id, username, password, fullName, email, lastModifiedBy, lastModifiedDate,
-        version);
+        version, telegramId);
   }
 
   static JsonObject toJson(UserVO vo) {
@@ -50,7 +53,8 @@ class UserVO {
         .put("email", vo.email)//
         .put("lastModifiedBy", vo.lastModifiedBy)//
         .put("lastModifiedDate", vo.lastModifiedDate)//
-        .put("version", vo.version);
+        .put("version", vo.version)//
+        .put("telegramId", vo.telegramId);
   }
 
   @Override
@@ -64,6 +68,7 @@ class UserVO {
         .put("lastModifiedBy", lastModifiedBy)//
         .put("lastModifiedDate", lastModifiedDate)//
         .put("version", version)//
+        .put("teleramId", telegramId)//
         .encodePrettily();
   }
 }

@@ -36,10 +36,18 @@ import io.vertx.reactivex.ext.web.handler.CorsHandler;
 public class MainVerticle extends AbstractVerticle {
 
   private Logger logger = LogManager.getLogger(MainVerticle.class);
+  private final boolean isTest;
 
   public MainVerticle() {
     System.setProperty("vertx.logger-delegate-factory-class-name",
         Log4j2LogDelegateFactory.class.getName());
+    this.isTest = false;
+  }
+
+  public MainVerticle(boolean isTest) {
+    System.setProperty("vertx.logger-delegate-factory-class-name",
+        Log4j2LogDelegateFactory.class.getName());
+    this.isTest = isTest;
   }
 
   @Override
@@ -49,7 +57,7 @@ public class MainVerticle extends AbstractVerticle {
         new ConfigRetrieverOptions().addStore(new ConfigStoreOptions().setType("env")));
 
     configRetriever.rxGetConfig().subscribe(config -> {
-      AppConfig appConfig = AppConfig.create(config);
+      AppConfig appConfig = AppConfig.create(config.put("IS_TEST", isTest));
       logger.info("[{}] appConfig\n{}", TAG, appConfig.toString());
 
       MongoClient mongoClient = MongoClient.createShared(vertx, appConfig.getMongoConfig());//

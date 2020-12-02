@@ -28,7 +28,8 @@ public class TestJwtVerticle {
   private JsonObject generateDocument() {
     return new JsonObject()//
         .put("username", System.currentTimeMillis() + "username")//
-        .put("password", BCrypt.hashpw("password", BCrypt.gensalt()));
+        .put("password", BCrypt.hashpw("password", BCrypt.gensalt()))//
+        .put("telegramId", System.currentTimeMillis() + "telegramId");
   }
 
   private static MongoClient getMongoClient(Vertx vertx) throws Exception {
@@ -38,7 +39,7 @@ public class TestJwtVerticle {
 
   @BeforeEach
   void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
-    vertx.deployVerticle(new MainVerticle(),
+    vertx.deployVerticle(new MainVerticle(true),
         testContext.succeeding(id -> testContext.completeNow()));
   }
 

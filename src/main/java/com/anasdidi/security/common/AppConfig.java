@@ -35,6 +35,7 @@ public class AppConfig {
         .put("MONGO_CONFIG", getMongoConfig())//
         .put("GRAPHIQL_IS_ENABLE", getGraphiqlIsEnable())//
         .put("COOKIE_SECURE", getCookieSecure())//
+        .put("IS_TEST", getIsTest())//
         .encodePrettily();
   }
 
@@ -78,5 +79,9 @@ public class AppConfig {
 
   public boolean getCookieSecure() {
     return cfg.getBoolean("COOKIE_SECURE", false);
+  }
+
+  public boolean getIsTest() {
+    return cfg.getBoolean("IS_TEST", false);
   }
 }

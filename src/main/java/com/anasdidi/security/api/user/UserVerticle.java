@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.CommonConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,7 +43,11 @@ public class UserVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
-    configureMongoCollection(startPromise);
+    AppConfig appConfig = AppConfig.instance();
+
+    if (!appConfig.getIsTest()) {
+      configureMongoCollection(startPromise);
+    }
 
     Router router = Router.router(vertx);
     router.route().handler(JWTAuthHandler.create(jwtAuth));

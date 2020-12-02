@@ -15,7 +15,7 @@ public class TestMainVerticle {
 
   @BeforeEach
   void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
-    vertx.deployVerticle(new MainVerticle(),
+    vertx.deployVerticle(new MainVerticle(true),
         testContext.succeeding(id -> testContext.completeNow()));
   }
 

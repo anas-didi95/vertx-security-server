@@ -41,7 +41,11 @@ public class JwtVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
-    configureMongoCollection(startPromise);
+    AppConfig appConfig = AppConfig.instance();
+
+    if (!appConfig.getIsTest()) {
+      configureMongoCollection(startPromise);
+    }
 
     Router router = Router.router(vertx);
 

@@ -31,7 +31,8 @@ public class TestUserVerticle {
         .put("password", System.currentTimeMillis() + "password")//
         .put("fullName", System.currentTimeMillis() + "fullName")//
         .put("email", System.currentTimeMillis() + "email")//
-        .put("version", 0);
+        .put("version", 0)//
+        .put("telegramId", System.currentTimeMillis() + "telegramId");
   }
 
   private static MongoClient getMongoClient(Vertx vertx) throws Exception {
@@ -41,7 +42,7 @@ public class TestUserVerticle {
 
   @BeforeEach
   void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
-    vertx.deployVerticle(new MainVerticle(),
+    vertx.deployVerticle(new MainVerticle(true),
         testContext.succeeding(id -> testContext.completeNow()));
   }
 

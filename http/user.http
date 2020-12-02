@@ -12,7 +12,8 @@ Authorization: Bearer {{accessToken}}
   "username": "superadmin",
   "password": "password",
   "fullName": "superadmin",
-  "email": "anas.didi95@gmail.com"
+  "email": "anas.didi95@gmail.com",
+  "telegramId": "{{$guid}}"
 }
 
 ###
@@ -28,7 +29,8 @@ Authorization: Bearer {{accessToken}}
 {
   "fullName": "anas juwaidi 123",
   "email": "anas.didi95@gmail.com1",
-  "version": 0
+  "version": 0,
+  "telegramId": "{{$guid}}"
 }
 
 ###

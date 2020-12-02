@@ -28,7 +28,8 @@ class UserService {
         .put("email", vo.email)//
         .put("lastModifiedBy", vo.lastModifiedBy)//
         .put("lastModifiedDate", new JsonObject().put("$date", Instant.now()))//
-        .put("version", 0);
+        .put("version", 0)//
+        .put("telegramId", vo.telegramId);
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());
@@ -55,7 +56,8 @@ class UserService {
             .put("email", vo.email)//
             .put("lastModifiedBy", vo.lastModifiedBy)//
             .put("lastModifiedDate", new JsonObject().put("$date", Instant.now()))//
-            .put("version", vo.version + 1));
+            .put("version", vo.version + 1)//
+            .put("telegramId", vo.telegramId));
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());

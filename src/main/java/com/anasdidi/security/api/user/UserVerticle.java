@@ -1,11 +1,13 @@
 package com.anasdidi.security.api.user;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import com.anasdidi.security.common.CommonConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import io.reactivex.Completable;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.IndexOptions;
@@ -91,27 +93,33 @@ public class UserVerticle extends AbstractVerticle {
   void configureMongoCollectionIndexes(Promise<Void> startPromise) {
     final String TAG = "configureMongoCollectionIndexes";
 
-    mongoClient.listIndexes(UserConstants.COLLECTION_NAME, indexList -> {
-      if (indexList.succeeded()) {
-        Set<String> indexSet = indexList.result().stream().map(o -> (JsonObject) o)
-            .map(json -> json.getString("name")).collect(Collectors.toSet());
+    mongoClient.rxListIndexes(UserConstants.COLLECTION_NAME).subscribe(indexList -> {
+      List<Completable> completables = new ArrayList<>();
 
-        String idxUniqueUsername = "uq_username";
-        if (!indexSet.contains(idxUniqueUsername)) {
-          mongoClient
-              .rxCreateIndexWithOptions(UserConstants.COLLECTION_NAME,
-                  new JsonObject().put("username", 1),
-                  new IndexOptions().name(idxUniqueUsername).unique(true))
-              .subscribe(() -> logger.info("[{}:{}] Mongo create index '{}' succeed.", TAG,
-                  UserConstants.COLLECTION_NAME, idxUniqueUsername));
-        } else {
-          logger.info("[{}:{}] Mongo index '{}' found.", TAG, UserConstants.COLLECTION_NAME,
-              idxUniqueUsername);
+      indexList.stream().map(o -> (JsonObject) o).forEach(index -> {
+        String indexName = index.getString("name");
+        if (!indexName.startsWith("_id")) {
+          completables.add(mongoClient.rxDropIndex(UserConstants.COLLECTION_NAME, indexName));
         }
-      } else {
-        logger.error("[{}:{}] Mongo get index list failed!", TAG, UserConstants.COLLECTION_NAME);
-        startPromise.fail(indexList.cause());
-      }
+      });
+
+      completables.add(mongoClient.rxCreateIndexWithOptions(UserConstants.COLLECTION_NAME,
+          new JsonObject().put("username", 1),
+          new IndexOptions().name("uq_username").unique(true)));
+
+      completables.add(mongoClient.rxCreateIndexWithOptions(UserConstants.COLLECTION_NAME,
+          new JsonObject().put("telegramId", 1),
+          new IndexOptions().name("uq_telegramId").unique(true)));
+
+      Completable.concat(completables).subscribe(() -> {
+        logger.info("[{}:{}] Mongo create index succeed.", TAG, UserConstants.COLLECTION_NAME);
+      }, e -> {
+        logger.error("[{}:{}] Mongo create index failed!", TAG, UserConstants.COLLECTION_NAME);
+        startPromise.fail(e);
+      });
+    }, e -> {
+      logger.error("[{}:{}] Mongo get index list failed!", TAG, UserConstants.COLLECTION_NAME);
+      startPromise.fail(e);
     });
   }
 }

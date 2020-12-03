@@ -114,7 +114,8 @@ public class UserVerticle extends AbstractVerticle {
 
       completables.add(mongoClient.rxCreateIndexWithOptions(UserConstants.COLLECTION_NAME,
           new JsonObject().put("telegramId", 1),
-          new IndexOptions().name("uq_telegramId").unique(true)));
+          new IndexOptions().name("uq_telegramId").unique(true).partialFilterExpression(
+              new JsonObject().put("telegramId", new JsonObject().put("$type", "string")))));
 
       Completable.concat(completables).subscribe(() -> {
         logger.info("[{}:{}] Mongo create index succeed.", TAG, UserConstants.COLLECTION_NAME);

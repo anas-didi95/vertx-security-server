@@ -155,6 +155,7 @@ public class TestUserVerticle {
     MongoClient mongoClient = getMongoClient(vertx);
     JsonObject createdBody = generateDocument();
 
+    // If error, start the server in development to create the index first.
     mongoClient.rxSave(UserConstants.COLLECTION_NAME, createdBody).subscribe(id -> {
       webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI)
           .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)

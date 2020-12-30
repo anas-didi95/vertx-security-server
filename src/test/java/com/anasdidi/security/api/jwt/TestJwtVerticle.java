@@ -90,6 +90,7 @@ public class TestJwtVerticle {
               JsonObject data = responseBody.getJsonObject("data");
               Assertions.assertNotNull(data);
               Assertions.assertNotNull(data.getString("accessToken"));
+              Assertions.assertNotNull(data.getString("refreshToken"));
 
               // cookie
               List<String> cookies = response.cookies();

@@ -35,10 +35,10 @@ class JwtService {
         .setIssuer(appConfig.getJwtIssuer())//
         .setExpiresInMinutes(appConfig.getJwtExpireInMinutes()));
 
-    String id = CommonUtils.generateUUID();
+    String refreshToken = CommonUtils.generateUUID();
     String salt = BCrypt.gensalt().replace(JwtConstants.REFRESH_TOKEN_DELIMITER, "#");
     JsonObject document = new JsonObject()//
-        .put("_id", id)//
+        .put("_id", refreshToken)//
         .put("userId", userId)//
         .put("username", username)//
         .put("salt", salt)//
@@ -51,8 +51,9 @@ class JwtService {
     mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
 
     JsonObject json = new JsonObject()//
-        .put("id", id)//
+        .put("id", refreshToken)//
         .put("accessToken", accessToken)//
+        .put("refreshToken", refreshToken)//
         .put("salt", salt);
     return JwtVO.fromJson(json);
   }

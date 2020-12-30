@@ -13,9 +13,10 @@ class JwtVO {
   final String userId;
   final String salt;
   final Instant issuedDate;
+  final String refreshToken;
 
   private JwtVO(String id, String accessToken, String username, String password, String userId,
-      String salt, Instant issuedDate) {
+      String salt, Instant issuedDate, String refreshToken) {
     this.id = id;
     this.accessToken = accessToken;
     this.username = username;
@@ -23,6 +24,7 @@ class JwtVO {
     this.userId = userId;
     this.salt = salt;
     this.issuedDate = issuedDate;
+    this.refreshToken = refreshToken;
   }
 
   static JwtVO fromJson(JsonObject json) {
@@ -33,8 +35,9 @@ class JwtVO {
     String userId = json.getString("userId");
     String salt = json.getString("salt");
     Instant issuedDate = CommonUtils.getInstantMongoDate(json, "issuedDate");
+    String refreshToken = json.getString("refreshToken");
 
-    return new JwtVO(id, accessToken, username, password, userId, salt, issuedDate);
+    return new JwtVO(id, accessToken, username, password, userId, salt, issuedDate, refreshToken);
   }
 
   @Override
@@ -47,6 +50,7 @@ class JwtVO {
         .put("userId", userId)//
         .put("salt", salt)//
         .put("issuedDate", issuedDate)//
+        .put("refreshToken", refreshToken)//
         .encodePrettily();
   }
 }

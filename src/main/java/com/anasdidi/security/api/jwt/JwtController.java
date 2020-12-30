@@ -51,7 +51,9 @@ class JwtController extends CommonController {
             requestId))
         .map(vo -> {
           routingContext.addCookie(JwtUtils.generateRefreshTokenCookie(vo.id, vo.salt));
-          return new JsonObject().put("accessToken", vo.accessToken);
+          return new JsonObject()//
+              .put("accessToken", vo.accessToken)//
+              .put("refreshToken", vo.refreshToken);
         });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,

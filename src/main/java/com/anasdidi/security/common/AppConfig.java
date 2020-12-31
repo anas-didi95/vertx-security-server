@@ -34,7 +34,6 @@ public class AppConfig {
         .put("REFRESH_TOKEN_EXPIRE_IN_MINUTES", getRefreshTokenExpireInMinutes())//
         .put("MONGO_CONFIG", getMongoConfig())//
         .put("GRAPHIQL_IS_ENABLE", getGraphiqlIsEnable())//
-        .put("COOKIE_SECURE", getCookieSecure())//
         .put("IS_TEST", getIsTest())//
         .encodePrettily();
   }
@@ -75,10 +74,6 @@ public class AppConfig {
 
   public boolean getGraphiqlIsEnable() {
     return cfg.getBoolean("GRAPHIQL_IS_ENABLE", false);
-  }
-
-  public boolean getCookieSecure() {
-    return cfg.getBoolean("COOKIE_SECURE", false);
   }
 
   public boolean getIsTest() {

@@ -38,7 +38,6 @@ public class TestMainVerticle {
       Assertions.assertNotNull(appConfig.getRefreshTokenExpireInMinutes());
       Assertions.assertNotNull(appConfig.getMongoConfig());
       Assertions.assertNotNull(appConfig.getGraphiqlIsEnable());
-      Assertions.assertNotNull(appConfig.getCookieSecure());
 
       testContext.completeNow();
     });

@@ -12,10 +12,18 @@ Content-Type: application/json
 
 ###
 
+@accessToken = {{login.response.body.$.data.accessToken}}
+@refreshToken = {{login.response.body.$.data.refreshToken}}
+
 // @name refresh
-GET {{baseUrl}}/refresh
+POST {{baseUrl}}/refresh
 Accept: application/json
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
 
 ###
 

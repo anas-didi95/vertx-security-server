@@ -92,10 +92,6 @@ public class TestJwtVerticle {
               Assertions.assertNotNull(data.getString("accessToken"));
               Assertions.assertNotNull(data.getString("refreshToken"));
 
-              // cookie
-              List<String> cookies = response.cookies();
-              Assertions.assertEquals(true, !cookies.isEmpty());
-
               webClient.get(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/check")
                   .putHeader("Authorization", "Bearer " + data.getString("accessToken")).rxSend()
                   .subscribe(ping -> {
@@ -296,6 +292,62 @@ public class TestJwtVerticle {
                     });
                   }, e -> testContext.failNow(e));
             });
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testJwtRefreshTokenSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    MongoClient mongoClient = getMongoClient(vertx);
+    WebClient webClient = WebClient.create(vertx);
+    JsonObject user = generateDocument();
+
+    mongoClient.rxSave("users", user).subscribe(id -> {
+      user.put("password", "password");
+
+      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
+          .rxSendJsonObject(user).subscribe(token -> {
+            JsonObject tokenBody = token.bodyAsJsonObject().getJsonObject("data");
+            String accessToken = tokenBody.getString("accessToken");
+            String refreshToken = tokenBody.getString("refreshToken");
+            JsonObject requestBody = new JsonObject().put("refreshToken", refreshToken);
+
+            Thread.sleep(2000);
+            webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/refresh")
+                .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
+                .subscribe(response -> {
+                  testContext.verify(() -> {
+                    Assertions.assertEquals(200, response.statusCode());
+                    Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+                    Assertions.assertEquals("no-store, no-cache",
+                        response.getHeader("Cache-Control"));
+                    Assertions.assertEquals("nosniff",
+                        response.getHeader("X-Content-Type-Options"));
+                    Assertions.assertEquals("1; mode=block",
+                        response.getHeader("X-XSS-Protection"));
+                    Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+                    JsonObject responseBody = response.bodyAsJsonObject();
+                    Assertions.assertNotNull(responseBody);
+
+                    // status
+                    JsonObject status = responseBody.getJsonObject("status");
+                    Assertions.assertNotNull(status);
+                    Assertions.assertEquals(true, status.getBoolean("isSuccess"));
+                    Assertions.assertEquals("Token refreshed.", status.getString("message"));
+
+                    // data
+                    JsonObject data = responseBody.getJsonObject("data");
+                    Assertions.assertNotNull(data);
+                    Assertions.assertNotNull(data.getString("accessToken"));
+                    Assertions.assertNotNull(data.getString("refreshToken"));
+                    Assertions.assertNotEquals(accessToken, data.getString("accessToken"));
+                    Assertions.assertNotEquals(refreshToken, data.getString("refreshToken"));
+
+                    testContext.completeNow();
+                  });
+                }, e -> testContext.failNow(e));
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }

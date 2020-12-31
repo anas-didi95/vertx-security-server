@@ -48,7 +48,9 @@ class JwtService {
       logger.debug("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());
     }
 
-    mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
+    mongoClient
+        .rxRemoveDocuments(JwtConstants.COLLECTION_NAME, new JsonObject().put("userId", userId))
+        .flatMap(rst -> mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document)).subscribe();
 
     JsonObject json = new JsonObject()//
         .put("id", refreshToken)//
@@ -86,8 +88,8 @@ class JwtService {
   Single<JwtVO> refresh(JwtVO vo, String requestId) {
     final String TAG = "refresh";
     JsonObject query = new JsonObject()//
-        .put("_id", vo.id)//
-        .put("salt", vo.salt);
+        .put("_id", vo.refreshToken)//
+        .put("userId", vo.userId);
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
@@ -112,8 +114,8 @@ class JwtService {
   Single<JwtVO> logout(JwtVO vo, String requestId) {
     final String TAG = "logout";
     JsonObject query = new JsonObject()//
-        .put("_id", vo.id)//
-        .put("salt", vo.salt);
+        .put("_id", vo.refreshToken)//
+        .put("userId", vo.userId);
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());

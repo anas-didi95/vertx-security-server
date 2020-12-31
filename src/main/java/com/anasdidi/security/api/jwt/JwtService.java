@@ -115,7 +115,7 @@ class JwtService {
     final String TAG = "logout";
     JsonObject query = new JsonObject()//
         .put("_id", vo.refreshToken)//
-        .put("salt", vo.salt);
+        .put("userId", vo.userId);
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());

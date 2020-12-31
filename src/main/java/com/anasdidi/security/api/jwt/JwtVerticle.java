@@ -117,6 +117,9 @@ public class JwtVerticle extends AbstractVerticle {
           new JsonObject().put("issuedDate", 1), new IndexOptions().name("ttl_issuedDate")
               .expireAfter(appConfig.getRefreshTokenExpireInMinutes(), TimeUnit.MINUTES)));
 
+      completables.add(mongoClient.rxCreateIndexWithOptions(JwtConstants.COLLECTION_NAME,
+          new JsonObject().put("userId", 1), new IndexOptions().name("uq_userId").unique(true)));
+
       Completable.concat(completables).subscribe(() -> {
         logger.info("[{}:{}] Mongo create index succeed.", TAG, JwtConstants.COLLECTION_NAME);
       }, e -> {

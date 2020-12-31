@@ -48,7 +48,9 @@ class JwtService {
       logger.debug("[{}:{}] document\n{}", TAG, requestId, document.encodePrettily());
     }
 
-    mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document).subscribe();
+    mongoClient
+        .rxRemoveDocuments(JwtConstants.COLLECTION_NAME, new JsonObject().put("userId", userId))
+        .flatMap(rst -> mongoClient.rxSave(JwtConstants.COLLECTION_NAME, document)).subscribe();
 
     JsonObject json = new JsonObject()//
         .put("id", refreshToken)//

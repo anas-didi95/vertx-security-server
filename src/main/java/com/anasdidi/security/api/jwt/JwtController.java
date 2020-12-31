@@ -79,29 +79,13 @@ class JwtController extends CommonController {
   void doRefresh(RoutingContext routingContext) {
     final String TAG = "doRefresh";
     String requestId = routingContext.get("requestId");
-    Cookie refreshToken = routingContext.getCookie("refreshToken");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      if (refreshToken == null) {
-        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
-            JwtConstants.MSG_ERR_REFRESH_TOKEN_EMPTY);
-      }
-
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] refreshToken={}", TAG, requestId, refreshToken.getValue());
-      }
-
-      String[] values = refreshToken.getValue().split(JwtConstants.REFRESH_TOKEN_DELIMITER);
-      if (values.length < 2) {
-        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
-            JwtConstants.MSG_ERR_REFRESH_TOKEN_INVALID);
-      }
-
-      return new JsonObject().put("id", values[0]).put("salt", values[1]);
-    }).map(json -> JwtVO.fromJson(json))
-        .map(vo -> jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId))
-        .flatMap(vo -> jwtService.refresh(vo, requestId))
-        .map(vo -> new JsonObject().put("accessToken", vo.accessToken));
+      return new JsonObject();
+    });// .map(json -> JwtVO.fromJson(json))
+       // .map(vo -> jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId))
+       // .flatMap(vo -> jwtService.refresh(vo, requestId))
+       // .map(vo -> new JsonObject().put("accessToken", vo.accessToken));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         JwtConstants.MSG_OK_TOKEN_REFRESHED);

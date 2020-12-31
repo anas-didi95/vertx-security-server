@@ -295,4 +295,46 @@ public class TestJwtVerticle {
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }
+
+  @Test
+  void testJwtRefreshTokenSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    MongoClient mongoClient = getMongoClient(vertx);
+    WebClient webClient = WebClient.create(vertx);
+    JsonObject user = generateDocument();
+
+    mongoClient.rxSave("users", user).subscribe(id -> {
+      user.put("password", "password");
+
+      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
+          .rxSendJsonObject(user).subscribe(token -> {
+            JsonObject tokenBody = token.bodyAsJsonObject();
+            JsonObject data = tokenBody.getJsonObject("data");
+            String accessToken = data.getString("accessToken");
+            String refreshToken = data.getString("refreshToken");
+            JsonObject requestBody = new JsonObject().put("refreshToken", refreshToken);
+
+            System.out.println("accessToken=" + accessToken);
+            System.out.println("refreshToken=" + refreshToken);
+
+            webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/refresh")
+                .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
+                .subscribe(response -> {
+                  testContext.verify(() -> {
+                    Assertions.assertEquals(200, response.statusCode());
+                    Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+                    Assertions.assertEquals("no-store, no-cache",
+                        response.getHeader("Cache-Control"));
+                    Assertions.assertEquals("nosniff",
+                        response.getHeader("X-Content-Type-Options"));
+                    Assertions.assertEquals("1; mode=block",
+                        response.getHeader("X-XSS-Protection"));
+                    Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+                    testContext.completeNow();
+                  });
+                }, e -> testContext.failNow(e));
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
 }

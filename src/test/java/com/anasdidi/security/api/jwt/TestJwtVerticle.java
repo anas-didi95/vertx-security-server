@@ -92,10 +92,6 @@ public class TestJwtVerticle {
               Assertions.assertNotNull(data.getString("accessToken"));
               Assertions.assertNotNull(data.getString("refreshToken"));
 
-              // cookie
-              List<String> cookies = response.cookies();
-              Assertions.assertEquals(true, !cookies.isEmpty());
-
               webClient.get(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/check")
                   .putHeader("Authorization", "Bearer " + data.getString("accessToken")).rxSend()
                   .subscribe(ping -> {

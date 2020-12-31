@@ -47,14 +47,11 @@ class JwtController extends CommonController {
         .map(vo -> jwtValidator.validate(JwtValidator.Validate.LOGIN, vo, requestId))
         .flatMap(vo -> eventBus.rxRequest(CommonConstants.EVT_USER_GET_BY_USERNAME,
             new JsonObject().put("requestId", requestId).put("username", vo.username)))
-        .flatMap(response -> jwtService.login(username, password, (JsonObject) response.body(),
-            requestId))
-        .map(vo -> {
-          routingContext.addCookie(JwtUtils.generateRefreshTokenCookie(vo.id, vo.salt));
-          return new JsonObject()//
-              .put("accessToken", vo.accessToken)//
-              .put("refreshToken", vo.refreshToken);
-        });
+        .flatMap(response -> jwtService
+            .login(username, password, (JsonObject) response.body(), requestId))
+        .map(vo -> new JsonObject()//
+            .put("accessToken", vo.accessToken)//
+            .put("refreshToken", vo.refreshToken));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_USER_VALIDATE);
@@ -103,10 +100,8 @@ class JwtController extends CommonController {
       return new JsonObject().put("id", values[0]).put("salt", values[1]);
     }).map(json -> JwtVO.fromJson(json))
         .map(vo -> jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId))
-        .flatMap(vo -> jwtService.refresh(vo, requestId)).map(vo -> {
-          routingContext.addCookie(JwtUtils.generateRefreshTokenCookie(vo.id, vo.salt));
-          return new JsonObject().put("accessToken", vo.accessToken);
-        });
+        .flatMap(vo -> jwtService.refresh(vo, requestId))
+        .map(vo -> new JsonObject().put("accessToken", vo.accessToken));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         JwtConstants.MSG_OK_TOKEN_REFRESHED);

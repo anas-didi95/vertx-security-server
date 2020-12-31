@@ -3,6 +3,7 @@ package com.anasdidi.security.api.jwt;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonController;
+import com.anasdidi.security.common.CommonUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.Single;
@@ -79,13 +80,21 @@ class JwtController extends CommonController {
   void doRefresh(RoutingContext routingContext) {
     final String TAG = "doRefresh";
     String requestId = routingContext.get("requestId");
+    String userId = CommonUtils.getUserIdFromToken(routingContext.user());
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      return new JsonObject();
-    });// .map(json -> JwtVO.fromJson(json))
-       // .map(vo -> jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId))
-       // .flatMap(vo -> jwtService.refresh(vo, requestId))
-       // .map(vo -> new JsonObject().put("accessToken", vo.accessToken));
+      JsonObject requestBody = routingContext.getBodyAsJson();
+      requestBody.put("userId", userId);
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] requestBody\n", TAG, requestId, requestBody.encodePrettily());
+      }
+
+      return requestBody;
+    }).map(json -> JwtVO.fromJson(json))//
+        .flatMap(vo -> jwtService.refresh(vo, requestId)).map(vo -> new JsonObject()//
+            .put("accessToken", vo.accessToken)//
+            .put("refreshToken", vo.refreshToken));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         JwtConstants.MSG_OK_TOKEN_REFRESHED);

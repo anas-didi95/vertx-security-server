@@ -308,15 +308,12 @@ public class TestJwtVerticle {
 
       webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
           .rxSendJsonObject(user).subscribe(token -> {
-            JsonObject tokenBody = token.bodyAsJsonObject();
-            JsonObject data = tokenBody.getJsonObject("data");
-            String accessToken = data.getString("accessToken");
-            String refreshToken = data.getString("refreshToken");
+            JsonObject tokenBody = token.bodyAsJsonObject().getJsonObject("data");
+            String accessToken = tokenBody.getString("accessToken");
+            String refreshToken = tokenBody.getString("refreshToken");
             JsonObject requestBody = new JsonObject().put("refreshToken", refreshToken);
 
-            System.out.println("accessToken=" + accessToken);
-            System.out.println("refreshToken=" + refreshToken);
-
+            Thread.sleep(2000);
             webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/refresh")
                 .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
                 .subscribe(response -> {
@@ -339,6 +336,14 @@ public class TestJwtVerticle {
                     Assertions.assertNotNull(status);
                     Assertions.assertEquals(true, status.getBoolean("isSuccess"));
                     Assertions.assertEquals("Token refreshed.", status.getString("message"));
+
+                    // data
+                    JsonObject data = responseBody.getJsonObject("data");
+                    Assertions.assertNotNull(data);
+                    Assertions.assertNotNull(data.getString("accessToken"));
+                    Assertions.assertNotNull(data.getString("refreshToken"));
+                    Assertions.assertNotEquals(accessToken, data.getString("accessToken"));
+                    Assertions.assertNotEquals(refreshToken, data.getString("refreshToken"));
 
                     testContext.completeNow();
                   });

@@ -58,12 +58,6 @@ class JwtValidator {
   }
 
   private List<String> validateRefresh(JwtVO vo, List<String> errorList) {
-    String id = vo.id;
-
-    if (id == null || id.isBlank()) {
-      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Id"));
-    }
-
     return errorList;
   }
 }

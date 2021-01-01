@@ -367,7 +367,7 @@ public class TestJwtVerticle {
           .rxSendJsonObject(user).subscribe(token -> {
             JsonObject tokenBody = token.bodyAsJsonObject().getJsonObject("data");
             String accessToken = tokenBody.getString("accessToken");
-            JsonObject requestBody = new JsonObject();
+            JsonObject requestBody = new JsonObject().put("refreshToken", "");
 
             Thread.sleep(2000);
             webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/refresh")

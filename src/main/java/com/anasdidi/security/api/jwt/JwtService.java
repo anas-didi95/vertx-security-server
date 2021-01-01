@@ -114,7 +114,6 @@ class JwtService {
   Single<JwtVO> logout(JwtVO vo, String requestId) {
     final String TAG = "logout";
     JsonObject query = new JsonObject()//
-        .put("_id", vo.refreshToken)//
         .put("userId", vo.userId);
 
     if (logger.isDebugEnabled()) {

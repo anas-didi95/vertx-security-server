@@ -110,20 +110,20 @@ class JwtController extends CommonController {
   void doLogout(RoutingContext routingContext) {
     final String TAG = "doLogout";
     String requestId = routingContext.get("requestId");
+    String userId = CommonUtils.getUserIdFromToken(routingContext.user());
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      JsonObject json = new JsonObject();
+      JsonObject json = new JsonObject().put("userId", userId);
 
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] json\n{}", TAG, requestId, json.encodePrettily());
       }
 
-      return new JsonObject();
+      return json;
     }).map(json -> JwtVO.fromJson(json))//
         .flatMap(vo -> jwtService.logout(vo, requestId)).map(vo -> {
           return new JsonObject()//
-              .put("requestId", requestId)//
-              .put("tokenIssuedDate", vo.issuedDate != null ? vo.issuedDate : "");
+              .put("lastTokenDate", vo.issuedDate != null ? vo.issuedDate : "");
         });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,

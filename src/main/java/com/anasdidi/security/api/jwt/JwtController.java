@@ -84,7 +84,13 @@ class JwtController extends CommonController {
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
-      requestBody.put("userId", userId);
+
+      if (requestBody == null || requestBody.isEmpty()) {
+        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
+            CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
+      } else {
+        requestBody.put("userId", userId);
+      }
 
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] requestBody\n", TAG, requestId, requestBody.encodePrettily());
@@ -92,6 +98,7 @@ class JwtController extends CommonController {
 
       return requestBody;
     }).map(json -> JwtVO.fromJson(json))//
+        .map(vo -> jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId))
         .flatMap(vo -> jwtService.refresh(vo, requestId)).map(vo -> new JsonObject()//
             .put("accessToken", vo.accessToken)//
             .put("refreshToken", vo.refreshToken));

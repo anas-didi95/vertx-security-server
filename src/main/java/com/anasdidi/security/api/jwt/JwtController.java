@@ -110,27 +110,21 @@ class JwtController extends CommonController {
   void doLogout(RoutingContext routingContext) {
     final String TAG = "doLogout";
     String requestId = routingContext.get("requestId");
-    Cookie refreshToken = routingContext.getCookie("refreshToken");
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      String refreshTokenValue = (refreshToken != null ? refreshToken.getValue() : "");
+      JsonObject json = new JsonObject();
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] refreshTokenValue={}", TAG, requestId, refreshTokenValue);
+        logger.debug("[{}:{}] json\n{}", TAG, requestId, json.encodePrettily());
       }
 
-      String[] values = refreshTokenValue.split(JwtConstants.REFRESH_TOKEN_DELIMITER);
-      if (values.length < 2) {
-        return new JsonObject();
-      } else {
-        return new JsonObject().put("id", values[0]).put("salt", values[1]);
-      }
-    }).map(json -> JwtVO.fromJson(json)).flatMap(vo -> jwtService.logout(vo, requestId)).map(vo -> {
-      routingContext.removeCookie("refreshToken", true);
-      return new JsonObject()//
-          .put("requestId", requestId)//
-          .put("tokenIssuedDate", vo.issuedDate != null ? vo.issuedDate : "");
-    });
+      return new JsonObject();
+    }).map(json -> JwtVO.fromJson(json))//
+        .flatMap(vo -> jwtService.logout(vo, requestId)).map(vo -> {
+          return new JsonObject()//
+              .put("requestId", requestId)//
+              .put("tokenIssuedDate", vo.issuedDate != null ? vo.issuedDate : "");
+        });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         CommonConstants.MSG_OK_USER_LOGOUT);

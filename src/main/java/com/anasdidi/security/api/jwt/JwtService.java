@@ -36,12 +36,9 @@ class JwtService {
         .setExpiresInMinutes(appConfig.getJwtExpireInMinutes()));
 
     String refreshToken = CommonUtils.generateUUID();
-    String salt = BCrypt.gensalt().replace(JwtConstants.REFRESH_TOKEN_DELIMITER, "#");
     JsonObject document = new JsonObject()//
         .put("_id", refreshToken)//
         .put("userId", userId)//
-        .put("username", username)//
-        .put("salt", salt)//
         .put("issuedDate", new JsonObject().put("$date", Instant.now()));
 
     if (logger.isDebugEnabled()) {
@@ -55,8 +52,7 @@ class JwtService {
     JsonObject json = new JsonObject()//
         .put("id", refreshToken)//
         .put("accessToken", accessToken)//
-        .put("refreshToken", refreshToken)//
-        .put("salt", salt);
+        .put("refreshToken", refreshToken);
     return JwtVO.fromJson(json);
   }
 

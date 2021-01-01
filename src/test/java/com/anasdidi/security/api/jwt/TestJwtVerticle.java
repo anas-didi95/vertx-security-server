@@ -1,7 +1,5 @@
 package com.anasdidi.security.api.jwt;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.CommonConstants;

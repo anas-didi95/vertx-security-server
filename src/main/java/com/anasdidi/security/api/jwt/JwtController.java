@@ -92,6 +92,7 @@ class JwtController extends CommonController {
 
       return requestBody;
     }).map(json -> JwtVO.fromJson(json))//
+        .map(vo -> jwtValidator.validate(JwtValidator.Validate.REFRESH, vo, requestId))
         .flatMap(vo -> jwtService.refresh(vo, requestId)).map(vo -> new JsonObject()//
             .put("accessToken", vo.accessToken)//
             .put("refreshToken", vo.refreshToken));

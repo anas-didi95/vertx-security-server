@@ -58,6 +58,12 @@ class JwtValidator {
   }
 
   private List<String> validateRefresh(JwtVO vo, List<String> errorList) {
+    String refreshToken = vo.refreshToken;
+
+    if (refreshToken == null || refreshToken.isBlank()) {
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Refresh token"));
+    }
+
     return errorList;
   }
 }

@@ -351,4 +351,59 @@ public class TestJwtVerticle {
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }
+
+  @Test
+  void testJwtRefreshTokenValidationError(Vertx vertx, VertxTestContext testContext)
+      throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    MongoClient mongoClient = getMongoClient(vertx);
+    WebClient webClient = WebClient.create(vertx);
+    JsonObject user = generateDocument();
+
+    mongoClient.rxSave("users", user).subscribe(id -> {
+      user.put("password", "password");
+
+      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
+          .rxSendJsonObject(user).subscribe(token -> {
+            JsonObject tokenBody = token.bodyAsJsonObject().getJsonObject("data");
+            String accessToken = tokenBody.getString("accessToken");
+            JsonObject requestBody = new JsonObject();
+
+            Thread.sleep(2000);
+            webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/refresh")
+                .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
+                .subscribe(response -> {
+                  testContext.verify(() -> {
+                    Assertions.assertEquals(400, response.statusCode());
+                    Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+                    Assertions.assertEquals("no-store, no-cache",
+                        response.getHeader("Cache-Control"));
+                    Assertions.assertEquals("nosniff",
+                        response.getHeader("X-Content-Type-Options"));
+                    Assertions.assertEquals("1; mode=block",
+                        response.getHeader("X-XSS-Protection"));
+                    Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+                    JsonObject responseBody = response.bodyAsJsonObject();
+                    Assertions.assertNotNull(responseBody);
+
+                    // status
+                    JsonObject status = responseBody.getJsonObject("status");
+                    Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+                    Assertions.assertEquals("Validation error!", status.getString("message"));
+
+                    // data
+                    JsonObject data = responseBody.getJsonObject("data");
+                    Assertions.assertNotNull(data);
+                    Assertions.assertNotNull(data.getString("requestId"));
+                    Assertions.assertNotNull(data.getInstant("instant"));
+                    Assertions.assertNotNull(data.getJsonArray("errorList"));
+                    Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+
+                    testContext.completeNow();
+                  });
+                }, e -> testContext.failNow(e));
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
 }

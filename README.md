@@ -26,7 +26,7 @@ Back-end service which provides security-related resources such as user and JSON
 
 ## Technologies
 * Vert.x - Version 3.9.4
-* Log4j2 - Version 2.13.3
+* Log4j2 - Version 2.14.0
 * jBcrypt - Version 0.4
 
 ---

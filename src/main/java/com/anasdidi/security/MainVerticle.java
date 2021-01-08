@@ -62,15 +62,13 @@ public class MainVerticle extends AbstractVerticle {
 
       MongoClient mongoClient = MongoClient.createShared(vertx, appConfig.getMongoConfig());//
 
-      @SuppressWarnings("deprecation")
       JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()//
           .setJWTOptions(new JWTOptions()//
               .setExpiresInMinutes(appConfig.getJwtExpireInMinutes())//
               .setIssuer(appConfig.getJwtIssuer()))
           .addPubSecKey(new PubSecKeyOptions()//
               .setAlgorithm("HS256")//
-              .setPublicKey(appConfig.getJwtSecret())//
-              .setSymmetric(true)));
+              .setBuffer(appConfig.getJwtSecret())));
 
       Router router = Router.router(vertx);
       router.route().handler(setupCorsHandler());

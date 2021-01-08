@@ -84,8 +84,8 @@ public class MainVerticle extends AbstractVerticle {
 
       int port = appConfig.getAppPort();
       String host = appConfig.getAppHost();
-      Router contextPath =
-          Router.router(vertx).mountSubRouter(CommonConstants.CONTEXT_PATH, router);
+      Router contextPath = Router.router(vertx);
+      contextPath.mountSubRouter(CommonConstants.CONTEXT_PATH, router);
       vertx.createHttpServer().requestHandler(contextPath).listen(port, host, http -> {
         if (http.succeeded()) {
           logger.info("[{}] HTTP server started on {}:{}", TAG, host, port);

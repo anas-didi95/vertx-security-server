@@ -2,10 +2,8 @@ package com.anasdidi.security.api.graphql;
 
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.CommonConstants;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
@@ -14,7 +12,7 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.handler.graphql.GraphiQLHandlerOptions;
-import io.vertx.ext.web.handler.graphql.VertxDataFetcher;
+import io.vertx.ext.web.handler.graphql.schema.VertxDataFetcher;
 import io.vertx.reactivex.core.AbstractVerticle;
 import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
@@ -65,13 +63,13 @@ public class GraphqlVerticle extends AbstractVerticle {
 
     RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()//
         .type("Query", builder -> builder//
-            .dataFetcher("ping", new VertxDataFetcher<>(dataFetcher::ping))//
-            .dataFetcher("getUserList", new VertxDataFetcher<>(dataFetcher::getUserList))//
-            .dataFetcher("getUserById", new VertxDataFetcher<>(dataFetcher::getUserById))//
+            .dataFetcher("ping", VertxDataFetcher.create(dataFetcher::ping))
+            .dataFetcher("getUserList", VertxDataFetcher.create(dataFetcher::getUserList))//
+            .dataFetcher("getUserById", VertxDataFetcher.create(dataFetcher::getUserById))//
             .dataFetcher("getUserByUsername",
-                new VertxDataFetcher<>(dataFetcher::getUserByUsername)))//
+                VertxDataFetcher.create(dataFetcher::getUserByUsername)))//
         .type("User", builder -> builder//
-            .dataFetcher("lastModifiedBy", new VertxDataFetcher<>(dataFetcher::getLastModifiedBy)))
+            .dataFetcher("lastModifiedBy", VertxDataFetcher.create(dataFetcher::getLastModifiedBy)))
         .build();
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();

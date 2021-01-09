@@ -29,24 +29,31 @@ class UserController extends CommonController {
     String requestId = routingContext.get("requestId");
     String userId = CommonUtils.getUserIdFromToken(routingContext.user());
 
-    Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      JsonObject requestBody = routingContext.getBodyAsJson();
-      if (requestBody == null || requestBody.isEmpty()) {
-        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
-            CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
-      } else {
-        requestBody.put("lastModifiedBy", userId);
-      }
+    Single<JsonObject> subscriber =
+        routingContext.user().rxIsAuthorized("user:write").map(isAuthorized -> {
+          if (!isAuthorized) {
+            throw new ApplicationException("You are not authorized for this request!", requestId,
+                "Insufficient permission!", 403);
+          }
 
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] requestBody\n{}", TAG, requestId,
-            requestBody.copy().put("password", "*****").encodePrettily());
-      }
+          JsonObject requestBody = routingContext.getBodyAsJson();
+          if (requestBody == null || requestBody.isEmpty()) {
+            throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
+                CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
+          } else {
+            requestBody.put("lastModifiedBy", userId);
+          }
 
-      return requestBody;
-    }).map(json -> UserVO.fromJson(json))
-        .map(vo -> userValidator.validate(UserValidator.Validate.CREATE, vo, requestId))
-        .flatMap(vo -> userService.create(vo, requestId)).map(id -> new JsonObject().put("id", id));
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] requestBody\n{}", TAG, requestId,
+                requestBody.copy().put("password", "*****").encodePrettily());
+          }
+
+          return requestBody;
+        }).map(json -> UserVO.fromJson(json))
+            .map(vo -> userValidator.validate(UserValidator.Validate.CREATE, vo, requestId))
+            .flatMap(vo -> userService.create(vo, requestId))
+            .map(id -> new JsonObject().put("id", id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_CREATED,
         CommonConstants.MSG_OK_RECORD_CREATED);

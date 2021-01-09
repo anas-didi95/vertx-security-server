@@ -11,10 +11,11 @@ public class ApplicationException extends Exception {
    *
    */
   private static final long serialVersionUID = -2056237507702938045L;
-  private String message;
-  private String requestId;
-  private JsonArray errorList;
-  private Instant instant;
+  private final String message;
+  private final String requestId;
+  private final JsonArray errorList;
+  private final Instant instant;
+  private final int errorStatusCode;
 
   public ApplicationException(String message, String requestId, JsonArray errorList) {
     super();
@@ -22,6 +23,7 @@ public class ApplicationException extends Exception {
     this.requestId = requestId;
     this.errorList = errorList;
     this.instant = Instant.now();
+    this.errorStatusCode = CommonConstants.STATUS_CODE_BAD_REQUEST;
   }
 
   public ApplicationException(String message, String requestId, Throwable e) {
@@ -30,6 +32,7 @@ public class ApplicationException extends Exception {
     this.requestId = requestId;
     this.errorList = new JsonArray().add(e.getMessage());
     this.instant = Instant.now();
+    this.errorStatusCode = CommonConstants.STATUS_CODE_BAD_REQUEST;
   }
 
   public ApplicationException(String message, String requestId, String error) {
@@ -38,6 +41,16 @@ public class ApplicationException extends Exception {
     this.requestId = requestId;
     this.errorList = new JsonArray().add(error);
     this.instant = Instant.now();
+    this.errorStatusCode = CommonConstants.STATUS_CODE_BAD_REQUEST;
+  }
+
+  public ApplicationException(String message, String requestId, String error, int errorStatusCode) {
+    super();
+    this.message = message;
+    this.requestId = requestId;
+    this.errorList = new JsonArray().add(error);
+    this.instant = Instant.now();
+    this.errorStatusCode = errorStatusCode;
   }
 
   public String getMessage() {
@@ -50,5 +63,9 @@ public class ApplicationException extends Exception {
             .put("errorList", errorList)//
             .put("instant", instant))
         .encode();
+  }
+
+  public int getErrorStatusCode() {
+    return errorStatusCode;
   }
 }

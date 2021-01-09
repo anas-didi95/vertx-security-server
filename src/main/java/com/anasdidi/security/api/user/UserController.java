@@ -29,13 +29,9 @@ class UserController extends CommonController {
     String requestId = routingContext.get("requestId");
     String userId = CommonUtils.getUserIdFromToken(routingContext.user());
 
-    Single<JsonObject> subscriber =
-        routingContext.user().rxIsAuthorized("user:write").map(isAuthorized -> {
-          if (!isAuthorized) {
-            throw new ApplicationException("You are not authorized for this request!", requestId,
-                "Insufficient permission!", 403);
-          }
-
+    Single<JsonObject> subscriber = CommonUtils
+        .isAuthorized(routingContext.user(), CommonConstants.PERMISSION_USER_WRITE, requestId)
+        .map(user -> {
           JsonObject requestBody = routingContext.getBodyAsJson();
           if (requestBody == null || requestBody.isEmpty()) {
             throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
@@ -51,9 +47,8 @@ class UserController extends CommonController {
 
           return requestBody;
         }).map(json -> UserVO.fromJson(json))
-            .map(vo -> userValidator.validate(UserValidator.Validate.CREATE, vo, requestId))
-            .flatMap(vo -> userService.create(vo, requestId))
-            .map(id -> new JsonObject().put("id", id));
+        .map(vo -> userValidator.validate(UserValidator.Validate.CREATE, vo, requestId))
+        .flatMap(vo -> userService.create(vo, requestId)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_CREATED,
         CommonConstants.MSG_OK_RECORD_CREATED);

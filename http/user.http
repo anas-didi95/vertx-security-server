@@ -1,6 +1,5 @@
 @baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/api/user
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.Xlvyw61s40V78oSR6lGUVrf7Husf0QzMc1Oy49xD4EU
-// signature=secret, issuer=anasdidi.dev, subject=SYSTEM
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSIsInVzZXI6cmVhZCJdfQ.SJXjET0kA24X57XXa7PHaQU66-wrsjF2bmeD7NwaxI8
 
 // @name createContent
 POST {{baseUrl}}
@@ -42,5 +41,5 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "version": 0
+  "version": 1
 }

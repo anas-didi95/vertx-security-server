@@ -22,13 +22,11 @@ public class TestUserVerticle {
 
   private String requestURI = CommonConstants.CONTEXT_PATH + UserConstants.REQUEST_URI;
 
-  // payload = { "iss": "anasdidi.dev", "permissions": ["user:write", "user:read"] },
-  // secret = secret
+  // payload = { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write", "user:read"] }
   private String accessToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwZXJtaXNzaW9ucyI6WyJ1c2VyOndyaXRlIiwidXNlcjpyZWFkIl19.W5U_uOGHqK8bqNtLTNZjNAxHdA-G68pclLUFE8KNbqw";
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSIsInVzZXI6cmVhZCJdfQ.SJXjET0kA24X57XXa7PHaQU66-wrsjF2bmeD7NwaxI8";
 
   // payload = { "iss": "anasdidi.dev" },
-  // secret = secret
   private String accessTokenWithoutPermission =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYifQ.F5jwo_F1RkC5cSLKyKFTX2taKqRpCasfSQDMf13o5PA";
 

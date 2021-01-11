@@ -35,6 +35,7 @@ public class TestMainVerticle {
       Assertions.assertNotNull(appConfig.getJwtSecret());
       Assertions.assertNotNull(appConfig.getJwtIssuer());
       Assertions.assertNotNull(appConfig.getJwtExpireInMinutes());
+      Assertions.assertNotNull(appConfig.getJwtPermissionKey());
       Assertions.assertNotNull(appConfig.getRefreshTokenExpireInMinutes());
       Assertions.assertNotNull(appConfig.getMongoConfig());
       Assertions.assertNotNull(appConfig.getGraphiqlIsEnable());

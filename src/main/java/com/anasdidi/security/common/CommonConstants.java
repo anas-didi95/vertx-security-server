@@ -41,5 +41,6 @@ public class CommonConstants {
   public static final String EVT_USER_GET_LIST = "user-get-list";
   public static final String EVT_USER_GET_BY_ID = "user-get-by-id";
 
+  public static final String PERMISSION_CLAIM_KEY = "permissions";
   public static final String PERMISSION_USER_WRITE = "user:write";
 }

@@ -21,8 +21,15 @@ import io.vertx.reactivex.ext.web.client.WebClient;
 public class TestUserVerticle {
 
   private String requestURI = CommonConstants.CONTEXT_PATH + UserConstants.REQUEST_URI;
-  // payload = { "iss": "anasdidi.dev" }, secret = secret
+
+  // payload = { "iss": "anasdidi.dev", "permissions": ["user:write", "user:read"] },
+  // secret = secret
   private String accessToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwZXJtaXNzaW9ucyI6WyJ1c2VyOndyaXRlIiwidXNlcjpyZWFkIl19.W5U_uOGHqK8bqNtLTNZjNAxHdA-G68pclLUFE8KNbqw";
+
+  // payload = { "iss": "anasdidi.dev" },
+  // secret = secret
+  private String accessTokenWithoutPermission =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYifQ.F5jwo_F1RkC5cSLKyKFTX2taKqRpCasfSQDMf13o5PA";
 
   private JsonObject generateDocument() {
@@ -241,8 +248,8 @@ public class TestUserVerticle {
     JsonObject requestBody = generateDocument();
 
     webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI)
-        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
-        .subscribe(response -> {
+        .putHeader("Authorization", "Bearer " + accessTokenWithoutPermission)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(403, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));

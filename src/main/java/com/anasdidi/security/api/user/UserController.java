@@ -60,21 +60,23 @@ class UserController extends CommonController {
     String paramId = routingContext.request().getParam("id");
     String userId = CommonUtils.getUserIdFromToken(routingContext.user());
 
-    Single<JsonObject> subscriber = Single.fromCallable(() -> {
-      JsonObject requestBody = routingContext.getBodyAsJson();
-      if (requestBody == null || requestBody.isEmpty()) {
-        throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
-            CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
-      } else {
-        requestBody.put("id", paramId).put("lastModifiedBy", userId);
-      }
+    Single<JsonObject> subscriber = CommonUtils
+        .isAuthorized(routingContext.user(), CommonConstants.PERMISSION_USER_WRITE, requestId)
+        .map(user -> {
+          JsonObject requestBody = routingContext.getBodyAsJson();
+          if (requestBody == null || requestBody.isEmpty()) {
+            throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
+                CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
+          } else {
+            requestBody.put("id", paramId).put("lastModifiedBy", userId);
+          }
 
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
-      }
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
+          }
 
-      return requestBody;
-    }).map(json -> UserVO.fromJson(json))
+          return requestBody;
+        }).map(json -> UserVO.fromJson(json))
         .map(vo -> userValidator.validate(UserValidator.Validate.UPDATE, vo, requestId))
         .flatMap(vo -> userService.update(vo, requestId)).map(id -> new JsonObject().put("id", id));
 

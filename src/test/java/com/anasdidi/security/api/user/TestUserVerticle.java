@@ -436,6 +436,48 @@ public class TestUserVerticle {
   }
 
   @Test
+  void testUserUpdateAuthorizationError(Vertx vertx, VertxTestContext testContext)
+      throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    WebClient webClient = WebClient.create(vertx);
+    MongoClient mongoClient = getMongoClient(vertx);
+    JsonObject createdBody = generateDocument();
+
+    mongoClient.rxSave(UserConstants.COLLECTION_NAME, createdBody).subscribe(id -> {
+      webClient.put(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/" + id)
+          .putHeader("Authorization", "Bearer " + accessTokenWithoutPermission)
+          .rxSendJsonObject(createdBody).subscribe(response -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(403, response.statusCode());
+              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+              JsonObject responseBody = response.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody);
+
+              JsonObject status = responseBody.getJsonObject("status");
+              Assertions.assertNotNull(status);
+              Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+              Assertions.assertEquals("You are not authorized for this request!",
+                  status.getString("message"));
+
+              JsonObject data = responseBody.getJsonObject("data");
+              Assertions.assertNotNull(data);
+              Assertions.assertNotNull(data.getString("requestId"));
+              Assertions.assertNotNull(data.getInstant("instant"));
+              Assertions.assertNotNull(data.getJsonArray("errorList"));
+              Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+
+              testContext.completeNow();
+            });
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
   void testUserDeleteSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
     AppConfig appConfig = AppConfig.instance();
     WebClient webClient = WebClient.create(vertx);

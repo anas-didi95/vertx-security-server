@@ -64,6 +64,7 @@ public class MainVerticle extends AbstractVerticle {
 
       @SuppressWarnings("deprecation")
       JWTAuth jwtAuth = JWTAuth.create(vertx, new JWTAuthOptions()//
+          .setPermissionsClaimKey(appConfig.getJwtPermissionKey())//
           .setJWTOptions(new JWTOptions()//
               .setExpiresInMinutes(appConfig.getJwtExpireInMinutes())//
               .setIssuer(appConfig.getJwtIssuer()))

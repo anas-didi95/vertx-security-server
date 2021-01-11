@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 import graphql.execution.ExecutionId;
+import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.auth.User;
 
@@ -38,5 +39,17 @@ public class CommonUtils {
 
   public static String getUserIdFromToken(User user) {
     return user.principal().getString("sub");
+  }
+
+  @SuppressWarnings({"deprecation"})
+  public static Single<User> isAuthorized(User user, String authority, String requestId) {
+    return user.rxIsAuthorised(authority).map(isAuthorized -> {
+      if (!isAuthorized) {
+        throw new ApplicationException(CommonConstants.MSG_ERR_NOT_AUTHZ, requestId,
+            CommonConstants.MSG_ERR_INSUFF_PERMISSION, CommonConstants.STATUS_CODE_FORBIDDEN);
+      }
+
+      return user;
+    });
   }
 }

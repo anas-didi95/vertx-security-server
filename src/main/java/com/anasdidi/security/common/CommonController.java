@@ -33,21 +33,31 @@ public abstract class CommonController {
           .setStatusCode(statusCode)//
           .end(responseBody);
     }, e -> {
-      String responseBody = e.getMessage();
+      String responseBody = "";
+      int errorStatusCode = CommonConstants.STATUS_CODE_BAD_REQUEST;
+
       if (e.getSuppressed().length > 0) {
         for (Throwable t : e.getSuppressed()) {
           if (t instanceof ApplicationException) {
-            responseBody = t.getMessage();
+            ApplicationException ex = (ApplicationException) t;
+
+            responseBody = ex.getMessage();
+            errorStatusCode = ex.getErrorStatusCode();
           }
         }
+      } else if (e instanceof ApplicationException) {
+        ApplicationException ex = (ApplicationException) e;
+
+        responseBody = ex.getMessage();
+        errorStatusCode = ex.getErrorStatusCode();
       }
 
-      logger.error("[{}:{}] onError : timeTaken={}ms, responseBody={}", TAG, requestId, timeTaken,
-          responseBody);
+      logger.error("[{}:{}] onError : timeTaken={}ms, errorStatusCode={}, responseBody={}", TAG,
+          requestId, timeTaken, errorStatusCode, responseBody);
 
       routingContext.response().headers().addAll(CommonConstants.HEADERS);
       routingContext.response()//
-          .setStatusCode(CommonConstants.STATUS_CODE_BAD_REQUEST)//
+          .setStatusCode(errorStatusCode)//
           .end(responseBody);
     });
   }

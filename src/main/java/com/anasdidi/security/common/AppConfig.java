@@ -31,6 +31,7 @@ public class AppConfig {
         .put("JWT_SECRET", getJwtSecret())//
         .put("JWT_ISSUER", getJwtIssuer())//
         .put("JWT_EXPIRE_IN_MINUTES", getJwtExpireInMinutes())//
+        .put("JWT_PERMISSION_KEY", getJwtPermissionKey())//
         .put("REFRESH_TOKEN_EXPIRE_IN_MINUTES", getRefreshTokenExpireInMinutes())//
         .put("MONGO_CONFIG", getMongoConfig())//
         .put("GRAPHIQL_IS_ENABLE", getGraphiqlIsEnable())//
@@ -56,6 +57,10 @@ public class AppConfig {
 
   public int getJwtExpireInMinutes() {
     return cfg.getInteger("JWT_EXPIRE_IN_MINUTES");
+  }
+
+  public String getJwtPermissionKey() {
+    return cfg.getString("JWT_PERMISSION_KEY");
   }
 
   public Long getRefreshTokenExpireInMinutes() {

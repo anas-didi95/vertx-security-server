@@ -21,8 +21,13 @@ import io.vertx.reactivex.ext.web.client.WebClient;
 public class TestUserVerticle {
 
   private String requestURI = CommonConstants.CONTEXT_PATH + UserConstants.REQUEST_URI;
-  // payload = { "iss": "anasdidi.dev" }, secret = secret
+
+  // payload = { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"] }
   private String accessToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdfQ.GxIlBwCt3dRWrNWg3xhLSmqHJtcVEHHTKu2A9D9_wug";
+
+  // payload = { "iss": "anasdidi.dev" },
+  private String accessTokenWithoutPermission =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYifQ.F5jwo_F1RkC5cSLKyKFTX2taKqRpCasfSQDMf13o5PA";
 
   private JsonObject generateDocument() {
@@ -234,6 +239,46 @@ public class TestUserVerticle {
   }
 
   @Test
+  void testUserCreateAuthorizationError(Vertx vertx, VertxTestContext testContext)
+      throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    WebClient webClient = WebClient.create(vertx);
+    JsonObject requestBody = generateDocument();
+
+    webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI)
+        .putHeader("Authorization", "Bearer " + accessTokenWithoutPermission)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            Assertions.assertEquals(403, response.statusCode());
+            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
+
+            JsonObject status = responseBody.getJsonObject("status");
+            Assertions.assertNotNull(status);
+            Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+            Assertions.assertEquals("You are not authorized for this request!",
+                status.getString("message"));
+
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
+            Assertions.assertNotNull(data.getString("requestId"));
+            Assertions.assertNotNull(data.getInstant("instant"));
+            Assertions.assertNotNull(data.getJsonArray("errorList"));
+            Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+
+            testContext.completeNow();
+          });
+        }, e -> testContext.failNow(e));
+  }
+
+
+  @Test
   void testUserUpdateSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
     AppConfig appConfig = AppConfig.instance();
     WebClient webClient = WebClient.create(vertx);
@@ -386,6 +431,48 @@ public class TestUserVerticle {
             testContext.completeNow();
           });
         }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testUserUpdateAuthorizationError(Vertx vertx, VertxTestContext testContext)
+      throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    WebClient webClient = WebClient.create(vertx);
+    MongoClient mongoClient = getMongoClient(vertx);
+    JsonObject createdBody = generateDocument();
+
+    mongoClient.rxSave(UserConstants.COLLECTION_NAME, createdBody).subscribe(id -> {
+      webClient.put(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/" + id)
+          .putHeader("Authorization", "Bearer " + accessTokenWithoutPermission)
+          .rxSendJsonObject(createdBody).subscribe(response -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(403, response.statusCode());
+              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+              JsonObject responseBody = response.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody);
+
+              JsonObject status = responseBody.getJsonObject("status");
+              Assertions.assertNotNull(status);
+              Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+              Assertions.assertEquals("You are not authorized for this request!",
+                  status.getString("message"));
+
+              JsonObject data = responseBody.getJsonObject("data");
+              Assertions.assertNotNull(data);
+              Assertions.assertNotNull(data.getString("requestId"));
+              Assertions.assertNotNull(data.getInstant("instant"));
+              Assertions.assertNotNull(data.getJsonArray("errorList"));
+              Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+
+              testContext.completeNow();
+            });
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
   }
 
   @Test
@@ -542,5 +629,47 @@ public class TestUserVerticle {
             testContext.completeNow();
           });
         }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testUserDeleteAuthorizationError(Vertx vertx, VertxTestContext testContext)
+      throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    WebClient webClient = WebClient.create(vertx);
+    MongoClient mongoClient = getMongoClient(vertx);
+    JsonObject createdBody = generateDocument();
+
+    mongoClient.rxSave(UserConstants.COLLECTION_NAME, createdBody).subscribe(id -> {
+      webClient.delete(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/" + id)
+          .putHeader("Authorization", "Bearer " + accessTokenWithoutPermission)
+          .rxSendJsonObject(createdBody).subscribe(response -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(403, response.statusCode());
+              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+              JsonObject responseBody = response.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody);
+
+              JsonObject status = responseBody.getJsonObject("status");
+              Assertions.assertNotNull(status);
+              Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+              Assertions.assertEquals("You are not authorized for this request!",
+                  status.getString("message"));
+
+              JsonObject data = responseBody.getJsonObject("data");
+              Assertions.assertNotNull(data);
+              Assertions.assertNotNull(data.getString("requestId"));
+              Assertions.assertNotNull(data.getInstant("instant"));
+              Assertions.assertNotNull(data.getJsonArray("errorList"));
+              Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+
+              testContext.completeNow();
+            });
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
   }
 }

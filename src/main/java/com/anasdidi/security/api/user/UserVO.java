@@ -1,7 +1,10 @@
 package com.anasdidi.security.api.user;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 import com.anasdidi.security.common.CommonUtils;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 class UserVO {
@@ -15,9 +18,11 @@ class UserVO {
   final Instant lastModifiedDate;
   final Long version;
   final String telegramId;
+  final List<String> permissions;
 
   private UserVO(String id, String username, String password, String fullName, String email,
-      String lastModifiedBy, Instant lastModifiedDate, Long version, String telegramId) {
+      String lastModifiedBy, Instant lastModifiedDate, Long version, String telegramId,
+      List<String> permissions) {
     this.id = id;
     this.username = username;
     this.password = password;
@@ -27,6 +32,7 @@ class UserVO {
     this.lastModifiedDate = lastModifiedDate;
     this.version = version;
     this.telegramId = telegramId;
+    this.permissions = permissions;
   }
 
   static UserVO fromJson(JsonObject json) {
@@ -39,9 +45,11 @@ class UserVO {
     Instant lastModifiedDate = CommonUtils.getInstantMongoDate(json, "lastModifiedDate");
     Long version = json.getLong("version");
     String telegramId = json.getString("telegramId");
+    List<String> permissions = json.getJsonArray("permissions", new JsonArray()).stream()
+        .map(o -> (String) o).collect(Collectors.toList());
 
     return new UserVO(id, username, password, fullName, email, lastModifiedBy, lastModifiedDate,
-        version, telegramId);
+        version, telegramId, permissions);
   }
 
   static JsonObject toJson(UserVO vo) {
@@ -54,7 +62,8 @@ class UserVO {
         .put("lastModifiedBy", vo.lastModifiedBy)//
         .put("lastModifiedDate", vo.lastModifiedDate)//
         .put("version", vo.version)//
-        .put("telegramId", vo.telegramId);
+        .put("telegramId", vo.telegramId)//
+        .put("permissions", vo.permissions);
   }
 
   @Override
@@ -69,6 +78,7 @@ class UserVO {
         .put("lastModifiedDate", lastModifiedDate)//
         .put("version", version)//
         .put("teleramId", telegramId)//
+        .put("permissions", permissions)//
         .encodePrettily();
   }
 }

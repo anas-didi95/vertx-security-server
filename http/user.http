@@ -12,7 +12,11 @@ Authorization: Bearer {{accessToken}}
   "password": "password",
   "fullName": "superadmin",
   "email": "anas.didi95@gmail.com",
-  "telegramId": "{{$guid}}"
+  "telegramId": "{{$guid}}",
+  "permissions": [
+    "user:write",
+    "user:create"
+  ]
 }
 
 ###
@@ -29,7 +33,11 @@ Authorization: Bearer {{accessToken}}
   "fullName": "anas juwaidi 123",
   "email": "anas.didi95@gmail.com1",
   "version": 0,
-  "telegramId": "{{$guid}}"
+  "telegramId": "{{$guid}}",
+  "permissions": [
+    "user:write",
+    "user:update"
+  ]
 }
 
 ###

@@ -38,7 +38,7 @@ public class TestUserVerticle {
         .put("email", System.currentTimeMillis() + "email")//
         .put("version", 0)//
         .put("telegramId", System.currentTimeMillis() + "telegramId")
-        .put("permissions", new JsonArray().add("user:test"));
+        .put("permissions", new JsonArray().add(System.currentTimeMillis() + "user:test"));
   }
 
   private static MongoClient getMongoClient(Vertx vertx) throws Exception {
@@ -114,7 +114,7 @@ public class TestUserVerticle {
 
                     testContext.completeNow();
                   });
-                });
+                }, e -> testContext.failNow(e));
           });
         }, e -> testContext.failNow(e));
   }
@@ -298,8 +298,9 @@ public class TestUserVerticle {
     JsonObject createdBody = generateDocument();
 
     mongoClient.rxSave(UserConstants.COLLECTION_NAME, createdBody).subscribe(id -> {
+      JsonObject updateBody = generateDocument();
       webClient.put(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/" + id)
-          .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
+          .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(updateBody)
           .subscribe(response -> {
             testContext.verify(() -> {
               Assertions.assertEquals(200, response.statusCode());
@@ -312,18 +313,36 @@ public class TestUserVerticle {
               JsonObject responseBody = response.bodyAsJsonObject();
               Assertions.assertNotNull(responseBody);
 
-              // status
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);
               Assertions.assertEquals(true, status.getBoolean("isSuccess"));
               Assertions.assertEquals("Record successfully updated.", status.getString("message"));
 
-              // data
               JsonObject data = responseBody.getJsonObject("data");
               Assertions.assertNotNull(data);
               Assertions.assertEquals(id, data.getString("id"));
 
-              testContext.completeNow();
+              mongoClient
+                  .rxFindOne(UserConstants.COLLECTION_NAME,
+                      new JsonObject().put("_id", data.getString("id")), new JsonObject())
+                  .subscribe(json -> {
+                    UserVO vo = UserVO.fromJson(json);
+                    testContext.verify(() -> {
+                      Assertions.assertNotNull(vo.id);
+                      Assertions.assertEquals(createdBody.getString("username"), vo.username);
+                      Assertions.assertNotNull(vo.password);
+                      Assertions.assertEquals(updateBody.getString("fullName"), vo.fullName);
+                      Assertions.assertEquals(updateBody.getString("email"), vo.email);
+                      Assertions.assertNotNull(vo.lastModifiedBy);
+                      Assertions.assertNotNull(vo.lastModifiedDate);
+                      Assertions.assertEquals(updateBody.getLong("version") + 1, vo.version);
+                      Assertions.assertEquals(updateBody.getString("telegramId"), vo.telegramId);
+                      Assertions.assertEquals(updateBody.getJsonArray("permissions").getList(),
+                          vo.permissions);
+
+                      testContext.completeNow();
+                    });
+                  }, e -> testContext.failNow(e));
             });
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));

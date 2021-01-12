@@ -71,41 +71,52 @@ public class TestUserVerticle {
     WebClient webClient = WebClient.create(vertx);
     JsonObject requestBody = generateDocument();
 
-    mongoClient.rxCount(UserConstants.COLLECTION_NAME, new JsonObject()).subscribe(prevCount -> {
-      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI)
-          .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
-          .subscribe(response -> {
-            testContext.verify(() -> {
-              Assertions.assertEquals(201, response.statusCode());
-              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+    webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI)
+        .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
+        .subscribe(response -> {
+          testContext.verify(() -> {
+            Assertions.assertEquals(201, response.statusCode());
+            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
 
-              JsonObject responseBody = response.bodyAsJsonObject();
-              Assertions.assertNotNull(responseBody);
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
 
-              JsonObject status = responseBody.getJsonObject("status");
-              Assertions.assertNotNull(status);
-              Assertions.assertEquals(true, status.getBoolean("isSuccess"));
-              Assertions.assertEquals("Record successfully created.", status.getString("message"));
+            JsonObject status = responseBody.getJsonObject("status");
+            Assertions.assertNotNull(status);
+            Assertions.assertEquals(true, status.getBoolean("isSuccess"));
+            Assertions.assertEquals("Record successfully created.", status.getString("message"));
 
-              JsonObject data = responseBody.getJsonObject("data");
-              Assertions.assertNotNull(data);
-              Assertions.assertNotNull(data.getString("id"));
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
+            Assertions.assertNotNull(data.getString("id"));
 
-              mongoClient.rxCount(UserConstants.COLLECTION_NAME, new JsonObject())
-                  .subscribe(currCount -> {
-                    testContext.verify(() -> {
-                      // Assertions.assertNotEquals(prevCount, currCount);
+            mongoClient
+                .rxFindOne(UserConstants.COLLECTION_NAME,
+                    new JsonObject().put("_id", data.getString("id")), new JsonObject())
+                .subscribe(json -> {
+                  UserVO vo = UserVO.fromJson(json);
+                  testContext.verify(() -> {
+                    Assertions.assertNotNull(vo.id);
+                    Assertions.assertEquals(requestBody.getString("username"), vo.username);
+                    Assertions.assertNotNull(vo.password);
+                    Assertions.assertEquals(requestBody.getString("fullName"), vo.fullName);
+                    Assertions.assertEquals(requestBody.getString("email"), vo.email);
+                    Assertions.assertNotNull(vo.lastModifiedBy);
+                    Assertions.assertNotNull(vo.lastModifiedDate);
+                    Assertions.assertEquals(requestBody.getLong("version"), vo.version);
+                    Assertions.assertEquals(requestBody.getString("telegramId"), vo.telegramId);
+                    Assertions.assertEquals(requestBody.getJsonArray("permissions").getList(),
+                        vo.permissions);
 
-                      testContext.completeNow();
-                    });
-                  }, e -> testContext.failNow(e));
-            });
-          }, e -> testContext.failNow(e));
-    }, e -> testContext.failNow(e));
+                    testContext.completeNow();
+                  });
+                });
+          });
+        }, e -> testContext.failNow(e));
   }
 
   @Test

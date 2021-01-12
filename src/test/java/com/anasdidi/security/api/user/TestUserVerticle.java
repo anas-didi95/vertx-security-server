@@ -37,7 +37,8 @@ public class TestUserVerticle {
         .put("fullName", System.currentTimeMillis() + "fullName")//
         .put("email", System.currentTimeMillis() + "email")//
         .put("version", 0)//
-        .put("telegramId", System.currentTimeMillis() + "telegramId");
+        .put("telegramId", System.currentTimeMillis() + "telegramId")
+        .put("permissions", new JsonArray().add("user:test"));
   }
 
   private static MongoClient getMongoClient(Vertx vertx) throws Exception {

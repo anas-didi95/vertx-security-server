@@ -33,7 +33,6 @@ public class UserDTO {
     this.permissions = permissions;
   }
 
-
   public static UserDTO fromJson(JsonObject json) {
     String id = json.getString("id");
     String username = json.getString("username");

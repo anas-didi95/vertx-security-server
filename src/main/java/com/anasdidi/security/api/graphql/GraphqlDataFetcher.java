@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.graphql;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,5 +135,19 @@ class GraphqlDataFetcher {
 
       promise.complete(UserDTO.fromJson(responseBody));
     });
+  }
+
+  void getPermissionList(DataFetchingEnvironment env, Promise<List<String>> promise) {
+    final String TAG = "getLastModifiedBy";
+    String requestId = CommonUtils.generateUUID(env.getExecutionId());
+
+    List<String> permissionList = new ArrayList<>();
+    permissionList.add(CommonConstants.PERMISSION_USER_WRITE);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] permissionList={}", TAG, requestId, permissionList);
+    }
+
+    promise.complete(permissionList);
   }
 }

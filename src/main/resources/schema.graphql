@@ -12,6 +12,11 @@ type User {
   lastModifiedDate(format: String): String
   version: Int
   telegramId: String
+  permissions: [String]
+}
+
+type Permission {
+  id: String
 }
 
 type Query {
@@ -19,4 +24,5 @@ type Query {
   getUserList: [User]!
   getUserById(id: String!): User!
   getUserByUsername(username: String!): User!
+  getPermissionList: [Permission]!
 }

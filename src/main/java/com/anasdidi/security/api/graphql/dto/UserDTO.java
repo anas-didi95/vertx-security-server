@@ -1,8 +1,11 @@
 package com.anasdidi.security.api.graphql.dto;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 import com.anasdidi.security.common.CommonUtils;
 import graphql.schema.DataFetchingEnvironment;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class UserDTO {
@@ -15,9 +18,10 @@ public class UserDTO {
   private final Instant lastModifiedDate;
   private final Long version;
   private final String telegramId;
+  private final List<String> permissions;
 
   private UserDTO(String id, String username, String fullName, String email, String lastModifiedBy,
-      Instant lastModifiedDate, Long version, String telegramId) {
+      Instant lastModifiedDate, Long version, String telegramId, List<String> permissions) {
     this.id = id;
     this.username = username;
     this.fullName = fullName;
@@ -26,8 +30,8 @@ public class UserDTO {
     this.lastModifiedDate = lastModifiedDate;
     this.version = version;
     this.telegramId = telegramId;
+    this.permissions = permissions;
   }
-
 
   public static UserDTO fromJson(JsonObject json) {
     String id = json.getString("id");
@@ -38,9 +42,11 @@ public class UserDTO {
     Instant lastModifiedDate = json.getInstant("lastModifiedDate");
     Long version = json.getLong("version");
     String telegramId = json.getString("telegramId");
+    List<String> permissions = json.getJsonArray("permissions", new JsonArray()).stream()
+        .map(o -> (String) o).collect(Collectors.toList());
 
     return new UserDTO(id, username, fullName, email, lastModifiedBy, lastModifiedDate, version,
-        telegramId);
+        telegramId, permissions);
   }
 
   public String getId(DataFetchingEnvironment env) {
@@ -81,6 +87,10 @@ public class UserDTO {
     return telegramId;
   }
 
+  public List<String> getPermissions(DataFetchingEnvironment env) {
+    return permissions;
+  }
+
   @Override
   public String toString() {
     return new JsonObject()//
@@ -92,6 +102,7 @@ public class UserDTO {
         .put("lastModifiedDate", lastModifiedDate)//
         .put("version", version)//
         .put("telegramId", telegramId)//
+        .put("permissions", permissions)//
         .encodePrettily();
   }
 }

@@ -69,7 +69,9 @@ public class GraphqlVerticle extends AbstractVerticle {
             .dataFetcher("getUserList", new VertxDataFetcher<>(dataFetcher::getUserList))//
             .dataFetcher("getUserById", new VertxDataFetcher<>(dataFetcher::getUserById))//
             .dataFetcher("getUserByUsername",
-                new VertxDataFetcher<>(dataFetcher::getUserByUsername)))//
+                new VertxDataFetcher<>(dataFetcher::getUserByUsername))//
+            .dataFetcher("getPermissionList",
+                new VertxDataFetcher<>(dataFetcher::getPermissionList)))//
         .type("User", builder -> builder//
             .dataFetcher("lastModifiedBy", new VertxDataFetcher<>(dataFetcher::getLastModifiedBy)))
         .build();

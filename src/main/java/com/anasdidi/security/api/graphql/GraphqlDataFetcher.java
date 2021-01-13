@@ -1,9 +1,11 @@
 package com.anasdidi.security.api.graphql;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.anasdidi.security.api.graphql.dto.PermissionDTO;
 import com.anasdidi.security.api.graphql.dto.UserDTO;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonUtils;
@@ -134,5 +136,23 @@ class GraphqlDataFetcher {
 
       promise.complete(UserDTO.fromJson(responseBody));
     });
+  }
+
+  void getPermissionList(DataFetchingEnvironment env, Promise<List<PermissionDTO>> promise) {
+    final String TAG = "getPermissionList";
+    String requestId = CommonUtils.generateUUID(env.getExecutionId());
+
+    List<PermissionDTO> permissionList =
+        Arrays.asList(CommonConstants.PERMISSION_USER_WRITE).stream()//
+            .map(s -> new JsonObject().put("id", s))//
+            .map(json -> PermissionDTO.fromJson(json))//
+            .collect(Collectors.toList());
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] permissionList.size={}", TAG, requestId,
+          (permissionList != null ? permissionList.size() : -1));
+    }
+
+    promise.complete(permissionList);
   }
 }

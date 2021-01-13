@@ -12,6 +12,7 @@ type User {
   lastModifiedDate(format: String): String
   version: Int
   telegramId: String
+  permissions: [String]
 }
 
 type Query {

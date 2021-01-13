@@ -3,7 +3,6 @@
 // signature=secret, issuer=anasdidi.dev
 
 // @name ping
-
 POST {{baseUrl}}
 Accept: application/json
 Content-Type: application/json
@@ -61,4 +60,17 @@ Authorization: Bearer {{accessToken}}
     "username": "superadmin",
     "format": "yyyy-MM-dd HH:mm:ss"
   }
+}
+
+###
+
+// @name getPermissionList
+POST {{baseUrl}}
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "query": "query { getPermissionList { id } }",
+  "variables": {}
 }

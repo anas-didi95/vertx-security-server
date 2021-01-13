@@ -20,4 +20,5 @@ type Query {
   getUserList: [User]!
   getUserById(id: String!): User!
   getUserByUsername(username: String!): User!
+  getPermissionList: [String]!
 }

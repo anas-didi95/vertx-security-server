@@ -139,7 +139,7 @@ class GraphqlDataFetcher {
   }
 
   void getPermissionList(DataFetchingEnvironment env, Promise<List<PermissionDTO>> promise) {
-    final String TAG = "getLastModifiedBy";
+    final String TAG = "getPermissionList";
     String requestId = CommonUtils.generateUUID(env.getExecutionId());
 
     List<PermissionDTO> permissionList =
@@ -149,7 +149,8 @@ class GraphqlDataFetcher {
             .collect(Collectors.toList());
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] permissionList={}", TAG, requestId, permissionList);
+      logger.debug("[{}:{}] permissionList.size={}", TAG, requestId,
+          (permissionList != null ? permissionList.size() : -1));
     }
 
     promise.complete(permissionList);

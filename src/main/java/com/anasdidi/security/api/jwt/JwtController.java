@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.jwt;
 
+import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonController;
@@ -74,10 +75,15 @@ class JwtController extends CommonController {
       }
 
       return principal;
-    }).map(json -> new JsonObject()//
-        .put("userId", json.getString(CommonConstants.JWT_CLAIM_KEY_USERID))//
-        .put("username", json.getString(JwtConstants.CLAIM_KEY_USERNAME))//
-        .put("fullName", json.getString(JwtConstants.CLAIM_KEY_FULLNAME)));
+    }).map(json -> {
+      AppConfig appConfig = AppConfig.instance();
+
+      return new JsonObject()//
+          .put("userId", json.getString(CommonConstants.JWT_CLAIM_KEY_USERID))//
+          .put("username", json.getString(JwtConstants.CLAIM_KEY_USERNAME))//
+          .put("fullName", json.getString(JwtConstants.CLAIM_KEY_FULLNAME))//
+          .put("permissions", json.getJsonArray(appConfig.getJwtPermissionKey()));
+    });
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         JwtConstants.MSG_OK_TOKEN_DECODED);

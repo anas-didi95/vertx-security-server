@@ -1,6 +1,8 @@
 package com.anasdidi.security.api.jwt;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonUtils;
@@ -8,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 import io.reactivex.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
@@ -30,6 +33,8 @@ class JwtService {
     String userId = user.getString("id");
     String username = user.getString("username");
     String fullName = user.getString("fullName");
+    List<String> permissions = user.getJsonArray("permissions", new JsonArray()).stream()
+        .map(o -> (String) o).collect(Collectors.toList());
 
     JsonObject claims = new JsonObject()//
         .put(JwtConstants.CLAIM_KEY_USERNAME, username)//
@@ -37,7 +42,8 @@ class JwtService {
     String accessToken = jwtAuth.generateToken(claims, new JWTOptions()//
         .setSubject(userId)//
         .setIssuer(appConfig.getJwtIssuer())//
-        .setExpiresInMinutes(appConfig.getJwtExpireInMinutes()));
+        .setExpiresInMinutes(appConfig.getJwtExpireInMinutes())//
+        .setPermissions(permissions));
 
     String refreshToken = CommonUtils.generateUUID();
     JsonObject document = new JsonObject()//

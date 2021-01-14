@@ -49,6 +49,9 @@ class JwtService {
     JsonObject document = new JsonObject()//
         .put("_id", refreshToken)//
         .put("userId", userId)//
+        .put("username", username)//
+        .put("fullName", fullName)//
+        .put("permissions", permissions)//
         .put("issuedDate", new JsonObject().put("$date", Instant.now()));
 
     if (logger.isDebugEnabled()) {

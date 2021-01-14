@@ -465,6 +465,7 @@ public class TestJwtVerticle {
                     JsonObject data = responseBody.getJsonObject("data");
                     Assertions.assertNotNull(data);
                     Assertions.assertNotNull(data.getString("userId"));
+                    Assertions.assertNotNull(data.getString("username"));
 
                     testContext.completeNow();
                   });

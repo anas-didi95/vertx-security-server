@@ -75,7 +75,8 @@ class JwtController extends CommonController {
 
       return principal;
     }).map(json -> new JsonObject()//
-        .put("userId", json.getString("sub")));
+        .put("userId", json.getString("sub"))//
+        .put("username", json.getString(JwtConstants.CLAIM_KEY_USERNAME)));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         JwtConstants.MSG_OK_TOKEN_DECODED);

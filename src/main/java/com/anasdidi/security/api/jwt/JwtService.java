@@ -29,7 +29,7 @@ class JwtService {
     AppConfig appConfig = AppConfig.instance();
 
     JsonObject claims = new JsonObject()//
-        .put("username", username);
+        .put(JwtConstants.CLAIM_KEY_USERNAME, username);
     String accessToken = jwtAuth.generateToken(claims, new JWTOptions()//
         .setSubject(userId)//
         .setIssuer(appConfig.getJwtIssuer())//

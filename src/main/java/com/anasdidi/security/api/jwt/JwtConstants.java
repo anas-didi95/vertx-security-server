@@ -18,5 +18,5 @@ final class JwtConstants {
   static final String MSG_OK_TOKEN_REFRESHED = "Token refreshed.";
   static final String MSG_OK_TOKEN_DECODED = "Token decoded.";
 
-  static final String REFRESH_TOKEN_DELIMITER = ":";
+  static final String CLAIM_KEY_USERNAME = "unm";
 }

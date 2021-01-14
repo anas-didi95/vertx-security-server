@@ -74,7 +74,8 @@ class JwtController extends CommonController {
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> new JsonObject());
 
-    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK, "Ok");
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
+        "JWT token successfully decoded.");
   }
 
   void doRefresh(RoutingContext routingContext) {

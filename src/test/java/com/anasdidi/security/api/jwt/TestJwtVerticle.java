@@ -454,13 +454,17 @@ public class TestJwtVerticle {
                         response.getHeader("X-XSS-Protection"));
                     Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
 
-                    JsonObject data = response.bodyAsJsonObject();
-                    Assertions.assertNotNull(data);
+                    JsonObject responseBody = response.bodyAsJsonObject();
+                    Assertions.assertNotNull(responseBody);
 
-                    JsonObject status = data.getJsonObject("status");
+                    JsonObject status = responseBody.getJsonObject("status");
                     Assertions.assertNotNull(status);
                     Assertions.assertEquals(true, status.getBoolean("isSuccess"));
                     Assertions.assertEquals("Token decoded.", status.getString("message"));
+
+                    JsonObject data = responseBody.getJsonObject("data");
+                    Assertions.assertNotNull(data);
+                    Assertions.assertNotNull(data.getString("userId"));
 
                     testContext.completeNow();
                   });

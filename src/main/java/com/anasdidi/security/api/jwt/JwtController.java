@@ -66,7 +66,16 @@ class JwtController extends CommonController {
           routingContext.user().principal().encodePrettily());
     }
 
-    Single<JsonObject> subscriber = Single.fromCallable(() -> new JsonObject());
+    Single<JsonObject> subscriber = Single.fromCallable(() -> {
+      JsonObject principal = routingContext.user().principal();
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] principal\n{}", TAG, requestId, principal.encodePrettily());
+      }
+
+      return principal;
+    }).map(json -> new JsonObject()//
+        .put("userId", json.getString("sub")));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         JwtConstants.MSG_OK_TOKEN_DECODED);

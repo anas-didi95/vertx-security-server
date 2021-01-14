@@ -19,4 +19,5 @@ final class JwtConstants {
   static final String MSG_OK_TOKEN_DECODED = "Token decoded.";
 
   static final String CLAIM_KEY_USERNAME = "unm";
+  static final String CLAIM_KEY_FULLNAME = "fnm";
 }

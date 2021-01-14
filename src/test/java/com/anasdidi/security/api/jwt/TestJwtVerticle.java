@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mindrot.jbcrypt.BCrypt;
 import io.reactivex.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClientDeleteResult;
 import io.vertx.junit5.VertxExtension;
@@ -27,7 +28,11 @@ public class TestJwtVerticle {
     return new JsonObject()//
         .put("username", System.currentTimeMillis() + "username")//
         .put("password", BCrypt.hashpw("password", BCrypt.gensalt()))//
-        .put("telegramId", System.currentTimeMillis() + "telegramId");
+        .put("fullName", System.currentTimeMillis() + "fullName")//
+        .put("email", System.currentTimeMillis() + "email")//
+        .put("version", 0)//
+        .put("telegramId", System.currentTimeMillis() + "telegramId")
+        .put("permissions", new JsonArray().add(System.currentTimeMillis() + "jwt:test"));
   }
 
   private static MongoClient getMongoClient(Vertx vertx) throws Exception {
@@ -466,6 +471,7 @@ public class TestJwtVerticle {
                     Assertions.assertNotNull(data);
                     Assertions.assertNotNull(data.getString("userId"));
                     Assertions.assertNotNull(data.getString("username"));
+                    Assertions.assertNotNull(data.getString("fullName"));
 
                     testContext.completeNow();
                   });

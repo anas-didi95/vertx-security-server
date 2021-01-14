@@ -1,5 +1,6 @@
 package com.anasdidi.security.api.jwt;
 
+import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonController;
@@ -9,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.eventbus.EventBus;
-import io.vertx.reactivex.core.http.Cookie;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 class JwtController extends CommonController {
@@ -61,20 +61,32 @@ class JwtController extends CommonController {
   void doCheck(RoutingContext routingContext) {
     final String TAG = "doCheck";
     String requestId = routingContext.get("requestId");
-    Cookie refreshToken = routingContext.getCookie("refreshToken");
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] refreshToken={}", TAG, requestId,
-          (refreshToken != null ? refreshToken.getValue() : null));
       logger.debug("[{}:{}] principal\n{}", TAG, requestId,
-          routingContext.user().principal() != null
-              ? routingContext.user().principal().encodePrettily()
-              : null);
+          routingContext.user().principal().encodePrettily());
     }
 
-    Single<JsonObject> subscriber = Single.fromCallable(() -> new JsonObject());
+    Single<JsonObject> subscriber = Single.fromCallable(() -> {
+      JsonObject principal = routingContext.user().principal();
 
-    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK, "Ok");
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] principal\n{}", TAG, requestId, principal.encodePrettily());
+      }
+
+      return principal;
+    }).map(json -> {
+      AppConfig appConfig = AppConfig.instance();
+
+      return new JsonObject()//
+          .put("userId", json.getString(CommonConstants.JWT_CLAIM_KEY_USERID))//
+          .put("username", json.getString(JwtConstants.CLAIM_KEY_USERNAME))//
+          .put("fullName", json.getString(JwtConstants.CLAIM_KEY_FULLNAME))//
+          .put("permissions", json.getJsonArray(appConfig.getJwtPermissionKey()));
+    });
+
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
+        JwtConstants.MSG_OK_TOKEN_DECODED);
   }
 
   void doRefresh(RoutingContext routingContext) {

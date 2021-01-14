@@ -38,7 +38,7 @@ public class CommonUtils {
   }
 
   public static String getUserIdFromToken(User user) {
-    return user.principal().getString("sub");
+    return user.principal().getString(CommonConstants.JWT_CLAIM_KEY_USERID);
   }
 
   @SuppressWarnings({"deprecation"})

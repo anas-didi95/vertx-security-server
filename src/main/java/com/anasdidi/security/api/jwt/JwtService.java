@@ -1,6 +1,8 @@
 package com.anasdidi.security.api.jwt;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.CommonUtils;
@@ -8,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 import io.reactivex.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
@@ -24,21 +27,31 @@ class JwtService {
     this.mongoClient = mongoClient;
   }
 
-  private JwtVO getAndSaveToken(String username, String userId, String requestId) throws Exception {
+  private JwtVO getAndSaveToken(JsonObject user, String requestId) throws Exception {
     final String TAG = "getAndSaveToken";
     AppConfig appConfig = AppConfig.instance();
+    String userId = user.getString("id");
+    String username = user.getString("username");
+    String fullName = user.getString("fullName");
+    List<String> permissions = user.getJsonArray("permissions", new JsonArray()).stream()
+        .map(o -> (String) o).collect(Collectors.toList());
 
     JsonObject claims = new JsonObject()//
-        .put("username", username);
+        .put(JwtConstants.CLAIM_KEY_USERNAME, username)//
+        .put(JwtConstants.CLAIM_KEY_FULLNAME, fullName);
     String accessToken = jwtAuth.generateToken(claims, new JWTOptions()//
         .setSubject(userId)//
         .setIssuer(appConfig.getJwtIssuer())//
-        .setExpiresInMinutes(appConfig.getJwtExpireInMinutes()));
+        .setExpiresInMinutes(appConfig.getJwtExpireInMinutes())//
+        .setPermissions(permissions));
 
     String refreshToken = CommonUtils.generateUUID();
     JsonObject document = new JsonObject()//
         .put("_id", refreshToken)//
         .put("userId", userId)//
+        .put("username", username)//
+        .put("fullName", fullName)//
+        .put("permissions", permissions)//
         .put("issuedDate", new JsonObject().put("$date", Instant.now()));
 
     if (logger.isDebugEnabled()) {
@@ -77,7 +90,7 @@ class JwtService {
             JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
       }
 
-      return getAndSaveToken(username, user.getString("id"), requestId);
+      return getAndSaveToken(user, requestId);
     });
   }
 
@@ -98,12 +111,7 @@ class JwtService {
           throw new ApplicationException(JwtConstants.MSG_ERR_REFRESH_TOKEN_FAILED, requestId,
               JwtConstants.MSG_ERR_REFRESH_TOKEN_NOT_FOUND);
         })//
-        .map(rst -> {
-          String username = rst.getString("username");
-          String userId = rst.getString("userId");
-
-          return getAndSaveToken(username, userId, requestId);
-        })//
+        .map(user -> getAndSaveToken(user, requestId))//
         .toSingle();
   }
 

@@ -42,4 +42,6 @@ public class CommonConstants {
   public static final String EVT_USER_GET_BY_ID = "user-get-by-id";
 
   public static final String PERMISSION_USER_WRITE = "user:write";
+
+  public static final String JWT_CLAIM_KEY_USERID = "sub";
 }

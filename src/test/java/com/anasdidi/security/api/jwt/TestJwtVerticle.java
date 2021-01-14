@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mindrot.jbcrypt.BCrypt;
 import io.reactivex.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClientDeleteResult;
 import io.vertx.junit5.VertxExtension;
@@ -27,7 +28,11 @@ public class TestJwtVerticle {
     return new JsonObject()//
         .put("username", System.currentTimeMillis() + "username")//
         .put("password", BCrypt.hashpw("password", BCrypt.gensalt()))//
-        .put("telegramId", System.currentTimeMillis() + "telegramId");
+        .put("fullName", System.currentTimeMillis() + "fullName")//
+        .put("email", System.currentTimeMillis() + "email")//
+        .put("version", 0)//
+        .put("telegramId", System.currentTimeMillis() + "telegramId")
+        .put("permissions", new JsonArray().add(System.currentTimeMillis() + "jwt:test"));
   }
 
   private static MongoClient getMongoClient(Vertx vertx) throws Exception {
@@ -90,15 +95,7 @@ public class TestJwtVerticle {
               Assertions.assertNotNull(data.getString("accessToken"));
               Assertions.assertNotNull(data.getString("refreshToken"));
 
-              webClient.get(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/check")
-                  .putHeader("Authorization", "Bearer " + data.getString("accessToken")).rxSend()
-                  .subscribe(ping -> {
-                    testContext.verify(() -> {
-                      Assertions.assertEquals(200, ping.statusCode());
-                      Assertions.assertNotNull(ping.bodyAsJsonObject());
-                      testContext.completeNow();
-                    });
-                  }, e -> testContext.failNow(e));
+              testContext.completeNow();
             });
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
@@ -430,6 +427,57 @@ public class TestJwtVerticle {
                     testContext.completeNow();
                   });
                 }, e -> testContext.failNow(e));
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testJwtCheckSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    MongoClient mongoClient = getMongoClient(vertx);
+    WebClient webClient = WebClient.create(vertx);
+    JsonObject user = generateDocument();
+
+    mongoClient.rxSave("users", user).subscribe(id -> {
+      user.put("password", "password");
+      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
+          .rxSendJsonObject(user).subscribe(login -> {
+            String accessToken =
+                login.bodyAsJsonObject().getJsonObject("data").getString("accessToken");
+
+            webClient.get(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/check")
+                .putHeader("Authorization", "Bearer " + accessToken).rxSend()
+                .subscribe(response -> {
+                  testContext.verify(() -> {
+                    Assertions.assertEquals(200, response.statusCode());
+                    Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+                    Assertions.assertEquals("no-store, no-cache",
+                        response.getHeader("Cache-Control"));
+                    Assertions.assertEquals("nosniff",
+                        response.getHeader("X-Content-Type-Options"));
+                    Assertions.assertEquals("1; mode=block",
+                        response.getHeader("X-XSS-Protection"));
+                    Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+                    JsonObject responseBody = response.bodyAsJsonObject();
+                    Assertions.assertNotNull(responseBody);
+
+                    JsonObject status = responseBody.getJsonObject("status");
+                    Assertions.assertNotNull(status);
+                    Assertions.assertEquals(true, status.getBoolean("isSuccess"));
+                    Assertions.assertEquals("Token decoded.", status.getString("message"));
+
+                    JsonObject data = responseBody.getJsonObject("data");
+                    Assertions.assertNotNull(data);
+                    Assertions.assertNotNull(data.getString("userId"));
+                    Assertions.assertEquals(user.getString("username"), data.getString("username"));
+                    Assertions.assertEquals(user.getString("fullName"), data.getString("fullName"));
+                    Assertions.assertEquals(user.getJsonArray("permissions"),
+                        data.getJsonArray("permissions"));
+
+                    testContext.completeNow();
+                  });
+                });
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }

@@ -24,10 +24,12 @@ class JwtService {
     this.mongoClient = mongoClient;
   }
 
-  private JwtVO getAndSaveToken(String fullName, String username, String userId, String requestId)
-      throws Exception {
+  private JwtVO getAndSaveToken(JsonObject user, String requestId) throws Exception {
     final String TAG = "getAndSaveToken";
     AppConfig appConfig = AppConfig.instance();
+    String userId = user.getString("id");
+    String username = user.getString("username");
+    String fullName = user.getString("fullName");
 
     JsonObject claims = new JsonObject()//
         .put(JwtConstants.CLAIM_KEY_USERNAME, username)//
@@ -79,7 +81,7 @@ class JwtService {
             JwtConstants.MSG_ERR_INVALID_USERNAME_PASSWORD);
       }
 
-      return getAndSaveToken(user.getString("fullName"), username, user.getString("id"), requestId);
+      return getAndSaveToken(user, requestId);
     });
   }
 
@@ -100,13 +102,7 @@ class JwtService {
           throw new ApplicationException(JwtConstants.MSG_ERR_REFRESH_TOKEN_FAILED, requestId,
               JwtConstants.MSG_ERR_REFRESH_TOKEN_NOT_FOUND);
         })//
-        .map(rst -> {
-          String username = rst.getString("username");
-          String userId = rst.getString("userId");
-          String fullName = rst.getString("fullName");
-
-          return getAndSaveToken(fullName, username, userId, requestId);
-        })//
+        .map(user -> getAndSaveToken(user, requestId))//
         .toSingle();
   }
 

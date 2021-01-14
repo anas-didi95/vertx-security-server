@@ -9,7 +9,6 @@ import org.apache.logging.log4j.Logger;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.eventbus.EventBus;
-import io.vertx.reactivex.core.http.Cookie;
 import io.vertx.reactivex.ext.web.RoutingContext;
 
 class JwtController extends CommonController {
@@ -61,21 +60,16 @@ class JwtController extends CommonController {
   void doCheck(RoutingContext routingContext) {
     final String TAG = "doCheck";
     String requestId = routingContext.get("requestId");
-    Cookie refreshToken = routingContext.getCookie("refreshToken");
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[{}:{}] refreshToken={}", TAG, requestId,
-          (refreshToken != null ? refreshToken.getValue() : null));
       logger.debug("[{}:{}] principal\n{}", TAG, requestId,
-          routingContext.user().principal() != null
-              ? routingContext.user().principal().encodePrettily()
-              : null);
+          routingContext.user().principal().encodePrettily());
     }
 
     Single<JsonObject> subscriber = Single.fromCallable(() -> new JsonObject());
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
-        "JWT token successfully decoded.");
+        JwtConstants.MSG_OK_TOKEN_DECODED);
   }
 
   void doRefresh(RoutingContext routingContext) {

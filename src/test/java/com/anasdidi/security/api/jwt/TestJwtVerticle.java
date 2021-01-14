@@ -90,15 +90,7 @@ public class TestJwtVerticle {
               Assertions.assertNotNull(data.getString("accessToken"));
               Assertions.assertNotNull(data.getString("refreshToken"));
 
-              webClient.get(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/check")
-                  .putHeader("Authorization", "Bearer " + data.getString("accessToken")).rxSend()
-                  .subscribe(ping -> {
-                    testContext.verify(() -> {
-                      Assertions.assertEquals(200, ping.statusCode());
-                      Assertions.assertNotNull(ping.bodyAsJsonObject());
-                      testContext.completeNow();
-                    });
-                  }, e -> testContext.failNow(e));
+              testContext.completeNow();
             });
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
@@ -430,6 +422,41 @@ public class TestJwtVerticle {
                     testContext.completeNow();
                   });
                 }, e -> testContext.failNow(e));
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testJwtCheckSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    MongoClient mongoClient = getMongoClient(vertx);
+    WebClient webClient = WebClient.create(vertx);
+    JsonObject user = generateDocument();
+
+    mongoClient.rxSave("users", user).subscribe(id -> {
+      user.put("password", "password");
+      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/login")
+          .rxSendJsonObject(user).subscribe(login -> {
+            String accessToken =
+                login.bodyAsJsonObject().getJsonObject("data").getString("accessToken");
+
+            webClient.get(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/check")
+                .putHeader("Authorization", "Bearer " + accessToken).rxSend()
+                .subscribe(response -> {
+                  testContext.verify(() -> {
+                    Assertions.assertEquals(200, response.statusCode());
+                    Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+                    Assertions.assertEquals("no-store, no-cache",
+                        response.getHeader("Cache-Control"));
+                    Assertions.assertEquals("nosniff",
+                        response.getHeader("X-Content-Type-Options"));
+                    Assertions.assertEquals("1; mode=block",
+                        response.getHeader("X-XSS-Protection"));
+                    Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+                    testContext.completeNow();
+                  });
+                });
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }

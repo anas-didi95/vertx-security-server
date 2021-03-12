@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mindrot.jbcrypt.BCrypt;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -32,9 +33,14 @@ public class TestUserVerticle {
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYifQ.F5jwo_F1RkC5cSLKyKFTX2taKqRpCasfSQDMf13o5PA";
 
   private JsonObject generateDocument() {
+    return generateDocument(System.currentTimeMillis() + "password");
+  }
+
+  private JsonObject generateDocument(String password) {
     return new JsonObject()//
         .put("username", System.currentTimeMillis() + "username")//
-        .put("password", System.currentTimeMillis() + "password")//
+        .put("password", BCrypt.hashpw(password, BCrypt.gensalt()))//
+        .put("plainPassword", password)//
         .put("fullName", System.currentTimeMillis() + "fullName")//
         .put("email", System.currentTimeMillis() + "email")//
         .put("version", 0)//
@@ -710,12 +716,13 @@ public class TestUserVerticle {
     AppConfig appConfig = AppConfig.instance();
     WebClient webClient = WebClient.create(vertx);
     MongoClient mongoClient = getMongoClient(vertx);
-    JsonObject createdBody = generateDocument();
+    String oldPassword = System.currentTimeMillis() + "oldPassword";
+    JsonObject createdBody = generateDocument(oldPassword);
 
     mongoClient.rxSave(UserConstants.COLLECTION_NAME, createdBody).subscribe(id -> {
       String newPassword = CommonUtils.generateUUID();
-      JsonObject requestBody = new JsonObject()
-          .put("oldPassword", createdBody.getString("password")).put("newPassword", newPassword);
+      JsonObject requestBody = new JsonObject().put("oldPassword", oldPassword)
+          .put("newPassword", newPassword).put("version", createdBody.getLong("version"));
 
       webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/changePassword")
           .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
@@ -740,7 +747,16 @@ public class TestUserVerticle {
               Assertions.assertNotNull(data);
               Assertions.assertNotNull(data.getString("requestId"));
 
-              testContext.completeNow();
+              mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, new JsonObject().put("_id", id),
+                  new JsonObject()).subscribe(json -> {
+                    UserVO vo = UserVO.fromJson(json);
+                    testContext.verify(() -> {
+                      Assertions.assertTrue(BCrypt.checkpw(newPassword, vo.password),
+                          "Password not matched!");
+
+                      testContext.completeNow();
+                    });
+                  });
             });
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));

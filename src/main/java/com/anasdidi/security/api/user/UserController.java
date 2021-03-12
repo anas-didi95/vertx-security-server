@@ -117,7 +117,7 @@ class UserController extends CommonController {
     // final String TAG = "doUpdate";
     String requestId = routingContext.get("requestId");
 
-    Single<JsonObject> subscriber = Single.just(new JsonObject());
+    Single<JsonObject> subscriber = Single.just(new JsonObject().put("requestId", requestId));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         UserConstants.MSG_OK_USER_CHANGE_PASSWORD);

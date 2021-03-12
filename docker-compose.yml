@@ -5,13 +5,18 @@ services:
     build:
       context: .devcontainer
       dockerfile: Dockerfile
+      args:
+        # Update the VARIANT arg to pick a Java version: 11, 15
+        VARIANT: 11
+        # Options
+        INSTALL_MAVEN: "false"
+        INSTALL_GRADLE: "false"
+        INSTALL_NODE: "false"
+        NODE_VERSION": "lts/*"
     env_file: .env
-    environment:
-      APP_PORT: 5000
-      APP_HOST: 0.0.0.0
     command: sleep infinity
     ports:
-      - "5000:5000"
+      - "${APP_PORT}:${APP_PORT}"
     volumes:
       - ./:/workspace
       - ./m2-docker:/home/vscode/.m2

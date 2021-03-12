@@ -721,22 +721,22 @@ public class TestUserVerticle {
           .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
           .subscribe(response -> {
             testContext.verify(() -> {
-              Assertions.assertEquals(200, response.statusCode(), "Response status code failed!");
+              Assertions.assertEquals(200, response.statusCode());
               Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
               Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
               Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
               Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
               Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
 
-              JsonObject user = new JsonObject().put("username", createdBody.getString("username"))
-                  .put("password", newPassword);
-              webClient
-                  .post(appConfig.getAppPort(), appConfig.getAppHost(), "/security/api/jwt/login")
-                  .rxSendJsonObject(user).subscribe(login -> {
-                    Assertions.assertEquals(200, login.statusCode(), "Login status code failed!");
+              JsonObject responseBody = response.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody);
 
-                    testContext.completeNow();
-                  }, e -> testContext.failNow(e));
+              JsonObject status = responseBody.getJsonObject("status");
+              Assertions.assertNotNull(status);
+              Assertions.assertEquals(true, status.getBoolean("isSuccess"));
+              Assertions.assertEquals("Change password succeed.", status.getString("message"));
+
+              testContext.completeNow();
             });
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));

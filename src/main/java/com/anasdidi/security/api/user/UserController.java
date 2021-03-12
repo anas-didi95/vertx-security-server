@@ -119,7 +119,8 @@ class UserController extends CommonController {
 
     Single<JsonObject> subscriber = Single.just(new JsonObject());
 
-    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK, "");
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
+        UserConstants.MSG_OK_USER_CHANGE_PASSWORD);
   }
 
   void doGetUserByUsername(Message<Object> request) {

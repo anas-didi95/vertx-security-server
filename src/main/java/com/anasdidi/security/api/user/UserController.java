@@ -113,6 +113,15 @@ class UserController extends CommonController {
         CommonConstants.MSG_OK_RECORD_DELETE);
   }
 
+  void doChangePassword(RoutingContext routingContext) {
+    // final String TAG = "doUpdate";
+    String requestId = routingContext.get("requestId");
+
+    Single<JsonObject> subscriber = Single.just(new JsonObject());
+
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK, "");
+  }
+
   void doGetUserByUsername(Message<Object> request) {
     final String TAG = "doGetUserByUsername";
     JsonObject requestBody = (JsonObject) request.body();

@@ -5,6 +5,14 @@ services:
     build:
       context: .devcontainer
       dockerfile: Dockerfile
+      args:
+        # Update the VARIANT arg to pick a Java version: 11, 15
+        VARIANT: 11
+        # Options
+        INSTALL_MAVEN: "false"
+        INSTALL_GRADLE: "false"
+        INSTALL_NODE: "false"
+        NODE_VERSION": "lts/*"
     env_file: .env
     environment:
       APP_PORT: 5000

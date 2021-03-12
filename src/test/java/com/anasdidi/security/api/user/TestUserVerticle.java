@@ -4,6 +4,7 @@ import java.time.Instant;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.CommonConstants;
+import com.anasdidi.security.common.CommonUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -699,6 +700,43 @@ public class TestUserVerticle {
               Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
 
               testContext.completeNow();
+            });
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testChangePasswordSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    WebClient webClient = WebClient.create(vertx);
+    MongoClient mongoClient = getMongoClient(vertx);
+    JsonObject createdBody = generateDocument();
+
+    mongoClient.rxSave(UserConstants.COLLECTION_NAME, createdBody).subscribe(id -> {
+      String newPassword = CommonUtils.generateUUID();
+      JsonObject requestBody = new JsonObject()
+          .put("oldPassword", createdBody.getString("password")).put("newPassword", newPassword);
+
+      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/changePassword")
+          .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
+          .subscribe(response -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(200, response.statusCode(), "Response status code failed!");
+              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+              JsonObject user = new JsonObject().put("username", createdBody.getString("username"))
+                  .put("password", newPassword);
+              webClient
+                  .post(appConfig.getAppPort(), appConfig.getAppHost(), "/security/api/jwt/login")
+                  .rxSendJsonObject(user).subscribe(login -> {
+                    Assertions.assertEquals(200, login.statusCode(), "Login status code failed!");
+
+                    testContext.completeNow();
+                  }, e -> testContext.failNow(e));
             });
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));

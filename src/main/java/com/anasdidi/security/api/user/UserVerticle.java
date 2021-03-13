@@ -54,7 +54,7 @@ public class UserVerticle extends AbstractVerticle {
     router.post("/").handler(userController::doCreate);
     router.put("/:id").handler(userController::doUpdate);
     router.delete("/:id").handler(userController::doDelete);
-    router.post("/changePassword").handler(userController::doChangePassword);
+    router.post("/:id/changePassword").handler(userController::doChangePassword);
     mainRouter.mountSubRouter(UserConstants.REQUEST_URI, router);
 
     eventBus.consumer(CommonConstants.EVT_USER_GET_BY_USERNAME,

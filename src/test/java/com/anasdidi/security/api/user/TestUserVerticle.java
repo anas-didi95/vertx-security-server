@@ -712,7 +712,7 @@ public class TestUserVerticle {
   }
 
   @Test
-  void testChangePasswordSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
+  void testUserChangePasswordSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
     AppConfig appConfig = AppConfig.instance();
     WebClient webClient = WebClient.create(vertx);
     MongoClient mongoClient = getMongoClient(vertx);
@@ -724,7 +724,9 @@ public class TestUserVerticle {
       JsonObject requestBody = new JsonObject().put("oldPassword", oldPassword)
           .put("newPassword", newPassword).put("version", createdBody.getLong("version"));
 
-      webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/changePassword")
+      webClient
+          .post(appConfig.getAppPort(), appConfig.getAppHost(),
+              requestURI + "/" + id + "/changePassword")
           .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
           .subscribe(response -> {
             testContext.verify(() -> {

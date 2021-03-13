@@ -114,10 +114,24 @@ class UserController extends CommonController {
   }
 
   void doChangePassword(RoutingContext routingContext) {
-    // final String TAG = "doUpdate";
+    final String TAG = "doChangePassword";
     String requestId = routingContext.get("requestId");
+    String paramId = routingContext.request().getParam("id");
 
-    Single<JsonObject> subscriber = Single.just(new JsonObject().put("requestId", requestId));
+    Single<JsonObject> subscriber = CommonUtils
+        .isAuthorized(routingContext.user(), CommonConstants.PERMISSION_USER_WRITE, requestId)
+        .map(user -> {
+          JsonObject requestBody = routingContext.getBodyAsJson();
+          requestBody.put("id", paramId);
+
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
+          }
+
+          return requestBody;
+        }).map(json -> UserVO.fromJson(json))
+        .flatMap(vo -> userService.changePassword(vo, requestId))
+        .map(id -> new JsonObject().put("requestId", requestId));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         UserConstants.MSG_OK_USER_CHANGE_PASSWORD);

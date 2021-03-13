@@ -20,9 +20,12 @@ class UserVO {
   final String telegramId;
   final List<String> permissions;
 
+  final String oldPassword;
+  final String newPassword;
+
   private UserVO(String id, String username, String password, String fullName, String email,
       String lastModifiedBy, Instant lastModifiedDate, Long version, String telegramId,
-      List<String> permissions) {
+      List<String> permissions, String oldPassword, String newPassword) {
     this.id = id;
     this.username = username;
     this.password = password;
@@ -33,6 +36,9 @@ class UserVO {
     this.version = version;
     this.telegramId = telegramId;
     this.permissions = permissions;
+
+    this.oldPassword = oldPassword;
+    this.newPassword = newPassword;
   }
 
   static UserVO fromJson(JsonObject json) {
@@ -48,8 +54,11 @@ class UserVO {
     List<String> permissions = json.getJsonArray("permissions", new JsonArray()).stream()
         .map(o -> (String) o).collect(Collectors.toList());
 
+    String oldPassword = json.getString("oldPassword");
+    String newPassword = json.getString("newPassword");
+
     return new UserVO(id, username, password, fullName, email, lastModifiedBy, lastModifiedDate,
-        version, telegramId, permissions);
+        version, telegramId, permissions, oldPassword, newPassword);
   }
 
   static JsonObject toJson(UserVO vo) {
@@ -63,7 +72,9 @@ class UserVO {
         .put("lastModifiedDate", vo.lastModifiedDate)//
         .put("version", vo.version)//
         .put("telegramId", vo.telegramId)//
-        .put("permissions", vo.permissions);
+        .put("permissions", vo.permissions)//
+        .put("oldPassword", vo.oldPassword)//
+        .put("newPassword", vo.newPassword);
   }
 
   @Override
@@ -79,6 +90,8 @@ class UserVO {
         .put("version", version)//
         .put("teleramId", telegramId)//
         .put("permissions", permissions)//
+        .put("oldPassword", oldPassword)//
+        .put("newPassword", newPassword)//
         .encodePrettily();
   }
 }

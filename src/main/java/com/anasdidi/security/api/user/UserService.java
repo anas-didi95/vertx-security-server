@@ -99,6 +99,28 @@ class UserService {
         .toSingle();
   }
 
+  Single<String> changePassword(UserVO vo, String requestId) {
+    final String TAG = "changePassword";
+    JsonObject query = new JsonObject().put("_id", vo.id).put("version", vo.version);
+    JsonObject fields = new JsonObject();
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
+      logger.debug("[{}:{}] fields\n{}", TAG, requestId, fields.encodePrettily());
+    }
+
+    return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields).flatMap(doc -> {
+      JsonObject update = new JsonObject().put("$set",
+          new JsonObject().put("password", UserUtils.encryptPassword(vo.newPassword)));
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
+      }
+
+      return mongoClient.rxFindOneAndUpdate(UserConstants.COLLECTION_NAME, query, update);
+    }).map(doc -> doc.getString("_id")).toSingle();
+  }
+
   Single<UserVO> getUserByUsername(UserVO vo) {
     JsonObject query = new JsonObject()//
         .put("username", vo.username);

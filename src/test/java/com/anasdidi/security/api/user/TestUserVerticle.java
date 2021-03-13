@@ -747,7 +747,7 @@ public class TestUserVerticle {
 
               JsonObject data = responseBody.getJsonObject("data");
               Assertions.assertNotNull(data);
-              Assertions.assertNotNull(data.getString("requestId"));
+              Assertions.assertEquals(id, data.getString("id"));
 
               mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, new JsonObject().put("_id", id),
                   new JsonObject()).subscribe(json -> {

@@ -132,7 +132,7 @@ class UserController extends CommonController {
           return requestBody;
         }).map(json -> UserVO.fromJson(json))
         .flatMap(vo -> userService.changePassword(vo, requestId))
-        .map(id -> new JsonObject().put("requestId", requestId));
+        .map(id -> new JsonObject().put("id", id));
 
     sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
         UserConstants.MSG_OK_USER_CHANGE_PASSWORD);

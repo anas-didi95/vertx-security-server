@@ -125,7 +125,8 @@ class UserController extends CommonController {
           requestBody.put("id", paramId);
 
           if (logger.isDebugEnabled()) {
-            logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.encodePrettily());
+            logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.copy()
+                .put("oldPassword", "*****").put("newPassword", "*****").encodePrettily());
           }
 
           return requestBody;

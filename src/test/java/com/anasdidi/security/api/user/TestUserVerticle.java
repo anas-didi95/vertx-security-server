@@ -4,11 +4,13 @@ import java.time.Instant;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.CommonConstants;
+import com.anasdidi.security.common.CommonUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mindrot.jbcrypt.BCrypt;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -31,9 +33,14 @@ public class TestUserVerticle {
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYifQ.F5jwo_F1RkC5cSLKyKFTX2taKqRpCasfSQDMf13o5PA";
 
   private JsonObject generateDocument() {
+    return generateDocument(System.currentTimeMillis() + "password");
+  }
+
+  private JsonObject generateDocument(String password) {
     return new JsonObject()//
         .put("username", System.currentTimeMillis() + "username")//
-        .put("password", System.currentTimeMillis() + "password")//
+        .put("password", BCrypt.hashpw(password, BCrypt.gensalt()))//
+        .put("plainPassword", password)//
         .put("fullName", System.currentTimeMillis() + "fullName")//
         .put("email", System.currentTimeMillis() + "email")//
         .put("version", 0)//
@@ -699,6 +706,62 @@ public class TestUserVerticle {
               Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
 
               testContext.completeNow();
+            });
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
+
+  @Test
+  void testUserChangePasswordSuccess(Vertx vertx, VertxTestContext testContext) throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    WebClient webClient = WebClient.create(vertx);
+    MongoClient mongoClient = getMongoClient(vertx);
+    String oldPassword = System.currentTimeMillis() + "oldPassword";
+    JsonObject createdBody = generateDocument(oldPassword);
+
+    mongoClient.rxSave(UserConstants.COLLECTION_NAME, createdBody).subscribe(id -> {
+      String newPassword = CommonUtils.generateUUID();
+      JsonObject requestBody = new JsonObject().put("oldPassword", oldPassword)
+          .put("newPassword", newPassword).put("version", createdBody.getLong("version"));
+
+      webClient
+          .post(appConfig.getAppPort(), appConfig.getAppHost(),
+              requestURI + "/" + id + "/changePassword")
+          .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
+          .subscribe(response -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(200, response.statusCode());
+              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
+              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
+              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
+              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+
+              JsonObject responseBody = response.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody);
+
+              JsonObject status = responseBody.getJsonObject("status");
+              Assertions.assertNotNull(status);
+              Assertions.assertEquals(true, status.getBoolean("isSuccess"));
+              Assertions.assertEquals("Change password succeed.", status.getString("message"));
+
+              JsonObject data = responseBody.getJsonObject("data");
+              Assertions.assertNotNull(data);
+              Assertions.assertEquals(id, data.getString("id"));
+
+              mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, new JsonObject().put("_id", id),
+                  new JsonObject()).subscribe(json -> {
+                    UserVO vo = UserVO.fromJson(json);
+                    testContext.verify(() -> {
+                      Assertions.assertTrue(BCrypt.checkpw(newPassword, vo.password),
+                          "Password not matched!");
+                      Assertions.assertEquals(requestBody.getLong("version") + 1, vo.version);
+                      Assertions.assertNotNull(vo.lastModifiedBy);
+                      Assertions.assertNotNull(vo.lastModifiedDate);
+
+                      testContext.completeNow();
+                    });
+                  });
             });
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));

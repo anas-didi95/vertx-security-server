@@ -113,6 +113,32 @@ class UserController extends CommonController {
         CommonConstants.MSG_OK_RECORD_DELETE);
   }
 
+  void doChangePassword(RoutingContext routingContext) {
+    final String TAG = "doChangePassword";
+    String requestId = routingContext.get("requestId");
+    String paramId = routingContext.request().getParam("id");
+    String userId = CommonUtils.getUserIdFromToken(routingContext.user());
+
+    Single<JsonObject> subscriber = CommonUtils
+        .isAuthorized(routingContext.user(), CommonConstants.PERMISSION_USER_WRITE, requestId)
+        .map(user -> {
+          JsonObject requestBody = routingContext.getBodyAsJson();
+          requestBody.put("id", paramId).put("lastModifiedBy", userId);
+
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.copy()
+                .put("oldPassword", "*****").put("newPassword", "*****").encodePrettily());
+          }
+
+          return requestBody;
+        }).map(json -> UserVO.fromJson(json))
+        .flatMap(vo -> userService.changePassword(vo, requestId))
+        .map(id -> new JsonObject().put("id", id));
+
+    sendResponse(requestId, subscriber, routingContext, CommonConstants.STATUS_CODE_OK,
+        UserConstants.MSG_OK_USER_CHANGE_PASSWORD);
+  }
+
   void doGetUserByUsername(Message<Object> request) {
     final String TAG = "doGetUserByUsername";
     JsonObject requestBody = (JsonObject) request.body();

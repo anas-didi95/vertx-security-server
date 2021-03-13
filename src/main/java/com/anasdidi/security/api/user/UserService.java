@@ -111,7 +111,10 @@ class UserService {
 
     return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields).flatMap(doc -> {
       JsonObject update = new JsonObject().put("$set",
-          new JsonObject().put("password", UserUtils.encryptPassword(vo.newPassword)));
+          new JsonObject().put("password", UserUtils.encryptPassword(vo.newPassword))
+              .put("lastModifiedBy", vo.lastModifiedBy)
+              .put("lastModifiedDate", new JsonObject().put("$date", Instant.now()))
+              .put("version", vo.version + 1));
 
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());

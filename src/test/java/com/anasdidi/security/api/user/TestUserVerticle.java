@@ -755,6 +755,9 @@ public class TestUserVerticle {
                     testContext.verify(() -> {
                       Assertions.assertTrue(BCrypt.checkpw(newPassword, vo.password),
                           "Password not matched!");
+                      Assertions.assertEquals(requestBody.getLong("version") + 1, vo.version);
+                      Assertions.assertNotNull(vo.lastModifiedBy);
+                      Assertions.assertNotNull(vo.lastModifiedDate);
 
                       testContext.completeNow();
                     });

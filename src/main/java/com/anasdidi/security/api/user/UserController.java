@@ -117,12 +117,13 @@ class UserController extends CommonController {
     final String TAG = "doChangePassword";
     String requestId = routingContext.get("requestId");
     String paramId = routingContext.request().getParam("id");
+    String userId = CommonUtils.getUserIdFromToken(routingContext.user());
 
     Single<JsonObject> subscriber = CommonUtils
         .isAuthorized(routingContext.user(), CommonConstants.PERMISSION_USER_WRITE, requestId)
         .map(user -> {
           JsonObject requestBody = routingContext.getBodyAsJson();
-          requestBody.put("id", paramId);
+          requestBody.put("id", paramId).put("lastModifiedBy", userId);
 
           if (logger.isDebugEnabled()) {
             logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.copy()

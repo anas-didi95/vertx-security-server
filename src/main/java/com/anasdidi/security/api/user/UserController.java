@@ -123,6 +123,12 @@ class UserController extends CommonController {
         .isAuthorized(routingContext.user(), CommonConstants.PERMISSION_USER_WRITE, requestId)
         .map(user -> {
           JsonObject requestBody = routingContext.getBodyAsJson();
+
+          if (requestBody == null || requestBody.isEmpty()) {
+            throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
+                CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
+          }
+
           requestBody.put("id", paramId).put("lastModifiedBy", userId);
 
           if (logger.isDebugEnabled()) {

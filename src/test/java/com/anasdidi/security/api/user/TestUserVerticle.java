@@ -795,7 +795,7 @@ public class TestUserVerticle {
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);
               Assertions.assertEquals(false, status.getBoolean("isSuccess"));
-              Assertions.assertEquals("Request body is empty!", status.getString("message"));
+              Assertions.assertEquals("Request failed!", status.getString("message"));
 
               JsonObject data = responseBody.getJsonObject("data");
               Assertions.assertNotNull(data);

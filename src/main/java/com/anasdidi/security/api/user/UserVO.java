@@ -3,7 +3,7 @@ package com.anasdidi.security.api.user;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.anasdidi.security.common.CommonUtils;
+import com.anasdidi.security.common.MongoUtils;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -48,7 +48,7 @@ class UserVO {
     String fullName = json.getString("fullName");
     String email = json.getString("email");
     String lastModifiedBy = json.getString("lastModifiedBy");
-    Instant lastModifiedDate = CommonUtils.getInstantMongoDate(json, "lastModifiedDate");
+    Instant lastModifiedDate = MongoUtils.getDate(json, "lastModifiedDate");
     Long version = json.getLong("version");
     String telegramId = json.getString("telegramId");
     List<String> permissions = json.getJsonArray("permissions", new JsonArray()).stream()

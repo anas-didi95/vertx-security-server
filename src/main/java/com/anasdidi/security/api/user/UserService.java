@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationException;
+import com.anasdidi.security.common.MongoUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.Single;
@@ -27,7 +28,7 @@ class UserService {
         .put("fullName", vo.fullName)//
         .put("email", vo.email)//
         .put("lastModifiedBy", vo.lastModifiedBy)//
-        .put("lastModifiedDate", new JsonObject().put("$date", Instant.now()))//
+        .put("lastModifiedDate", MongoUtils.setDate(Instant.now()))//
         .put("version", 0)//
         .put("telegramId", vo.telegramId)//
         .put("permissions", vo.permissions);
@@ -51,15 +52,14 @@ class UserService {
     JsonObject query = new JsonObject()//
         .put("_id", vo.id)//
         .put("version", vo.version);
-    JsonObject update = new JsonObject()//
-        .put("$set", new JsonObject()//
-            .put("fullName", vo.fullName)//
-            .put("email", vo.email)//
-            .put("lastModifiedBy", vo.lastModifiedBy)//
-            .put("lastModifiedDate", new JsonObject().put("$date", Instant.now()))//
-            .put("version", vo.version + 1)//
-            .put("telegramId", vo.telegramId)//
-            .put("permissions", vo.permissions));
+    JsonObject update = MongoUtils.setUpdateDocument(new JsonObject()//
+        .put("fullName", vo.fullName)//
+        .put("email", vo.email)//
+        .put("lastModifiedBy", vo.lastModifiedBy)//
+        .put("lastModifiedDate", MongoUtils.setDate(Instant.now()))//
+        .put("version", vo.version + 1)//
+        .put("telegramId", vo.telegramId)//
+        .put("permissions", vo.permissions));
 
     if (logger.isDebugEnabled()) {
       logger.debug("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
@@ -110,11 +110,11 @@ class UserService {
     }
 
     return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields).flatMap(doc -> {
-      JsonObject update = new JsonObject().put("$set",
-          new JsonObject().put("password", UserUtils.encryptPassword(vo.newPassword))
-              .put("lastModifiedBy", vo.lastModifiedBy)
-              .put("lastModifiedDate", new JsonObject().put("$date", Instant.now()))
-              .put("version", vo.version + 1));
+      JsonObject update = MongoUtils.setUpdateDocument(new JsonObject()//
+          .put("password", UserUtils.encryptPassword(vo.newPassword))
+          .put("lastModifiedBy", vo.lastModifiedBy)
+          .put("lastModifiedDate", MongoUtils.setDate(Instant.now()))
+          .put("version", vo.version + 1));
 
       if (logger.isDebugEnabled()) {
         logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());

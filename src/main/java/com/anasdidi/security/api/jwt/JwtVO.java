@@ -1,7 +1,7 @@
 package com.anasdidi.security.api.jwt;
 
 import java.time.Instant;
-import com.anasdidi.security.common.CommonUtils;
+import com.anasdidi.security.common.MongoUtils;
 import io.vertx.core.json.JsonObject;
 
 class JwtVO {
@@ -28,7 +28,7 @@ class JwtVO {
     String username = json.getString("username");
     String password = json.getString("password");
     String userId = json.getString("userId");
-    Instant issuedDate = CommonUtils.getInstantMongoDate(json, "issuedDate");
+    Instant issuedDate = MongoUtils.getDate(json, "issuedDate");
     String refreshToken = json.getString("refreshToken");
 
     return new JwtVO(accessToken, username, password, userId, issuedDate, refreshToken);

@@ -40,7 +40,6 @@ public class TestUserVerticle {
     return new JsonObject()//
         .put("username", System.currentTimeMillis() + "username")//
         .put("password", BCrypt.hashpw(password, BCrypt.gensalt()))//
-        .put("plainPassword", password)//
         .put("fullName", System.currentTimeMillis() + "fullName")//
         .put("email", System.currentTimeMillis() + "email")//
         .put("version", 0)//

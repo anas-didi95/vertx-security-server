@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.UUID;
 import graphql.execution.ExecutionId;
 import io.reactivex.Single;
-import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.auth.User;
 
 public class CommonUtils {
@@ -25,16 +24,6 @@ public class CommonUtils {
     SimpleDateFormat sdf = new SimpleDateFormat(format);
 
     return sdf.format(date);
-  }
-
-  public static Instant getInstantMongoDate(JsonObject json, String key) {
-    JsonObject dateJson = json.getJsonObject(key);
-
-    if (dateJson == null || dateJson.isEmpty()) {
-      return null;
-    } else {
-      return dateJson.getInstant("$date");
-    }
   }
 
   public static String getUserIdFromToken(User user) {

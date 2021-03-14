@@ -127,9 +127,9 @@ class UserController extends CommonController {
           if (requestBody == null || requestBody.isEmpty()) {
             throw new ApplicationException(CommonConstants.MSG_ERR_REQUEST_FAILED, requestId,
                 CommonConstants.MSG_ERR_REQUEST_BODY_EMPTY);
+          } else {
+            requestBody.put("id", paramId).put("lastModifiedBy", userId);
           }
-
-          requestBody.put("id", paramId).put("lastModifiedBy", userId);
 
           if (logger.isDebugEnabled()) {
             logger.debug("[{}:{}] requestBody\n{}", TAG, requestId, requestBody.copy()

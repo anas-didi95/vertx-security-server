@@ -1,10 +1,10 @@
 package com.anasdidi.security.api.user;
 
-import java.time.Instant;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.AppConfig;
 import com.anasdidi.security.common.CommonConstants;
 import com.anasdidi.security.common.CommonUtils;
+import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,15 +81,8 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
         .subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(201, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
-
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
+            TestUtils.checkCommonHeaders(response, 201);
+            JsonObject responseBody = TestUtils.getResponseBody(response);
 
             JsonObject status = responseBody.getJsonObject("status");
             Assertions.assertNotNull(status);
@@ -136,35 +129,20 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
         .subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+            TestUtils.checkCommonHeaders(response, 400);
+            JsonObject responseBody = TestUtils.getResponseBody(response);
 
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-
-            // status
             JsonObject status = responseBody.getJsonObject("status");
             Assertions.assertNotNull(status);
             Assertions.assertEquals(false, status.getBoolean("isSuccess"));
             Assertions.assertEquals("Validation error!", status.getString("message"));
 
-            // data
             JsonObject data = responseBody.getJsonObject("data");
             Assertions.assertNotNull(data);
-
-            String requestId = data.getString("requestId");
-            Assertions.assertNotNull(requestId);
-
-            JsonArray errorList = data.getJsonArray("errorList");
-            Assertions.assertNotNull(errorList);
-            Assertions.assertTrue(!errorList.isEmpty());
-
-            Instant instant = data.getInstant("instant");
-            Assertions.assertNotNull(instant);
+            Assertions.assertNotNull(data.getString("requestId"));
+            Assertions.assertNotNull(data.getJsonArray("errorList"));
+            Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+            Assertions.assertNotNull(data.getInstant("instant"));
 
             testContext.completeNow();
           });
@@ -184,34 +162,20 @@ public class TestUserVerticle {
           .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
           .subscribe(response -> {
             testContext.verify(() -> {
-              Assertions.assertEquals(400, response.statusCode());
-              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+              TestUtils.checkCommonHeaders(response, 400);
+              JsonObject responseBody = TestUtils.getResponseBody(response);
 
-              JsonObject responseBody = response.bodyAsJsonObject();
-              Assertions.assertNotNull(responseBody);
-
-              // status
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);
               Assertions.assertEquals(false, status.getBoolean("isSuccess"));
               Assertions.assertEquals("User creation failed!", status.getString("message"));
 
-              // data
               JsonObject data = responseBody.getJsonObject("data");
               Assertions.assertNotNull(data);
-
-              String requestId = data.getString("requestId");
-              Assertions.assertNotNull(requestId);
-
-              JsonArray errorList = data.getJsonArray("errorList");
-              Assertions.assertTrue(!errorList.isEmpty());
-
-              Instant instant = data.getInstant("instant");
-              Assertions.assertNotNull(instant);
+              Assertions.assertNotNull(data.getString("requestId"));
+              Assertions.assertNotNull(data.getInstant("instant"));
+              Assertions.assertNotNull(data.getJsonArray("errorList"));
+              Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
 
               testContext.completeNow();
             });
@@ -228,17 +192,9 @@ public class TestUserVerticle {
     webClient.post(appConfig.getAppPort(), appConfig.getAppHost(), requestURI)
         .putHeader("Authorization", "Bearer " + accessToken).rxSend().subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+            TestUtils.checkCommonHeaders(response, 400);
+            JsonObject responseBody = TestUtils.getResponseBody(response);
 
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-
-            // status
             JsonObject status = responseBody.getJsonObject("status");
             Assertions.assertNotNull(status);
             Assertions.assertEquals(false, status.getBoolean("isSuccess"));
@@ -267,15 +223,8 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessTokenWithoutPermission)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(403, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
-
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
+            TestUtils.checkCommonHeaders(response, 403);
+            JsonObject responseBody = TestUtils.getResponseBody(response);
 
             JsonObject status = responseBody.getJsonObject("status");
             Assertions.assertNotNull(status);
@@ -309,15 +258,8 @@ public class TestUserVerticle {
           .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(updateBody)
           .subscribe(response -> {
             testContext.verify(() -> {
-              Assertions.assertEquals(200, response.statusCode());
-              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
-
-              JsonObject responseBody = response.bodyAsJsonObject();
-              Assertions.assertNotNull(responseBody);
+              TestUtils.checkCommonHeaders(response, 200);
+              JsonObject responseBody = TestUtils.getResponseBody(response);
 
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);
@@ -364,23 +306,14 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+            TestUtils.checkCommonHeaders(response, 400);
+            JsonObject responseBody = TestUtils.getResponseBody(response);
 
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-
-            // status
             JsonObject status = responseBody.getJsonObject("status");
             Assertions.assertNotNull(status);
             Assertions.assertEquals(false, status.getBoolean("isSuccess"));
             Assertions.assertEquals("Validation error!", status.getString("message"));
 
-            // data
             JsonObject data = responseBody.getJsonObject("data");
             Assertions.assertNotNull(data);
             Assertions.assertNotNull(data.getString("requestId"));
@@ -403,23 +336,14 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+            TestUtils.checkCommonHeaders(response, 400);
+            JsonObject responseBody = TestUtils.getResponseBody(response);
 
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-
-            // status
             JsonObject status = responseBody.getJsonObject("status");
             Assertions.assertNotNull(status);
             Assertions.assertEquals(false, status.getBoolean("isSuccess"));
             Assertions.assertEquals("User update failed!", status.getString("message"));
 
-            // data
             JsonObject data = responseBody.getJsonObject("data");
             Assertions.assertNotNull(data);
             Assertions.assertNotNull(data.getString("requestId"));
@@ -441,23 +365,14 @@ public class TestUserVerticle {
     webClient.put(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/validIdHere")
         .putHeader("Authorization", "Bearer " + accessToken).rxSend().subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+            TestUtils.checkCommonHeaders(response, 400);
+            JsonObject responseBody = TestUtils.getResponseBody(response);
 
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-
-            // status
             JsonObject status = responseBody.getJsonObject("status");
             Assertions.assertNotNull(status);
             Assertions.assertEquals(false, status.getBoolean("isSuccess"));
             Assertions.assertEquals("Request failed!", status.getString("message"));
 
-            // data
             JsonObject data = responseBody.getJsonObject("data");
             Assertions.assertNotNull(data);
             Assertions.assertNotNull(data.getString("requestId"));
@@ -483,15 +398,8 @@ public class TestUserVerticle {
           .putHeader("Authorization", "Bearer " + accessTokenWithoutPermission)
           .rxSendJsonObject(createdBody).subscribe(response -> {
             testContext.verify(() -> {
-              Assertions.assertEquals(403, response.statusCode());
-              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
-
-              JsonObject responseBody = response.bodyAsJsonObject();
-              Assertions.assertNotNull(responseBody);
+              TestUtils.checkCommonHeaders(response, 403);
+              JsonObject responseBody = TestUtils.getResponseBody(response);
 
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);
@@ -524,23 +432,14 @@ public class TestUserVerticle {
           .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
           .subscribe(response -> {
             testContext.verify(() -> {
-              Assertions.assertEquals(200, response.statusCode());
-              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+              TestUtils.checkCommonHeaders(response, 200);
+              JsonObject responseBody = TestUtils.getResponseBody(response);
 
-              JsonObject responseBody = response.bodyAsJsonObject();
-              Assertions.assertNotNull(responseBody);
-
-              // status
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);
               Assertions.assertEquals(true, status.getBoolean("isSuccess"));
               Assertions.assertEquals("User successfully deleted.", status.getString("message"));
 
-              // data
               JsonObject data = responseBody.getJsonObject("data");
               Assertions.assertNotNull(data);
               Assertions.assertEquals(id, data.getString("id"));
@@ -561,23 +460,14 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
         .subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+            TestUtils.checkCommonHeaders(response, 400);
+            JsonObject responseBody = TestUtils.getResponseBody(response);
 
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-
-            // status
             JsonObject status = responseBody.getJsonObject("status");
             Assertions.assertNotNull(status);
             Assertions.assertEquals(false, status.getBoolean("isSuccess"));
             Assertions.assertEquals("Validation error!", status.getString("message"));
 
-            // data
             JsonObject data = responseBody.getJsonObject("data");
             Assertions.assertNotNull(data);
             Assertions.assertNotNull(data.getString("requestId"));
@@ -601,23 +491,14 @@ public class TestUserVerticle {
         .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(createdBody)
         .subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+            TestUtils.checkCommonHeaders(response, 400);
+            JsonObject responseBody = TestUtils.getResponseBody(response);
 
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-
-            // status
             JsonObject status = responseBody.getJsonObject("status");
             Assertions.assertNotNull(status);
             Assertions.assertEquals(false, status.getBoolean("isSuccess"));
             Assertions.assertEquals("User delete failed!", status.getString("message"));
 
-            // data
             JsonObject data = responseBody.getJsonObject("data");
             Assertions.assertNotNull(data);
             Assertions.assertNotNull(data.getString("requestId"));
@@ -639,23 +520,14 @@ public class TestUserVerticle {
     webClient.delete(appConfig.getAppPort(), appConfig.getAppHost(), requestURI + "/validIdHere")
         .putHeader("Authorization", "Bearer " + accessToken).rxSend().subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(400, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-            Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-            Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-            Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-            Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
+            TestUtils.checkCommonHeaders(response, 400);
+            JsonObject responseBody = TestUtils.getResponseBody(response);
 
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-
-            // status
             JsonObject status = responseBody.getJsonObject("status");
             Assertions.assertNotNull(status);
             Assertions.assertEquals(false, status.getBoolean("isSuccess"));
             Assertions.assertEquals("Request failed!", status.getString("message"));
 
-            // data
             JsonObject data = responseBody.getJsonObject("data");
             Assertions.assertNotNull(data);
             Assertions.assertNotNull(data.getString("requestId"));
@@ -681,15 +553,8 @@ public class TestUserVerticle {
           .putHeader("Authorization", "Bearer " + accessTokenWithoutPermission)
           .rxSendJsonObject(createdBody).subscribe(response -> {
             testContext.verify(() -> {
-              Assertions.assertEquals(403, response.statusCode());
-              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
-
-              JsonObject responseBody = response.bodyAsJsonObject();
-              Assertions.assertNotNull(responseBody);
+              TestUtils.checkCommonHeaders(response, 403);
+              JsonObject responseBody = TestUtils.getResponseBody(response);
 
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);
@@ -729,15 +594,8 @@ public class TestUserVerticle {
           .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
           .subscribe(response -> {
             testContext.verify(() -> {
-              Assertions.assertEquals(200, response.statusCode());
-              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
-
-              JsonObject responseBody = response.bodyAsJsonObject();
-              Assertions.assertNotNull(responseBody);
+              TestUtils.checkCommonHeaders(response, 200);
+              JsonObject responseBody = TestUtils.getResponseBody(response);
 
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);
@@ -781,15 +639,8 @@ public class TestUserVerticle {
               requestURI + "/" + id + "/changePassword")
           .putHeader("Authorization", "Bearer " + accessToken).rxSend().subscribe(response -> {
             testContext.verify(() -> {
-              Assertions.assertEquals(400, response.statusCode());
-              Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-              Assertions.assertEquals("no-store, no-cache", response.getHeader("Cache-Control"));
-              Assertions.assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
-              Assertions.assertEquals("1; mode=block", response.getHeader("X-XSS-Protection"));
-              Assertions.assertEquals("deny", response.getHeader("X-Frame-Options"));
-
-              JsonObject responseBody = response.bodyAsJsonObject();
-              Assertions.assertNotNull(responseBody);
+              TestUtils.checkCommonHeaders(response, 400);
+              JsonObject responseBody = TestUtils.getResponseBody(response);
 
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);

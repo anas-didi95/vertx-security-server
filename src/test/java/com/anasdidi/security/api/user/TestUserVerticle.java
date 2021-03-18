@@ -670,7 +670,7 @@ public class TestUserVerticle {
     JsonObject createdBody = generateDocument(oldPassword);
 
     mongoClient.rxSave(UserConstants.COLLECTION_NAME, createdBody).subscribe(id -> {
-      JsonObject requestBody = new JsonObject();
+      JsonObject requestBody = new JsonObject().put("key", "value");
 
       webClient
           .post(appConfig.getAppPort(), appConfig.getAppHost(),
@@ -684,7 +684,7 @@ public class TestUserVerticle {
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);
               Assertions.assertEquals(false, status.getBoolean("isSuccess"));
-              Assertions.assertEquals("Validation Error!", status.getString("message"));
+              Assertions.assertEquals("Validation error!", status.getString("message"));
 
               JsonObject data = responseBody.getJsonObject("data");
               Assertions.assertNotNull(data);

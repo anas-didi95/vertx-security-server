@@ -16,7 +16,7 @@ class UserValidator {
   private final Logger logger = LogManager.getLogger(UserValidator.class);
 
   enum Validate {
-    CREATE, UPDATE, DELETE;
+    CREATE, UPDATE, DELETE, CHANGE_PASSWORD;
   }
 
   UserVO validate(Validate val, UserVO vo, String requestId) throws ApplicationException {
@@ -32,6 +32,9 @@ class UserValidator {
         break;
       case DELETE:
         errorList = validateDelete(vo, errorList);
+        break;
+      case CHANGE_PASSWORD:
+        errorList = validateChangePassword(vo, errorList);
         break;
     }
 
@@ -103,6 +106,30 @@ class UserValidator {
       errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Id"));
     }
 
+    if (version == null) {
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Version"));
+    }
+
+    return errorList;
+  }
+
+  private List<String> validateChangePassword(UserVO vo, List<String> errorList) {
+    String id = vo.id;
+    if (id == null || id.isBlank()) {
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "id"));
+    }
+
+    String oldPassword = vo.oldPassword;
+    if (oldPassword == null || oldPassword.isBlank()) {
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Old Password"));
+    }
+
+    String newPassword = vo.newPassword;
+    if (newPassword == null || newPassword.isBlank()) {
+      errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "New Password"));
+    }
+
+    Long version = vo.version;
     if (version == null) {
       errorList.add(String.format(CommonConstants.TMPT_FIELD_IS_MANDATORY, "Version"));
     }

@@ -120,7 +120,7 @@ class UserController extends CommonController {
     String userId = CommonUtils.getUserIdFromToken(routingContext.user());
 
     Single<JsonObject> subscriber = CommonUtils
-        .isAuthorized(routingContext.user(), CommonConstants.PERMISSION_USER_WRITE, requestId)
+        .isAuthorized(routingContext.user(), CommonConstants.PERMISSION_BYPASS, requestId)
         .map(user -> {
           JsonObject requestBody = routingContext.getBodyAsJson();
 
@@ -138,6 +138,7 @@ class UserController extends CommonController {
 
           return requestBody;
         }).map(json -> UserVO.fromJson(json))
+        .map(vo -> userValidator.validate(UserValidator.Validate.CHANGE_PASSWORD, vo, requestId))
         .flatMap(vo -> userService.changePassword(vo, requestId))
         .map(id -> new JsonObject().put("id", id));
 

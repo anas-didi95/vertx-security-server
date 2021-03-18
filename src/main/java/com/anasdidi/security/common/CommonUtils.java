@@ -32,6 +32,10 @@ public class CommonUtils {
 
   @SuppressWarnings({"deprecation"})
   public static Single<User> isAuthorized(User user, String authority, String requestId) {
+    if (authority != null && authority.equals(CommonConstants.PERMISSION_BYPASS)) {
+      return Single.just(user);
+    }
+
     return user.rxIsAuthorised(authority).map(isAuthorized -> {
       if (!isAuthorized) {
         throw new ApplicationException(CommonConstants.MSG_ERR_NOT_AUTHZ, requestId,

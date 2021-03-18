@@ -120,7 +120,7 @@ class UserController extends CommonController {
     String userId = CommonUtils.getUserIdFromToken(routingContext.user());
 
     Single<JsonObject> subscriber = CommonUtils
-        .isAuthorized(routingContext.user(), CommonConstants.PERMISSION_USER_WRITE, requestId)
+        .isAuthorized(routingContext.user(), CommonConstants.PERMISSION_BYPASS, requestId)
         .map(user -> {
           JsonObject requestBody = routingContext.getBodyAsJson();
 

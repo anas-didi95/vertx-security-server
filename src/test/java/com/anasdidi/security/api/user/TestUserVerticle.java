@@ -725,7 +725,7 @@ public class TestUserVerticle {
               JsonObject status = responseBody.getJsonObject("status");
               Assertions.assertNotNull(status);
               Assertions.assertEquals(false, status.getBoolean("isSuccess"));
-              Assertions.assertEquals("Old password not matched!", status.getString("message"));
+              Assertions.assertEquals("Change password failed!", status.getString("message"));
 
               JsonObject data = responseBody.getJsonObject("data");
               Assertions.assertNotNull(data);

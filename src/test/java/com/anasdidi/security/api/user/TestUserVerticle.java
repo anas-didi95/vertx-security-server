@@ -698,4 +698,45 @@ public class TestUserVerticle {
           }, e -> testContext.failNow(e));
     }, e -> testContext.failNow(e));
   }
+
+  @Test
+  void testUserChangePasswordOldPasswordNotMatchedError(Vertx vertx, VertxTestContext testContext)
+      throws Exception {
+    AppConfig appConfig = AppConfig.instance();
+    WebClient webClient = WebClient.create(vertx);
+    MongoClient mongoClient = getMongoClient(vertx);
+    String oldPassword = System.currentTimeMillis() + "oldPassword";
+    JsonObject createdBody = generateDocument(oldPassword);
+
+    mongoClient.rxSave(UserConstants.COLLECTION_NAME, createdBody).subscribe(id -> {
+      String newPassword = CommonUtils.generateUUID();
+      JsonObject requestBody = new JsonObject().put("oldPassword", "" + System.currentTimeMillis())
+          .put("newPassword", newPassword).put("version", createdBody.getLong("version"));
+
+      webClient
+          .post(appConfig.getAppPort(), appConfig.getAppHost(),
+              requestURI + "/" + id + "/changePassword")
+          .putHeader("Authorization", "Bearer " + accessToken).rxSendJsonObject(requestBody)
+          .subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.checkCommonHeaders(response, 400);
+              JsonObject responseBody = TestUtils.getResponseBody(response);
+
+              JsonObject status = responseBody.getJsonObject("status");
+              Assertions.assertNotNull(status);
+              Assertions.assertEquals(false, status.getBoolean("isSuccess"));
+              Assertions.assertEquals("Old password not matched!", status.getString("message"));
+
+              JsonObject data = responseBody.getJsonObject("data");
+              Assertions.assertNotNull(data);
+              Assertions.assertNotNull(data.getString("requestId"));
+              Assertions.assertNotNull(data.getInstant("instant"));
+              Assertions.assertNotNull(data.getJsonArray("errorList"));
+              Assertions.assertTrue(!data.getJsonArray("errorList").isEmpty());
+
+              testContext.completeNow();
+            });
+          }, e -> testContext.failNow(e));
+    }, e -> testContext.failNow(e));
+  }
 }

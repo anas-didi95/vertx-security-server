@@ -110,6 +110,12 @@ class UserService {
     }
 
     return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields).flatMap(doc -> {
+      String oldPassword = doc.getString("password");
+      if (!UserUtils.isPasswordMatched(vo.oldPassword, oldPassword)) {
+        throw new ApplicationException(UserConstants.MSG_ERR_CHANGE_PASSWORD_FAILED, requestId,
+            UserConstants.MSG_ERR_OLD_PASSWORD_NOT_MATCHED);
+      }
+
       JsonObject update = MongoUtils.setUpdateDocument(new JsonObject()//
           .put("password", UserUtils.encryptPassword(vo.newPassword))
           .put("lastModifiedBy", vo.lastModifiedBy)

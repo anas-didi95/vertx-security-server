@@ -8,4 +8,8 @@ class UserUtils {
     String encryptedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
     return encryptedPassword;
   }
+
+  static boolean isPasswordMatched(String plaintext, String hashed) {
+    return BCrypt.checkpw(plaintext, hashed);
+  }
 }

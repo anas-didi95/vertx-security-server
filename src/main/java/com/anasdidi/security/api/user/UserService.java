@@ -118,8 +118,8 @@ class UserService {
               oldPassword);
         }
 
-        throw new ApplicationException("Change password failed!", requestId,
-            "Invalid old password!");
+        throw new ApplicationException(UserConstants.MSG_ERR_CHANGE_PASSWORD_FAILED, requestId,
+            UserConstants.MSG_ERR_OLD_PASSWORD_NOT_MATCHED);
       }
 
       JsonObject update = MongoUtils.setUpdateDocument(new JsonObject()//

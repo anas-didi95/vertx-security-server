@@ -7,7 +7,6 @@ import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.MongoUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.mindrot.jbcrypt.BCrypt;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.mongo.MongoClient;
@@ -112,12 +111,7 @@ class UserService {
 
     return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields).flatMap(doc -> {
       String oldPassword = doc.getString("password");
-      if (!BCrypt.checkpw(vo.oldPassword, oldPassword)) {
-        if (logger.isDebugEnabled()) {
-          logger.debug("[{}:{}] vo.oldPassword={}, oldPassword={}", TAG, requestId, vo.oldPassword,
-              oldPassword);
-        }
-
+      if (!UserUtils.isPasswordMatched(vo.oldPassword, oldPassword)) {
         throw new ApplicationException(UserConstants.MSG_ERR_CHANGE_PASSWORD_FAILED, requestId,
             UserConstants.MSG_ERR_OLD_PASSWORD_NOT_MATCHED);
       }

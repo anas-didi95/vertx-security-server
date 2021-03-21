@@ -7,6 +7,7 @@ import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.MongoUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.mindrot.jbcrypt.BCrypt;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.mongo.MongoClient;
@@ -110,6 +111,17 @@ class UserService {
     }
 
     return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields).flatMap(doc -> {
+      String oldPassword = doc.getString("password");
+      if (!BCrypt.checkpw(vo.oldPassword, oldPassword)) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("[{}:{}] vo.oldPassword={}, oldPassword={}", TAG, requestId, vo.oldPassword,
+              oldPassword);
+        }
+
+        throw new ApplicationException("Change password failed!", requestId,
+            "Invalid old password!");
+      }
+
       JsonObject update = MongoUtils.setUpdateDocument(new JsonObject()//
           .put("password", UserUtils.encryptPassword(vo.newPassword))
           .put("lastModifiedBy", vo.lastModifiedBy)

@@ -109,25 +109,33 @@ class UserService {
       logger.debug("[{}:{}] fields\n{}", TAG, requestId, fields.encodePrettily());
     }
 
-    return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields).flatMap(doc -> {
-      String oldPassword = doc.getString("password");
-      if (!UserUtils.isPasswordMatched(vo.oldPassword, oldPassword)) {
-        throw new ApplicationException(UserConstants.MSG_ERR_CHANGE_PASSWORD_FAILED, requestId,
-            UserConstants.MSG_ERR_OLD_PASSWORD_NOT_MATCHED);
-      }
+    return mongoClient.rxFindOne(UserConstants.COLLECTION_NAME, query, fields)
+        .defaultIfEmpty(new JsonObject()).flatMap(doc -> {
+          String oldPassword = doc.getString("password");
+          if (oldPassword == null || oldPassword.isBlank()) {
+            throw new ApplicationException(UserConstants.MSG_ERR_CHANGE_PASSWORD_FAILED, requestId,
+                UserConstants.MSG_ERR_USER_RECORD_NOT_FOUND);
+          } else if (!UserUtils.isPasswordMatched(vo.oldPassword, oldPassword)) {
+            throw new ApplicationException(UserConstants.MSG_ERR_CHANGE_PASSWORD_FAILED, requestId,
+                UserConstants.MSG_ERR_OLD_PASSWORD_NOT_MATCHED);
+          }
 
-      JsonObject update = MongoUtils.setUpdateDocument(new JsonObject()//
-          .put("password", UserUtils.encryptPassword(vo.newPassword))
-          .put("lastModifiedBy", vo.lastModifiedBy)
-          .put("lastModifiedDate", MongoUtils.setDate(Instant.now()))
-          .put("version", vo.version + 1));
+          JsonObject update = MongoUtils.setUpdateDocument(new JsonObject()//
+              .put("password", UserUtils.encryptPassword(vo.newPassword))
+              .put("lastModifiedBy", vo.lastModifiedBy)
+              .put("lastModifiedDate", MongoUtils.setDate(Instant.now()))
+              .put("version", vo.version + 1));
 
-      if (logger.isDebugEnabled()) {
-        logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
-      }
+          if (logger.isDebugEnabled()) {
+            logger.debug("[{}:{}] update\n{}", TAG, requestId, update.encodePrettily());
+          }
 
-      return mongoClient.rxFindOneAndUpdate(UserConstants.COLLECTION_NAME, query, update);
-    }).map(doc -> doc.getString("_id")).toSingle();
+          return mongoClient.rxFindOneAndUpdate(UserConstants.COLLECTION_NAME, query, update);
+        }).doOnError(e -> {
+          logger.error("[{}:{}] {}", TAG, requestId, UserConstants.MSG_ERR_CHANGE_PASSWORD_FAILED);
+          logger.error("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
+          logger.error("[{}:{}] fields\n{}", TAG, requestId, fields.encodePrettily());
+        }).map(doc -> doc.getString("_id")).toSingle();
   }
 
   Single<UserVO> getUserByUsername(UserVO vo) {

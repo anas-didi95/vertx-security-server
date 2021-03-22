@@ -131,6 +131,10 @@ class UserService {
           }
 
           return mongoClient.rxFindOneAndUpdate(UserConstants.COLLECTION_NAME, query, update);
+        }).doOnError(e -> {
+          logger.error("[{}:{}] {}", TAG, requestId, UserConstants.MSG_ERR_CHANGE_PASSWORD_FAILED);
+          logger.error("[{}:{}] query\n{}", TAG, requestId, query.encodePrettily());
+          logger.error("[{}:{}] fields\n{}", TAG, requestId, fields.encodePrettily());
         }).map(doc -> doc.getString("_id")).toSingle();
   }
 

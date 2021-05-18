@@ -13,8 +13,8 @@ services:
         INSTALL_GRADLE: "false"
         INSTALL_NODE: "false"
         NODE_VERSION": "lts/*"
-    env_file: .env
     command: sleep infinity
+    env_file: .env
     ports:
       - "${APP_PORT}:${APP_PORT}"
     volumes:
@@ -33,12 +33,12 @@ services:
   mongo-express:
     image: mongo-express:0.54.0
     restart: always
-    ports:
-      - "10000:8081"
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME:?Required}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD:?Required}
       ME_CONFIG_MONGODB_SERVER: ${MONGO_HOST:?Required}
       ME_CONFIG_MONGODB_PORT: ${MONGO_PORT:?Required}
+    ports:
+      - "10000:8081"
     depends_on:
       - mongo

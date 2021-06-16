@@ -1,19 +1,11 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.183.0/containers/java
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.163.1/containers/java
 {
   "name": "Java",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "args": {
-      // Update the VARIANT arg to pick a Java version: 11, 16
-      "VARIANT": "11",
-      // Options
-      "INSTALL_MAVEN": "false",
-      "INSTALL_GRADLE": "false",
-      "INSTALL_NODE": "false",
-      "NODE_VERSION": "lts/*"
-    }
-  },
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "webservice",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
 
   // Set *default* container specific settings.json values on container create.
   "settings": {
@@ -21,7 +13,11 @@
   },
 
   // Add the IDs of extensions you want installed when the container is created.
-  "extensions": ["vscjava.vscode-java-pack"],
+  "extensions": [
+    "vscjava.vscode-java-pack",
+    "humao.rest-client",
+    "graphql.vscode-graphql"
+  ],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],

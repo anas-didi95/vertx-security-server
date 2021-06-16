@@ -22,6 +22,9 @@ This application was generated using http://start.vertx.io
 ## General info
 Back-end service which provides security-related resources such as user and JSON Web Token(JWT) endpoints.
 
+This repository refers to version 2.0.0. To get previous version(s), refer the below link(s):
+- https://github.com/anas-didi95/vertx-security-server/releases/tag/v1.0.0
+
 ---
 
 ## Technologies
@@ -68,6 +71,7 @@ To run your application:
 ---
 
 ## Features
+### TODO
 * Can create, update, delete user resource.
 * Add JWT authentication for resource handler.
 * Add GraphQL to query resource.

@@ -35,7 +35,6 @@ public class TestMainVerticle {
 
     mongoClient.rxGetCollections().subscribe(collectionList -> {
       testContext.verify(() -> {
-        Assertions.assertTrue(!collectionList.isEmpty());
         testContext.completeNow();
       });
     }, error -> {

@@ -2,6 +2,8 @@ package com.anasdidi.security.domain.mongo;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -9,6 +11,8 @@ import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 
 public class MongoVerticle extends AbstractVerticle {
+
+  private final static Logger logger = LogManager.getLogger(MongoVerticle.class);
 
   @Override
   public void start(Promise<Void> startFuture) throws Exception {
@@ -28,7 +32,7 @@ public class MongoVerticle extends AbstractVerticle {
 
       if (!createCollection.isEmpty()) {
         Completable.merge(createCollection).subscribe(() -> {
-          System.out.println("[createCollections] Collections created");
+          logger.info("[createCollections] Total collection created: {}", createCollection.size());
         }, error -> startFuture.fail(error));
       }
     }, error -> startFuture.fail(error));

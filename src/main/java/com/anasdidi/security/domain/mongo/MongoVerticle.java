@@ -21,7 +21,8 @@ public class MongoVerticle extends AbstractVerticle {
         .put("connection_string", "mongodb://mongo:mongo@mongo:27017/security?authSource=admin"));
 
     Future<Void> future = startFuture.future();
-    future.compose(v -> createCollections(mongoClient));
+    future.compose(v -> createCollections(mongoClient))
+        .onComplete(v -> logger.info("[start] createCollections completed"));
     startFuture.complete();
   }
 
@@ -39,6 +40,8 @@ public class MongoVerticle extends AbstractVerticle {
                 createCollection.size());
             promise.complete();
           }, error -> promise.fail(error));
+        } else {
+          promise.complete();
         }
       }, error -> promise.fail(error));
     });

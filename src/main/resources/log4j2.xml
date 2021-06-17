@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="error">
+  <Properties>
+    <Property name="logDir">/workspace/log</Property>
+    <Property name="fileLabel">security</Property>
+    <Property name="fileSizeRolling">%i</Property>
+    <Property name="fileTimeRolling">%d{yyyy-MM-dd}</Property>
+    <Property name="patternMessage">[%t] %-5level %logger{36} - %msg%n</Property>
+    <Property name="patternMessageWithTimestamp">%d{yyyy-MM-dd HH:mm:ss.SSS} ${patternMessage}</Property>
+  </Properties>
+
+  <Appenders>
+    <Console name="console" target="SYSTEM_OUT">
+      <PatternLayout pattern="${patternMessage}"/>
+    </Console>
+    <RollingFile name="rollingFile" fileName="${logDir}/${fileLabel}.log" filePattern="${logDir}/${fileLabel}-${fileTimeRolling}.log">
+      <PatternLayout pattern="${patternMessageWithTimestamp}"/>
+      <Policies>
+        <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+        <!--SizeBasedTriggeringPolicy size="1MB" /-->
+      </Policies>
+      <DefaultRolloverStrategy max="30"/>
+    </RollingFile>
+  </Appenders>
+
+  <Loggers>
+  <!-- avoid duplicated logs with additivity=false -->
+    <Logger name="com.anasdidi.security" level="${env:LOG_LEVEL:-error}" additivity="false">
+      <AppenderRef ref="console"/>
+      <AppenderRef ref="rollingFile"/>
+    </Logger>
+
+    <Root level="error">
+      <AppenderRef ref="console"/>
+    </Root>
+  </Loggers>
+</Configuration>
+

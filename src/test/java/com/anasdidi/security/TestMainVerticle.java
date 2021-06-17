@@ -20,7 +20,7 @@ public class TestMainVerticle {
         Assertions.assertNotNull(id);
         testContext.completeNow();
       });
-    });
+    }, error -> testContext.failNow(error));
   }
 
   @Test

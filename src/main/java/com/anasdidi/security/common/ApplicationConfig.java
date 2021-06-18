@@ -33,7 +33,10 @@ public class ApplicationConfig {
 
   @Override
   public String toString() {
-    return this.getClass().getSimpleName() + " :: " + json.encode();
+    JsonObject copy = json.copy();
+    copy.put(KEY_MONGO_CONNECTION_STRING, String.format("[len: %d]",
+        getMongoConnectionString() != null ? getMongoConnectionString().length() : -1));
+    return this.getClass().getSimpleName() + " :: " + copy;
   }
 
   public String getAppHost() {

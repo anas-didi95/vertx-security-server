@@ -1,5 +1,6 @@
 package com.anasdidi.security;
 
+import com.anasdidi.security.common.ApplicationConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,5 +41,15 @@ public class TestMainVerticle {
     }, error -> {
       testContext.failNow(error);
     });
+  }
+
+  @Test
+  void testApplicationConfigHasValue(Vertx vertx, VertxTestContext testContext) {
+    ApplicationConfig config = ApplicationConfig.instance();
+    Assertions.assertNotNull(config);
+    Assertions.assertNotNull(config.getAppHost());
+    Assertions.assertNotNull(config.getAppPort());
+    Assertions.assertNotNull(config.getMongoConnectionString());
+    testContext.completeNow();
   }
 }

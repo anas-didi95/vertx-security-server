@@ -31,6 +31,7 @@ public class MainVerticle extends AbstractVerticle {
 
     retriever.rxGetConfig().subscribe(json -> {
       ApplicationConfig config = ApplicationConfig.create(json);
+      logger.info("[start] Get config : {}", config);
 
       List<Single<String>> deployer = new ArrayList<>();
       deployer.add(deployVerticle(new MongoVerticle()));
@@ -39,8 +40,9 @@ public class MainVerticle extends AbstractVerticle {
         logger.info("[start] Total deployed verticle: {}", verticleList.size());
         vertx.createHttpServer().requestHandler(req -> {
           req.response().putHeader("content-type", "text/plain").end("Hello from Vert.x!");
-        }).listen(5000).subscribe(server -> {
-          logger.info("HTTP server started on port 5000");
+        }).listen(config.getAppPort(), config.getAppHost()).subscribe(server -> {
+          logger.info("[start] HTTP server started on {}:{}", config.getAppHost(),
+              config.getAppPort());
           startFuture.complete();
         }, error -> startFuture.fail(error));
       }, error -> startFuture.fail(error));

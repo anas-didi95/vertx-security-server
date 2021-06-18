@@ -25,15 +25,15 @@ public class ApplicationConfig {
 
   @Override
   public String toString() {
-    return super.toString();
+    return this.getClass().getSimpleName() + " :: " + json.encode();
   }
 
   public String getAppHost() {
     return json.getString("APP_HOST");
   }
 
-  public String getAppPort() {
-    return json.getString("APP_PORT");
+  public int getAppPort() {
+    return json.getInteger("APP_PORT");
   }
 
   public String getMongoConnectionString() {

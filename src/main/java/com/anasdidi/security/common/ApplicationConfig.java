@@ -1,8 +1,20 @@
 package com.anasdidi.security.common;
 
+import io.vertx.core.json.JsonObject;
+
 public class ApplicationConfig {
 
   private static ApplicationConfig config;
+  private final JsonObject json;
+
+  private ApplicationConfig(JsonObject json) {
+    this.json = json;
+  }
+
+  public static ApplicationConfig create(JsonObject json) {
+    config = new ApplicationConfig(json);
+    return config;
+  }
 
   public static ApplicationConfig instance() {
     if (config == null) {
@@ -17,14 +29,14 @@ public class ApplicationConfig {
   }
 
   public String getAppHost() {
-    return null;
+    return json.getString("APP_HOST");
   }
 
   public String getAppPort() {
-    return null;
+    return json.getString("APP_PORT");
   }
 
   public String getMongoConnectionString() {
-    return null;
+    return json.getString("MONGO_CONNECTION_STRING");
   }
 }

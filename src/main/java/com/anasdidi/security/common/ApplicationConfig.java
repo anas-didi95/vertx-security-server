@@ -1,10 +1,14 @@
 package com.anasdidi.security.common;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class ApplicationConfig {
 
   private static ApplicationConfig config;
+  private static String KEY_APP_HOST = "APP_HOST";
+  private static String KEY_APP_PORT = "APP_PORT";
+  private static String KEY_MONGO_CONNECTION_STRING = "MONGO_CONNECTION_STRING";
   private final JsonObject json;
 
   private ApplicationConfig(JsonObject json) {
@@ -23,20 +27,24 @@ public class ApplicationConfig {
     return config;
   }
 
+  public static JsonArray getKeyList() {
+    return new JsonArray().add(KEY_APP_HOST).add(KEY_APP_PORT).add(KEY_MONGO_CONNECTION_STRING);
+  }
+
   @Override
   public String toString() {
     return this.getClass().getSimpleName() + " :: " + json.encode();
   }
 
   public String getAppHost() {
-    return json.getString("APP_HOST");
+    return json.getString(KEY_APP_HOST);
   }
 
   public int getAppPort() {
-    return json.getInteger("APP_PORT");
+    return json.getInteger(KEY_APP_PORT);
   }
 
   public String getMongoConnectionString() {
-    return json.getString("MONGO_CONNECTION_STRING");
+    return json.getString(KEY_MONGO_CONNECTION_STRING);
   }
 }

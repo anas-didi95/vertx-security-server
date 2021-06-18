@@ -11,6 +11,7 @@ import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.Verticle;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Log4j2LogDelegateFactory;
 import io.vertx.rxjava3.config.ConfigRetriever;
 import io.vertx.rxjava3.core.AbstractVerticle;
@@ -26,12 +27,9 @@ public class MainVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startFuture) throws Exception {
-    ConfigRetriever retriever = ConfigRetriever.create(vertx,
-        new ConfigRetrieverOptions().addStore(new ConfigStoreOptions().setType("env")));
-
-    retriever.rxGetConfig().subscribe(json -> {
+    getConfigRetriever().rxGetConfig().subscribe(json -> {
       ApplicationConfig config = ApplicationConfig.create(json);
-      logger.info("[start] Get config : {}", config);
+      logger.info("[start] Load {}", config);
 
       List<Single<String>> deployer = new ArrayList<>();
       deployer.add(deployVerticle(new MongoVerticle()));
@@ -47,6 +45,14 @@ public class MainVerticle extends AbstractVerticle {
         }, error -> startFuture.fail(error));
       }, error -> startFuture.fail(error));
     });
+  }
+
+  private ConfigRetriever getConfigRetriever() {
+    List<ConfigStoreOptions> storeList = new ArrayList<>();
+    storeList.add(new ConfigStoreOptions().setType("env")
+        .setConfig(new JsonObject().put("keys", ApplicationConfig.getKeyList())));
+
+    return ConfigRetriever.create(vertx, new ConfigRetrieverOptions().setStores(storeList));
   }
 
   private Single<String> deployVerticle(Verticle verticle) {

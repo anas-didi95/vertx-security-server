@@ -29,7 +29,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserCreateSuccess(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(1);
+    Checkpoint checkpoint = testContext.checkpoint(2);
     ApplicationConfig config = ApplicationConfig.instance();
     WebClient webClient = WebClient.create(vertx);
     String suffix = ":" + System.currentTimeMillis();
@@ -40,6 +40,13 @@ public class TestUserVerticle {
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 201);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
+            Assertions.assertNotNull(responseBody.getString("id"));
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));

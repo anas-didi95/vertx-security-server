@@ -2,6 +2,7 @@ package com.anasdidi.security.domain.user;
 
 import io.vertx.core.Promise;
 import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.Router;
 
 public class UserVerticle extends AbstractVerticle {
@@ -9,9 +10,9 @@ public class UserVerticle extends AbstractVerticle {
   private final Router mainRouter;
   private final UserHandler userHandler;
 
-  public UserVerticle(Router mainRouter) {
+  public UserVerticle(Router mainRouter, MongoClient mongoClient) {
     this.mainRouter = mainRouter;
-    this.userHandler = new UserHandler();
+    this.userHandler = new UserHandler(mongoClient);
   }
 
   @Override

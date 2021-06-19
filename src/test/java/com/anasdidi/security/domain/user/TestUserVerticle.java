@@ -2,6 +2,7 @@ package com.anasdidi.security.domain.user;
 
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConfig;
+import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,7 @@ public class TestUserVerticle {
         .putHeader("Accept", "application/json").putHeader("Content-Type", "application/json")
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
-            Assertions.assertEquals(201, response.statusCode());
-            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+            TestUtils.testResponseHeader(response, 201);
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));

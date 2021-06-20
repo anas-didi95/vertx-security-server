@@ -6,16 +6,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
-import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 class UserHandler {
 
   private final Logger logger = LogManager.getLogger(UserHandler.class);
-  private final MongoClient mongoClient;
+  private final UserService userService;
 
-  UserHandler(MongoClient mongoClient) {
-    this.mongoClient = mongoClient;
+  UserHandler(UserService userService) {
+    this.userService = userService;
   }
 
   void create(RoutingContext routingContext) {
@@ -27,7 +26,7 @@ class UserHandler {
       }
 
       return requestBody;
-    }).flatMap(json -> mongoClient.rxSave("users", json).toSingle())
+    }).map(json -> UserDTO.fromJson(json)).flatMap(dto -> userService.create(dto))
         .map(id -> new JsonObject().put("id", id));
 
     subscriber.subscribe(responseBody -> {

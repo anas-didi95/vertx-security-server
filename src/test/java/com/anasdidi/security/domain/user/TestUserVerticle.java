@@ -36,7 +36,9 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx, config.getMongoConnectionString());
 
     String suffix = ":" + System.currentTimeMillis();
-    JsonObject requestBody = new JsonObject().put("username", "username" + suffix);
+    JsonObject requestBody = new JsonObject().put("username", "username" + suffix)
+        .put("password", "password" + suffix).put("fullName", "fullName" + suffix)
+        .put("email", "email" + suffix).put("telegramId", "telegramId" + suffix);
 
     webClient.post(config.getAppPort(), config.getAppHost(), "/user")
         .putHeader("Accept", "application/json").putHeader("Content-Type", "application/json")
@@ -60,6 +62,13 @@ public class TestUserVerticle {
             testContext.verify(() -> {
               Assertions.assertEquals(requestBody.getString("username"),
                   result.getString("username"));
+              Assertions.assertEquals(requestBody.getString("password"),
+                  result.getString("password"));
+              Assertions.assertEquals(requestBody.getString("fullName"),
+                  result.getString("fullName"));
+              Assertions.assertEquals(requestBody.getString("email"), result.getString("email"));
+              Assertions.assertEquals(requestBody.getString("telegramId"),
+                  result.getString("telegramId"));
               checkpoint.flag();
             });
           }, error -> testContext.failNow(error));

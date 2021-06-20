@@ -8,11 +8,13 @@ import io.vertx.rxjava3.ext.web.Router;
 public class UserVerticle extends AbstractVerticle {
 
   private final Router mainRouter;
+  private final UserService userService;
   private final UserHandler userHandler;
 
   public UserVerticle(Router mainRouter, MongoClient mongoClient) {
     this.mainRouter = mainRouter;
-    this.userHandler = new UserHandler(mongoClient);
+    this.userService = new UserService(mongoClient);
+    this.userHandler = new UserHandler(userService);
   }
 
   @Override

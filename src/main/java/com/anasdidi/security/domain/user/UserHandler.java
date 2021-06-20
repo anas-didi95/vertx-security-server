@@ -26,7 +26,7 @@ class UserHandler {
       }
 
       return requestBody;
-    }).map(json -> UserDTO.fromJson(json)).flatMap(dto -> userService.create(dto))
+    }).map(json -> UserVO.fromJson(json)).flatMap(vo -> userService.create(vo))
         .map(id -> new JsonObject().put("id", id));
 
     subscriber.subscribe(responseBody -> {

@@ -2,7 +2,7 @@ package com.anasdidi.security.domain.user;
 
 import io.vertx.core.json.JsonObject;
 
-class UserDTO {
+class UserVO {
 
   final String id;
   final String username;
@@ -11,7 +11,7 @@ class UserDTO {
   final String email;
   final String telegramId;
 
-  private UserDTO(String id, String username, String password, String fullName, String email,
+  private UserVO(String id, String username, String password, String fullName, String email,
       String telegramId) {
     this.id = id;
     this.username = username;
@@ -21,7 +21,7 @@ class UserDTO {
     this.telegramId = telegramId;
   }
 
-  static UserDTO fromJson(JsonObject json) {
+  static UserVO fromJson(JsonObject json) {
     String id = json.getString("id");
     String username = json.getString("username");
     String password = json.getString("password");
@@ -29,7 +29,7 @@ class UserDTO {
     String email = json.getString("email");
     String telegramId = json.getString("telegramId");
 
-    return new UserDTO(id, username, password, fullName, email, telegramId);
+    return new UserVO(id, username, password, fullName, email, telegramId);
   }
 
   JsonObject toJson() {

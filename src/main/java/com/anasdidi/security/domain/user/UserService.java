@@ -15,10 +15,13 @@ class UserService {
     this.eventBus = eventBus;
   }
 
-  Single<String> create(UserDTO dto) {
-    logger.debug(dto.toJson());
-    JsonObject requestBody =
-        new JsonObject().put("collection", "users").put("document", dto.toJson());
+  Single<String> create(UserVO vo) {
+    JsonObject requestBody = new JsonObject().put("collection", UserConstants.COLLECTION_NAME)
+        .put("document", vo.toJson());
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[create] requestBody {}", requestBody.encode());
+    }
 
     return eventBus.rxRequest("mongo-create", requestBody).map(response -> {
       JsonObject responseBody = (JsonObject) response.body();

@@ -58,20 +58,22 @@ public class TestUserVerticle {
           String id = response.bodyAsJsonObject().getString("id");
           JsonObject query = new JsonObject().put("_id", id);
           JsonObject fields = new JsonObject();
-          mongoClient.findOne("users", query, fields).toSingle().subscribe(result -> {
-            testContext.verify(() -> {
-              Assertions.assertEquals(requestBody.getString("username"),
-                  result.getString("username"));
-              Assertions.assertEquals(requestBody.getString("password"),
-                  result.getString("password"));
-              Assertions.assertEquals(requestBody.getString("fullName"),
-                  result.getString("fullName"));
-              Assertions.assertEquals(requestBody.getString("email"), result.getString("email"));
-              Assertions.assertEquals(requestBody.getString("telegramId"),
-                  result.getString("telegramId"));
-              checkpoint.flag();
-            });
-          }, error -> testContext.failNow(error));
+          mongoClient.findOne(UserConstants.COLLECTION_NAME, query, fields).toSingle()
+              .subscribe(result -> {
+                testContext.verify(() -> {
+                  Assertions.assertEquals(requestBody.getString("username"),
+                      result.getString("username"));
+                  Assertions.assertEquals(requestBody.getString("password"),
+                      result.getString("password"));
+                  Assertions.assertEquals(requestBody.getString("fullName"),
+                      result.getString("fullName"));
+                  Assertions.assertEquals(requestBody.getString("email"),
+                      result.getString("email"));
+                  Assertions.assertEquals(requestBody.getString("telegramId"),
+                      result.getString("telegramId"));
+                  checkpoint.flag();
+                });
+              }, error -> testContext.failNow(error));
         }, error -> testContext.failNow(error));
   }
 }

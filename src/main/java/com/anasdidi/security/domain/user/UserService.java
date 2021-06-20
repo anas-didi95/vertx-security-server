@@ -1,17 +1,28 @@
 package com.anasdidi.security.domain.user;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.rxjava3.ext.mongo.MongoClient;
+import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.eventbus.EventBus;
 
 class UserService {
 
-  private final MongoClient mongoClient;
+  private final static Logger logger = LogManager.getLogger(UserService.class);
+  private final EventBus eventBus;
 
-  UserService(MongoClient mongoClient) {
-    this.mongoClient = mongoClient;
+  UserService(EventBus eventBus) {
+    this.eventBus = eventBus;
   }
 
   Single<String> create(UserDTO dto) {
-    return mongoClient.rxSave("users", dto.toJson()).toSingle();
+    logger.debug(dto.toJson());
+    JsonObject requestBody =
+        new JsonObject().put("collection", "users").put("document", dto.toJson());
+
+    return eventBus.rxRequest("mongo-create", requestBody).map(response -> {
+      JsonObject responseBody = (JsonObject) response.body();
+      return responseBody.getString("id");
+    });
   }
 }

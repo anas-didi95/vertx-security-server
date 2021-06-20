@@ -11,7 +11,7 @@ class UserDTO {
   final String email;
   final String telegramId;
 
-  private UserDTO(String id, String password, String username, String fullName, String email,
+  private UserDTO(String id, String username, String password, String fullName, String email,
       String telegramId) {
     this.id = id;
     this.username = username;

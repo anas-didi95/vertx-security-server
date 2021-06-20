@@ -16,6 +16,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Log4j2LogDelegateFactory;
 import io.vertx.rxjava3.config.ConfigRetriever;
 import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.handler.BodyHandler;
@@ -37,11 +38,12 @@ public class MainVerticle extends AbstractVerticle {
 
       Router router = Router.router(vertx);
       router.route().handler(BodyHandler.create());
-      MongoClient mongoClient = MongoClient.create(vertx, new JsonObject()//
-          .put("connection_string", config.getMongoConnectionString()));
+      MongoClient mongoClient = MongoClient.create(vertx,
+          new JsonObject().put("connection_string", config.getMongoConnectionString()));
+      EventBus eventBus = vertx.eventBus();
       List<Single<String>> deployer = new ArrayList<>();
-      deployer.add(deployVerticle(new MongoVerticle()));
-      deployer.add(deployVerticle(new UserVerticle(router, mongoClient)));
+      deployer.add(deployVerticle(new MongoVerticle(eventBus, mongoClient)));
+      deployer.add(deployVerticle(new UserVerticle(eventBus, router, mongoClient)));
 
       Single.mergeDelayError(deployer).toList().subscribe(verticleList -> {
         logger.info("[start] Total deployed verticle: {}", verticleList.size());

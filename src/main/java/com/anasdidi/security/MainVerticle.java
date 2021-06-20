@@ -1,7 +1,9 @@
 package com.anasdidi.security;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.domain.mongo.MongoVerticle;
 import com.anasdidi.security.domain.user.UserVerticle;
@@ -36,14 +38,11 @@ public class MainVerticle extends AbstractVerticle {
       ApplicationConfig config = ApplicationConfig.create(json);
       logger.info("[start] Load {}", config);
 
-      Router router = Router.router(vertx);
-      router.route().handler(BodyHandler.create());
-      MongoClient mongoClient = MongoClient.create(vertx,
-          new JsonObject().put("connection_string", config.getMongoConnectionString()));
       EventBus eventBus = vertx.eventBus();
-      List<Single<String>> deployer = new ArrayList<>();
-      deployer.add(deployVerticle(new MongoVerticle(eventBus, mongoClient)));
-      deployer.add(deployVerticle(new UserVerticle(eventBus, router, mongoClient)));
+      MongoClient mongoClient = getMongoClient(config.getMongoConnectionString());
+      Router router = getRouter();
+      List<Single<String>> deployer = deployVerticles(new MongoVerticle(eventBus, mongoClient),
+          new UserVerticle(eventBus, router));
 
       Single.mergeDelayError(deployer).toList().subscribe(verticleList -> {
         logger.info("[start] Total deployed verticle: {}", verticleList.size());
@@ -63,6 +62,22 @@ public class MainVerticle extends AbstractVerticle {
         .setConfig(new JsonObject().put("keys", ApplicationConfig.getKeyList())));
 
     return ConfigRetriever.create(vertx, new ConfigRetrieverOptions().setStores(storeList));
+  }
+
+  private MongoClient getMongoClient(String connectionString) {
+    return MongoClient.create(vertx, new JsonObject().put("connection_string", connectionString));
+  }
+
+  private Router getRouter() {
+    Router router = Router.router(vertx);
+    router.route().handler(BodyHandler.create());
+
+    return router;
+  }
+
+  private List<Single<String>> deployVerticles(Verticle... verticles) {
+    return Arrays.stream(verticles).map(verticle -> deployVerticle(verticle))
+        .collect(Collectors.toList());
   }
 
   private Single<String> deployVerticle(Verticle verticle) {

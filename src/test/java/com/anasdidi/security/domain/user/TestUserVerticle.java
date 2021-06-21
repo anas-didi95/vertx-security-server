@@ -55,12 +55,12 @@ public class TestUserVerticle {
             checkpoint.flag();
           });
 
-          String id = response.bodyAsJsonObject().getString("id");
-          JsonObject query = new JsonObject().put("_id", id);
-          JsonObject fields = new JsonObject();
-          mongoClient.findOne(UserConstants.COLLECTION_NAME, query, fields).toSingle()
-              .subscribe(result -> {
-                testContext.verify(() -> {
+          testContext.verify(() -> {
+            String id = response.bodyAsJsonObject().getString("id");
+            JsonObject query = new JsonObject().put("_id", id);
+            JsonObject fields = new JsonObject();
+            mongoClient.findOne(UserConstants.COLLECTION_NAME, query, fields).toSingle()
+                .subscribe(result -> {
                   Assertions.assertEquals(requestBody.getString("username"),
                       result.getString("username"));
                   Assertions.assertEquals(requestBody.getString("password"),
@@ -72,8 +72,8 @@ public class TestUserVerticle {
                   Assertions.assertEquals(requestBody.getString("telegramId"),
                       result.getString("telegramId"));
                   checkpoint.flag();
-                });
-              }, error -> testContext.failNow(error));
+                }, error -> testContext.failNow(error));
+          });
         }, error -> testContext.failNow(error));
   }
 

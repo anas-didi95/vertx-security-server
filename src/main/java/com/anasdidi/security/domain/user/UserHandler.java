@@ -2,6 +2,7 @@ package com.anasdidi.security.domain.user;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.anasdidi.security.common.ApplicationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Single;
@@ -22,7 +23,7 @@ class UserHandler {
       JsonObject requestBody = routingContext.getBodyAsJson();
 
       if (requestBody == null || requestBody.isEmpty()) {
-        throw new Exception("Request body empty!");
+        throw new ApplicationException("E001", "Request body is empty!", "Required keys {}");
       }
 
       if (logger.isDebugEnabled()) {

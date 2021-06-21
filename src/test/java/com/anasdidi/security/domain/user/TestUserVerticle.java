@@ -79,7 +79,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(1);
+    Checkpoint checkpoint = testContext.checkpoint(2);
     ApplicationConfig config = ApplicationConfig.instance();
     WebClient webClient = WebClient.create(vertx);
 
@@ -88,6 +88,15 @@ public class TestUserVerticle {
         .rxSend().subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
+            Assertions.assertEquals("E001", responseBody.getString("code"));
+            Assertions.assertEquals("Request body is empty!", responseBody.getString("message"));
+            Assertions.assertTrue(!responseBody.getJsonArray("errors").isEmpty());
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));

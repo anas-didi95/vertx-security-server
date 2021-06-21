@@ -76,4 +76,20 @@ public class TestUserVerticle {
               }, error -> testContext.failNow(error));
         }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(1);
+    ApplicationConfig config = ApplicationConfig.instance();
+    WebClient webClient = WebClient.create(vertx);
+
+    webClient.post(config.getAppPort(), config.getAppHost(), "/user")
+        .putHeader("Accept", "application/json").putHeader("Content-Type", "application/json")
+        .rxSend().subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
 }

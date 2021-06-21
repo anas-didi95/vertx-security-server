@@ -1,5 +1,6 @@
 package com.anasdidi.security.domain.user;
 
+import com.anasdidi.security.common.ApplicationConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Single;
@@ -23,9 +24,10 @@ class UserService {
       logger.debug("[create] requestBody {}", requestBody.encode());
     }
 
-    return eventBus.rxRequest("mongo-create", requestBody).map(response -> {
-      JsonObject responseBody = (JsonObject) response.body();
-      return responseBody.getString("id");
-    });
+    return eventBus.rxRequest(ApplicationConstants.Event.MONGO_CREATE.address, requestBody)
+        .map(response -> {
+          JsonObject responseBody = (JsonObject) response.body();
+          return responseBody.getString("id");
+        });
   }
 }

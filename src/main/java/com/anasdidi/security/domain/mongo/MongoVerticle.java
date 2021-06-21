@@ -2,6 +2,7 @@ package com.anasdidi.security.domain.mongo;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.anasdidi.security.common.ApplicationConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Completable;
@@ -59,7 +60,8 @@ public class MongoVerticle extends AbstractVerticle {
 
   private Future<Void> setupEvent() {
     return Future.future(promise -> {
-      eventBus.consumer("mongo-create", request -> mongoEvent.create(request));
+      eventBus.consumer(ApplicationConstants.Event.MONGO_CREATE.address,
+          request -> mongoEvent.create(request));
       promise.complete();
     });
   }

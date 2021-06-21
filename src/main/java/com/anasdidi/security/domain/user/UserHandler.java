@@ -1,7 +1,6 @@
 package com.anasdidi.security.domain.user;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,15 +34,10 @@ class UserHandler {
         .map(id -> new JsonObject().put("id", id));
 
     subscriber.subscribe(responseBody -> {
-      Map<String, String> headers = new HashMap<>();
-      headers.put("Content-Type", "application/json");
-      routingContext.response().setStatusCode(201).headers().addAll(headers);
+      routingContext.response().setStatusCode(201).headers().addAll(ApplicationConstants.HEADERS);
       routingContext.response().end(responseBody.encode());
     }, error -> {
-      Map<String, String> headers = new HashMap<>();
-      headers.put("Content-Type", "application/json");
-
-      routingContext.response().setStatusCode(400).headers().addAll(headers);
+      routingContext.response().setStatusCode(400).headers().addAll(ApplicationConstants.HEADERS);
       routingContext.response().end(error.getMessage());
     });
   }

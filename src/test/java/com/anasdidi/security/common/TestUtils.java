@@ -11,7 +11,8 @@ public class TestUtils {
 
   public static void testResponseHeader(HttpResponse<Buffer> response, int statusCode) {
     Assertions.assertEquals(statusCode, response.statusCode());
-    Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+    Assertions.assertTrue(ApplicationConstants.HEADERS.entrySet().stream()
+        .allMatch(entry -> entry.getValue().equals(response.getHeader(entry.getKey()))));
   }
 
   public static MongoClient getMongoClient(Vertx vertx, String connectionString) {

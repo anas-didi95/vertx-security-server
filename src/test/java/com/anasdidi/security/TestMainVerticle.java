@@ -1,11 +1,11 @@
 package com.anasdidi.security;
 
 import com.anasdidi.security.common.ApplicationConfig;
+import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
@@ -31,8 +31,8 @@ public class TestMainVerticle {
 
   @Test
   void testMongoClientGetCollectionsSuccess(Vertx vertx, VertxTestContext testContext) {
-    MongoClient mongoClient = MongoClient.create(vertx, new JsonObject()//
-        .put("connection_string", "mongodb://mongo:mongo@mongo:27017/security?authSource=admin"));
+    ApplicationConfig config = ApplicationConfig.instance();
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx, config.getMongoConnectionString());
 
     mongoClient.rxGetCollections().subscribe(collectionList -> {
       testContext.verify(() -> {

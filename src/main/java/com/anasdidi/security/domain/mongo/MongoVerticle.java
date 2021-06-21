@@ -2,31 +2,42 @@ package com.anasdidi.security.domain.mongo;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.anasdidi.security.common.ApplicationConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 
 public class MongoVerticle extends AbstractVerticle {
 
   private final static Logger logger = LogManager.getLogger(MongoVerticle.class);
+  private final EventBus eventBus;
+  private final MongoClient mongoClient;
+  private final MongoService mongoService;
+  private final MongoEvent mongoEvent;
+
+  public MongoVerticle(EventBus eventBus, MongoClient mongoClient) {
+    this.eventBus = eventBus;
+    this.mongoClient = mongoClient;
+    this.mongoService = new MongoService(mongoClient);
+    this.mongoEvent = new MongoEvent(mongoService);
+  }
 
   @Override
   public void start(Promise<Void> startFuture) throws Exception {
-    MongoClient mongoClient = MongoClient.create(vertx, new JsonObject()//
-        .put("connection_string", "mongodb://mongo:mongo@mongo:27017/security?authSource=admin"));
-
     Future<Void> future = startFuture.future();
-    future.compose(v -> createCollections(mongoClient))
-        .onComplete(v -> logger.info("[start] createCollections completed"));
+    future.compose(v -> createCollections())
+        .onComplete(v -> logger.info("[start] Create collections completed"));
+    future.compose(v -> setupEvent()).onComplete(v -> logger.info("[start] Setup event completed"));
+
     startFuture.complete();
   }
 
-  private Future<Void> createCollections(MongoClient mongoClient) {
+  private Future<Void> createCollections() {
     return Future.future(promise -> {
       mongoClient.rxGetCollections().subscribe(collectionList -> {
         List<Completable> createCollection = new ArrayList<>();
@@ -44,6 +55,14 @@ public class MongoVerticle extends AbstractVerticle {
           promise.complete();
         }
       }, error -> promise.fail(error));
+    });
+  }
+
+  private Future<Void> setupEvent() {
+    return Future.future(promise -> {
+      eventBus.consumer(ApplicationConstants.Event.MONGO_CREATE.address,
+          request -> mongoEvent.create(request));
+      promise.complete();
     });
   }
 }

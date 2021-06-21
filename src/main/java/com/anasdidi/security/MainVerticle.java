@@ -1,9 +1,12 @@
 package com.anasdidi.security;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.domain.mongo.MongoVerticle;
+import com.anasdidi.security.domain.user.UserVerticle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Single;
@@ -15,6 +18,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Log4j2LogDelegateFactory;
 import io.vertx.rxjava3.config.ConfigRetriever;
 import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.core.eventbus.EventBus;
+import io.vertx.rxjava3.ext.mongo.MongoClient;
+import io.vertx.rxjava3.ext.web.Router;
+import io.vertx.rxjava3.ext.web.handler.BodyHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -31,18 +38,20 @@ public class MainVerticle extends AbstractVerticle {
       ApplicationConfig config = ApplicationConfig.create(json);
       logger.info("[start] Load {}", config);
 
-      List<Single<String>> deployer = new ArrayList<>();
-      deployer.add(deployVerticle(new MongoVerticle()));
+      EventBus eventBus = vertx.eventBus();
+      MongoClient mongoClient = getMongoClient(config.getMongoConnectionString());
+      Router router = getRouter();
+      List<Single<String>> deployer = deployVerticles(new MongoVerticle(eventBus, mongoClient),
+          new UserVerticle(eventBus, router));
 
       Single.mergeDelayError(deployer).toList().subscribe(verticleList -> {
         logger.info("[start] Total deployed verticle: {}", verticleList.size());
-        vertx.createHttpServer().requestHandler(req -> {
-          req.response().putHeader("content-type", "text/plain").end("Hello from Vert.x!");
-        }).listen(config.getAppPort(), config.getAppHost()).subscribe(server -> {
-          logger.info("[start] HTTP server started on {}:{}", config.getAppHost(),
-              config.getAppPort());
-          startFuture.complete();
-        }, error -> startFuture.fail(error));
+        vertx.createHttpServer().requestHandler(router)
+            .listen(config.getAppPort(), config.getAppHost()).subscribe(server -> {
+              logger.info("[start] HTTP server started on {}:{}", config.getAppHost(),
+                  config.getAppPort());
+              startFuture.complete();
+            }, error -> startFuture.fail(error));
       }, error -> startFuture.fail(error));
     });
   }
@@ -53,6 +62,22 @@ public class MainVerticle extends AbstractVerticle {
         .setConfig(new JsonObject().put("keys", ApplicationConfig.getKeyList())));
 
     return ConfigRetriever.create(vertx, new ConfigRetrieverOptions().setStores(storeList));
+  }
+
+  private MongoClient getMongoClient(String connectionString) {
+    return MongoClient.create(vertx, new JsonObject().put("connection_string", connectionString));
+  }
+
+  private Router getRouter() {
+    Router router = Router.router(vertx);
+    router.route().handler(BodyHandler.create());
+
+    return router;
+  }
+
+  private List<Single<String>> deployVerticles(Verticle... verticles) {
+    return Arrays.stream(verticles).map(verticle -> deployVerticle(verticle))
+        .collect(Collectors.toList());
   }
 
   private Single<String> deployVerticle(Verticle verticle) {

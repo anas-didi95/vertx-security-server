@@ -21,6 +21,10 @@ class UserHandler {
     Single<JsonObject> subscriber = Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
 
+      if (requestBody == null || requestBody.isEmpty()) {
+        throw new Exception("Request body empty!");
+      }
+
       if (logger.isDebugEnabled()) {
         logger.debug("[create] requestBody {}", requestBody.encode());
       }
@@ -34,6 +38,12 @@ class UserHandler {
       headers.put("Content-Type", "application/json");
       routingContext.response().setStatusCode(201).headers().addAll(headers);
       routingContext.response().end(responseBody.encode());
+    }, error -> {
+      Map<String, String> headers = new HashMap<>();
+      headers.put("Content-Type", "application/json");
+
+      routingContext.response().setStatusCode(400).headers().addAll(headers);
+      routingContext.response().end(error.getMessage());
     });
   }
 }

@@ -13,12 +13,14 @@ public class UserVerticle extends AbstractVerticle {
   private static final Logger logger = LogManager.getLogger(UserVerticle.class);
   private final Router mainRouter;
   private final UserService userService;
+  private final UserValidator userValidator;
   private final UserHandler userHandler;
 
   public UserVerticle(EventBus eventBus, Router mainRouter) {
     this.mainRouter = mainRouter;
     this.userService = new UserService(eventBus);
-    this.userHandler = new UserHandler(userService);
+    this.userValidator = new UserValidator();
+    this.userHandler = new UserHandler(userService, userValidator);
   }
 
   @Override

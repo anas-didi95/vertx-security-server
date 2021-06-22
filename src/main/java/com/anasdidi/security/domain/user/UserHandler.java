@@ -12,9 +12,11 @@ class UserHandler {
 
   private final Logger logger = LogManager.getLogger(UserHandler.class);
   private final UserService userService;
+  private final UserValidator userValidator;
 
-  UserHandler(UserService userService) {
+  UserHandler(UserService userService, UserValidator userValidator) {
     this.userService = userService;
+    this.userValidator = userValidator;
   }
 
   void create(RoutingContext routingContext) {
@@ -30,8 +32,9 @@ class UserHandler {
       }
 
       return requestBody;
-    }).map(json -> UserVO.fromJson(json)).flatMap(vo -> userService.create(vo))
-        .map(id -> new JsonObject().put("id", id));
+    }).map(json -> UserVO.fromJson(json))
+        .map(vo -> userValidator.validate(vo, UserValidator.Action.CREATE))
+        .flatMap(vo -> userService.create(vo)).map(id -> new JsonObject().put("id", id));
 
     subscriber.subscribe(responseBody -> {
       routingContext.response().setStatusCode(201).headers().addAll(ApplicationConstants.HEADERS);

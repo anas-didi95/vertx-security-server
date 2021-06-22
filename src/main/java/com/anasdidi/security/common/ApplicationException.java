@@ -10,6 +10,12 @@ public class ApplicationException extends Exception {
   private final String message;
   private List<String> errorList;
 
+  public ApplicationException(String code, String message, List<String> errorList) {
+    this.code = code;
+    this.message = message;
+    this.errorList = errorList;
+  }
+
   public ApplicationException(String code, String message, String error) {
     this.code = code;
     this.message = message;

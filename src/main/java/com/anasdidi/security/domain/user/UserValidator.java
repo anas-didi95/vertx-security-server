@@ -4,12 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.BaseValidator;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 class UserValidator extends BaseValidator<UserVO> {
-
-  private static Logger logger = LogManager.getLogger(UserValidator.class);
 
   @Override
   protected UserVO validate(UserVO vo, Action action) throws ApplicationException {
@@ -21,14 +17,7 @@ class UserValidator extends BaseValidator<UserVO> {
         break;
     }
 
-    if (errorList == null) {
-      logger.error("[validate] Validation not implemented!");
-    } else if (!errorList.isEmpty()) {
-      logger.error("[validate] action={}, vo={}", action, vo);
-      throw new ApplicationException("E002", "Validation error!", errorList);
-    }
-
-    return vo;
+    return validate(errorList, vo, action);
   }
 
   private List<String> validateCreate(UserVO vo) {

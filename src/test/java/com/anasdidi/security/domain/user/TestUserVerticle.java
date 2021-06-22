@@ -92,11 +92,7 @@ public class TestUserVerticle {
           });
 
           testContext.verify(() -> {
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-            Assertions.assertEquals("E001", responseBody.getString("code"));
-            Assertions.assertEquals("Request body is empty!", responseBody.getString("message"));
-            Assertions.assertTrue(!responseBody.getJsonArray("errors").isEmpty());
+            TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));
@@ -118,11 +114,7 @@ public class TestUserVerticle {
           });
 
           testContext.verify(() -> {
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-            Assertions.assertEquals("E002", responseBody.getString("code"));
-            Assertions.assertEquals("Validation error!", responseBody.getString("message"));
-            Assertions.assertTrue(!responseBody.getJsonArray("errors").isEmpty());
+            TestUtils.testResponseBodyError(response, "E002", "Validation error!");
             checkpoint.flag();
           });
         });

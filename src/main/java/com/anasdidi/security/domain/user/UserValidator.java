@@ -3,21 +3,19 @@ package com.anasdidi.security.domain.user;
 import java.util.ArrayList;
 import java.util.List;
 import com.anasdidi.security.common.ApplicationException;
+import com.anasdidi.security.common.BaseValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-class UserValidator {
+class UserValidator extends BaseValidator<UserVO> {
 
   private static Logger logger = LogManager.getLogger(UserValidator.class);
 
-  enum Action {
-    CREATE
-  }
-
-  UserVO validate(UserVO vo, Action type) throws ApplicationException {
+  @Override
+  protected UserVO validate(UserVO vo, Action action) throws ApplicationException {
     List<String> errorList = null;
 
-    switch (type) {
+    switch (action) {
       case CREATE:
         errorList = validateCreate(vo);
         break;
@@ -26,7 +24,7 @@ class UserValidator {
     if (errorList == null) {
       logger.error("[validate] Validation not implemented!");
     } else if (!errorList.isEmpty()) {
-      logger.error("[validate] Validation error! type={}, vo={}", type, vo);
+      logger.error("[validate] action={}, vo={}", action, vo);
       throw new ApplicationException("E002", "Validation error!", errorList);
     }
 
@@ -42,11 +40,5 @@ class UserValidator {
     isMandatory(errorList, vo.email, "Email");
 
     return errorList;
-  }
-
-  private void isMandatory(List<String> errorList, String value, String fieldName) {
-    if (value == null || value.isBlank()) {
-      errorList.add(String.format("%s is mandatory field!", fieldName));
-    }
   }
 }

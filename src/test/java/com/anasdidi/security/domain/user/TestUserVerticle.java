@@ -101,4 +101,30 @@ public class TestUserVerticle {
           });
         }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserCreateValidationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+    ApplicationConfig config = ApplicationConfig.instance();
+    WebClient webClient = WebClient.create(vertx);
+    JsonObject requestBody = new JsonObject().put("a", "a");
+
+    webClient.post(config.getAppPort(), config.getAppHost(), "/user")
+        .putHeader("Accept", "application/json").putHeader("Content-Type", "application/json")
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
+            Assertions.assertEquals("E002", responseBody.getString("code"));
+            Assertions.assertEquals("Validation error!", responseBody.getString("message"));
+            Assertions.assertTrue(!responseBody.getJsonArray("errors").isEmpty());
+            checkpoint.flag();
+          });
+        });
+  }
 }

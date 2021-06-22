@@ -55,12 +55,12 @@ public class TestUserVerticle {
             checkpoint.flag();
           });
 
-          String id = response.bodyAsJsonObject().getString("id");
-          JsonObject query = new JsonObject().put("_id", id);
-          JsonObject fields = new JsonObject();
-          mongoClient.findOne(UserConstants.COLLECTION_NAME, query, fields).toSingle()
-              .subscribe(result -> {
-                testContext.verify(() -> {
+          testContext.verify(() -> {
+            String id = response.bodyAsJsonObject().getString("id");
+            JsonObject query = new JsonObject().put("_id", id);
+            JsonObject fields = new JsonObject();
+            mongoClient.findOne(UserConstants.COLLECTION_NAME, query, fields).toSingle()
+                .subscribe(result -> {
                   Assertions.assertEquals(requestBody.getString("username"),
                       result.getString("username"));
                   Assertions.assertEquals(requestBody.getString("password"),
@@ -72,8 +72,33 @@ public class TestUserVerticle {
                   Assertions.assertEquals(requestBody.getString("telegramId"),
                       result.getString("telegramId"));
                   checkpoint.flag();
-                });
-              }, error -> testContext.failNow(error));
+                }, error -> testContext.failNow(error));
+          });
+        }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+    ApplicationConfig config = ApplicationConfig.instance();
+    WebClient webClient = WebClient.create(vertx);
+
+    webClient.post(config.getAppPort(), config.getAppHost(), "/user")
+        .putHeader("Accept", "application/json").putHeader("Content-Type", "application/json")
+        .rxSend().subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
+            Assertions.assertEquals("E001", responseBody.getString("code"));
+            Assertions.assertEquals("Request body is empty!", responseBody.getString("message"));
+            Assertions.assertTrue(!responseBody.getJsonArray("errors").isEmpty());
+            checkpoint.flag();
+          });
         }, error -> testContext.failNow(error));
   }
 }

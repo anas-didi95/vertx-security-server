@@ -84,6 +84,7 @@ To run your application:
 * [Vert.x Stack Overflow](https://stackoverflow.com/questions/tagged/vert.x?sort=newest&pageSize=15)
 * [Vert.x User Group](https://groups.google.com/forum/?fromgroups#!forum/vertx)
 * [Vert.x Gitter](https://gitter.im/eclipse-vertx/vertx-users)
+* [Writing secure Vert.x Web apps](https://vertx.io/blog/writing-secure-vert-x-web-apps/)
 
 ---
 

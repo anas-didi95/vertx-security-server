@@ -5,9 +5,9 @@ import io.vertx.rxjava3.ext.mongo.MongoClient;
 
 class MongoService {
 
-  private final MongoClient mongoClient;
+  private MongoClient mongoClient;
 
-  MongoService(MongoClient mongoClient) {
+  void setMongoClient(MongoClient mongoClient) {
     this.mongoClient = mongoClient;
   }
 

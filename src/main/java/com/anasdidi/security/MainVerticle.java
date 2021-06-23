@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConfig;
+import com.anasdidi.security.common.BaseVerticle;
 import com.anasdidi.security.domain.mongo.MongoVerticle;
 import com.anasdidi.security.domain.user.UserVerticle;
 import org.apache.logging.log4j.LogManager;
@@ -13,7 +14,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.Promise;
-import io.vertx.core.Verticle;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Log4j2LogDelegateFactory;
 import io.vertx.rxjava3.config.ConfigRetriever;
@@ -38,7 +38,7 @@ public class MainVerticle extends AbstractVerticle {
 
       Router router = getRouter();
       List<Single<String>> deployer =
-          deployVerticles(new MongoVerticle(), new UserVerticle(router));
+          deployVerticles(router, new MongoVerticle(), new UserVerticle());
 
       Single.mergeDelayError(deployer).toList().subscribe(verticleList -> {
         logger.info("[start] Total deployed verticle: {}", verticleList.size());
@@ -67,16 +67,21 @@ public class MainVerticle extends AbstractVerticle {
     return router;
   }
 
-  private List<Single<String>> deployVerticles(Verticle... verticles) {
-    return Arrays.stream(verticles).map(verticle -> deployVerticle(verticle))
+  private List<Single<String>> deployVerticles(Router router, BaseVerticle... verticles) {
+    return Arrays.stream(verticles).map(verticle -> deployVerticle(router, verticle))
         .collect(Collectors.toList());
   }
 
-  private Single<String> deployVerticle(Verticle verticle) {
-    return vertx.rxDeployVerticle(verticle)
-        .doOnSuccess(
-            id -> logger.info("[deployVerticle] {} OK: {}", verticle.getClass().getName(), id))
-        .doOnError(error -> logger.error("[deployVerticle {} FAILED! {}",
-            verticle.getClass().getName(), error));
+  private Single<String> deployVerticle(Router router, BaseVerticle verticle) {
+    return vertx.rxDeployVerticle(verticle).doOnSuccess(id -> {
+      logger.info("[deployVerticle] {} OK: {}", verticle.getClass().getName(), id);
+
+      if (verticle.getContextPath() != null) {
+        router.mountSubRouter(verticle.getContextPath(), verticle.getRouter());
+        logger.info("[deployVerticle] {} Mount router: {}", verticle.getClass().getName(),
+            verticle.getContextPath());
+      }
+    }).doOnError(error -> logger.error("[deployVerticle {} FAILED! {}",
+        verticle.getClass().getName(), error));
   }
 }

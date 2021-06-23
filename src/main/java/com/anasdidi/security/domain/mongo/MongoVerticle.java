@@ -4,20 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationConstants;
+import com.anasdidi.security.common.BaseVerticle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
+import io.vertx.rxjava3.ext.web.Router;
 
-public class MongoVerticle extends AbstractVerticle {
+public class MongoVerticle extends BaseVerticle {
 
   private final static Logger logger = LogManager.getLogger(MongoVerticle.class);
   private final MongoService mongoService;
   private final MongoEvent mongoEvent;
+  private MongoClient mongoClient;
 
   public MongoVerticle() {
     this.mongoService = new MongoService();
@@ -26,25 +29,36 @@ public class MongoVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startFuture) throws Exception {
+    mongoService.setMongoClient(getMongoClient());
+
     Future<Void> future = startFuture.future();
-    future.compose(v -> getMongoClient())
-        .onComplete(v -> logger.info("[start] Get mongo client completed"))
-        .compose(mongoClient -> createCollections(mongoClient))
+    future.compose(v -> Future.succeededFuture(getMongoClient()))
+        .onComplete(v -> logger.info("[start] Get mongo client completed"));
+    future.compose(v -> createCollections(getMongoClient()))
         .onComplete(v -> logger.info("[start] Create collections completed"));
-    future.compose(v -> setupEvent()).onComplete(v -> logger.info("[start] Setup event completed"));
+    future.compose(v -> setEvent(vertx.eventBus()))
+        .onComplete(v -> logger.info("[start] Set event completed"));
 
     startFuture.complete();
   }
 
-  private Future<MongoClient> getMongoClient() {
-    return Future.future(promise -> {
-      ApplicationConfig config = ApplicationConfig.instance();
-      MongoClient mongoClient = MongoClient.create(vertx,
-          new JsonObject().put("connection_string", config.getMongoConnectionString()));
+  @Override
+  public String getContextPath() {
+    return null;
+  }
 
-      mongoService.setMongoClient(mongoClient);
-      promise.complete(mongoClient);
-    });
+  @Override
+  public Router getRouter() {
+    return null;
+  }
+
+  private MongoClient getMongoClient() {
+    if (mongoClient == null) {
+      ApplicationConfig config = ApplicationConfig.instance();
+      this.mongoClient = MongoClient.create(vertx,
+          new JsonObject().put("connection_string", config.getMongoConnectionString()));
+    }
+    return mongoClient;
   }
 
   private Future<MongoClient> createCollections(MongoClient mongoClient) {
@@ -68,9 +82,9 @@ public class MongoVerticle extends AbstractVerticle {
     });
   }
 
-  private Future<Void> setupEvent() {
+  private Future<Void> setEvent(EventBus eventBus) {
     return Future.future(promise -> {
-      vertx.eventBus().consumer(ApplicationConstants.Event.MONGO_CREATE.address,
+      eventBus.consumer(ApplicationConstants.Event.MONGO_CREATE.address,
           request -> mongoEvent.create(request));
       promise.complete();
     });

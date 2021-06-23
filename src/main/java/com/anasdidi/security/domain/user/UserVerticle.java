@@ -1,22 +1,21 @@
 package com.anasdidi.security.domain.user;
 
+import com.anasdidi.security.common.BaseVerticle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.ext.web.Router;
 
-public class UserVerticle extends AbstractVerticle {
+public class UserVerticle extends BaseVerticle {
 
   private static final Logger logger = LogManager.getLogger(UserVerticle.class);
-  private final Router mainRouter;
   private final UserService userService;
   private final UserValidator userValidator;
   private final UserHandler userHandler;
+  private Router router;
 
-  public UserVerticle(Router mainRouter) {
-    this.mainRouter = mainRouter;
+  public UserVerticle() {
     this.userService = new UserService();
     this.userValidator = new UserValidator();
     this.userHandler = new UserHandler(userService, userValidator);
@@ -27,19 +26,23 @@ public class UserVerticle extends AbstractVerticle {
     userService.setEventBus(vertx.eventBus());
 
     Future<Void> future = startFuture.future();
-    future.compose(v -> setupRouter())
-        .onComplete(v -> logger.info("[start] Setup router completed"));
+    future.compose(v -> Future.succeededFuture(getRouter()))
+        .onComplete(v -> logger.info("[start] Get router completed"));
 
     startFuture.complete();
   }
 
-  private Future<Void> setupRouter() {
-    return Future.future(promise -> {
-      Router router = Router.router(vertx);
-      router.post("/").handler(userHandler::create);
-      mainRouter.mountSubRouter("/user", router);
+  @Override
+  public String getContextPath() {
+    return "/user";
+  }
 
-      promise.complete();
-    });
+  @Override
+  public Router getRouter() {
+    if (router == null) {
+      this.router = Router.router(vertx);
+      router.post("/").handler(userHandler::create);
+    }
+    return router;
   }
 }

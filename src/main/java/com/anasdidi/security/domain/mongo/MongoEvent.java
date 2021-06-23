@@ -16,7 +16,8 @@ class MongoEvent {
     Single.fromCallable(() -> {
       JsonObject requestBody = (JsonObject) request.body();
       return requestBody;
-    }).map(json -> MongoVO.fromJson(json)).flatMap(vo -> mongoService.create(vo))
-        .subscribe(id -> request.reply(new JsonObject().put("id", id)));
+    }).map(json -> MongoVO.fromJson(json)).flatMap(vo -> mongoService.create(vo)).subscribe(
+        id -> request.reply(new JsonObject().put("id", id)),
+        error -> request.fail(1, error.getMessage()));
   }
 }

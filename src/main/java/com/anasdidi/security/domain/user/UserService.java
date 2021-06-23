@@ -1,6 +1,7 @@
 package com.anasdidi.security.domain.user;
 
 import com.anasdidi.security.common.ApplicationConstants;
+import com.anasdidi.security.common.ApplicationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Single;
@@ -25,7 +26,12 @@ class UserService {
     }
 
     return eventBus.rxRequest(ApplicationConstants.Event.MONGO_CREATE.address, requestBody)
-        .map(response -> {
+        .doOnError(error -> {
+          logger.error("[create] requestBody {}", requestBody.encode());
+          logger.error("[create] {}", error.getMessage());
+          error.addSuppressed(new ApplicationException(ApplicationConstants.ErrorValue.USER_CREATE,
+              "Unable to create user with username: " + vo.username));
+        }).map(response -> {
           JsonObject responseBody = (JsonObject) response.body();
           return responseBody.getString("id");
         });

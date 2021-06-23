@@ -1,5 +1,6 @@
 package com.anasdidi.security.common;
 
+import java.util.Arrays;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Single;
@@ -18,9 +19,20 @@ public abstract class BaseHandler {
           .addAll(ApplicationConstants.HEADERS);
       routingContext.response().end(responseBody.encode());
     }, error -> {
-      logger.error("[sendResponse] Error! {}", error.getMessage());
+      String responseBody = null;
+
+      if (error instanceof ApplicationException) {
+        responseBody = error.getMessage();
+      } else if (error.getSuppressed().length > 0) {
+        responseBody = Arrays.asList(error.getSuppressed()).stream()
+            .filter(e -> e instanceof ApplicationException).findFirst().get().getMessage();
+      } else {
+        responseBody = new JsonObject().put("message", error.getMessage()).encode();
+      }
+
+      logger.error("[sendResponse] Error! {}", responseBody);
       routingContext.response().setStatusCode(400).headers().addAll(ApplicationConstants.HEADERS);
-      routingContext.response().end(error.getMessage());
+      routingContext.response().end(responseBody);
     });
   }
 

@@ -11,6 +11,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.Router;
@@ -35,7 +36,9 @@ public class MongoVerticle extends BaseVerticle {
     future.compose(v -> Future.succeededFuture(getMongoClient()))
         .onComplete(v -> logger.info("[start] Get mongo client completed"));
     future.compose(v -> createCollections(getMongoClient()))
-        .onComplete(v -> logger.info("[start] Create collections completed"));
+        .onComplete(v -> logger.info("[start] Create collections completed"))
+        .compose(v -> createIndexes(getMongoClient()))
+        .onComplete(v -> logger.info("[start] Create indexes completed"));
     future.compose(v -> setEvent(vertx.eventBus()))
         .onComplete(v -> logger.info("[start] Set event completed"));
 
@@ -61,7 +64,7 @@ public class MongoVerticle extends BaseVerticle {
     return mongoClient;
   }
 
-  private Future<MongoClient> createCollections(MongoClient mongoClient) {
+  private Future<Void> createCollections(MongoClient mongoClient) {
     return Future.future(promise -> {
       mongoClient.rxGetCollections().subscribe(collectionList -> {
         List<Completable> createCollection = new ArrayList<>();
@@ -73,11 +76,35 @@ public class MongoVerticle extends BaseVerticle {
           Completable.merge(createCollection).subscribe(() -> {
             logger.info("[createCollections] Total collection created: {}",
                 createCollection.size());
-            promise.complete(mongoClient);
+            promise.complete();
           }, error -> promise.fail(error));
         } else {
           promise.complete();
         }
+      }, error -> promise.fail(error));
+    });
+  }
+
+  private Future<Void> createIndexes(MongoClient mongoClient) {
+    return Future.future(promise -> {
+      mongoClient.rxListIndexes("users").subscribe(indexList -> {
+        List<Completable> completableList = new ArrayList<>();
+
+        indexList.stream().map(o -> (JsonObject) o).forEach(index -> {
+          String indexName = index.getString("name");
+          if (!indexName.startsWith("_id")) {
+            completableList.add(mongoClient.rxDropIndex("users", indexName));
+          }
+        });
+
+        completableList
+            .add(mongoClient.rxCreateIndexWithOptions("users", new JsonObject().put("username", 1),
+                new IndexOptions().name("uq_username").unique(true)));
+
+        Completable.mergeDelayError(completableList).subscribe(() -> {
+          logger.info("[createIndexes] Done");
+          promise.complete();
+        }, error -> promise.fail(error));
       }, error -> promise.fail(error));
     });
   }

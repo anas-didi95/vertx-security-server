@@ -12,12 +12,25 @@ public abstract class BaseValidator<T> {
     CREATE
   }
 
-  protected abstract T validate(T vo, Action action) throws ApplicationException;
+  protected abstract List<String> validateCreate(T vo);
 
-  protected final T validate(List<String> errorList, T vo, Action action)
+  public final T validate(T vo, Action action) throws ApplicationException {
+    List<String> errorList = null;
+
+    switch (action) {
+      case CREATE:
+        errorList = validateCreate(vo);
+        break;
+    }
+
+    return validate(errorList, vo, action);
+  };
+
+  private final T validate(List<String> errorList, T vo, Action action)
       throws ApplicationException {
     if (errorList == null) {
-      logger.error("[validate] Validation not implemented!");
+      logger.warn("[validate] action={}, vo={}", action, vo);
+      logger.warn("[validate] Validation not implemented!");
     } else if (!errorList.isEmpty()) {
       logger.error("[validate] action={}, vo={}", action, vo);
       throw new ApplicationException(ApplicationConstants.ErrorValue.VALIDATION, errorList);

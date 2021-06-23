@@ -10,9 +10,9 @@ import io.vertx.rxjava3.core.eventbus.EventBus;
 class UserService {
 
   private final static Logger logger = LogManager.getLogger(UserService.class);
-  private final EventBus eventBus;
+  private EventBus eventBus;
 
-  UserService(EventBus eventBus) {
+  void setEventBus(EventBus eventBus) {
     this.eventBus = eventBus;
   }
 

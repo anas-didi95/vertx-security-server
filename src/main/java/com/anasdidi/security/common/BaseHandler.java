@@ -30,7 +30,7 @@ public abstract class BaseHandler {
 
       if (requestBody == null || requestBody.isEmpty()) {
         String error = String.format("Required keys: %s", String.join(",", jsonKeys));
-        throw new ApplicationException("E001", "Request body is empty!", error);
+        throw new ApplicationException(ApplicationConstants.ErrorValue.REQUEST_BODY_EMPTY, error);
       }
 
       if (logger.isDebugEnabled()) {

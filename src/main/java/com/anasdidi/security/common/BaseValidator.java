@@ -20,7 +20,7 @@ public abstract class BaseValidator<T> {
       logger.error("[validate] Validation not implemented!");
     } else if (!errorList.isEmpty()) {
       logger.error("[validate] action={}, vo={}", action, vo);
-      throw new ApplicationException("E002", "Validation error!", errorList);
+      throw new ApplicationException(ApplicationConstants.ErrorValue.VALIDATION, errorList);
     }
 
     return vo;

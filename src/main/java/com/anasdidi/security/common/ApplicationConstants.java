@@ -27,4 +27,16 @@ public class ApplicationConstants {
       this.address = address;
     }
   }
+
+  public enum ErrorValue {
+    REQUEST_BODY_EMPTY("E001", "Request body is empty!"), VALIDATION("E002", "Validation error!");
+
+    public final String code;
+    public final String message;
+
+    ErrorValue(String code, String message) {
+      this.code = code;
+      this.message = message;
+    }
+  }
 }

@@ -2,6 +2,7 @@ package com.anasdidi.security.common;
 
 import java.util.Arrays;
 import java.util.List;
+import com.anasdidi.security.common.ApplicationConstants.ErrorValue;
 import io.vertx.core.json.JsonObject;
 
 public class ApplicationException extends Exception {
@@ -10,16 +11,16 @@ public class ApplicationException extends Exception {
   private final String message;
   private List<String> errorList;
 
-  public ApplicationException(String code, String message, List<String> errorList) {
-    this.code = code;
-    this.message = message;
-    this.errorList = errorList;
+  public ApplicationException(ErrorValue error, List<String> detailList) {
+    this.code = error.code;
+    this.message = error.message;
+    this.errorList = detailList;
   }
 
-  public ApplicationException(String code, String message, String error) {
-    this.code = code;
-    this.message = message;
-    this.errorList = Arrays.asList(error);
+  public ApplicationException(ErrorValue error, String detail) {
+    this.code = error.code;
+    this.message = error.message;
+    this.errorList = Arrays.asList(detail);
   }
 
   @Override

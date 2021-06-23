@@ -119,4 +119,33 @@ public class TestUserVerticle {
           });
         });
   }
+
+  @Test
+  void testUserCreateUserServiceError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+    ApplicationConfig config = ApplicationConfig.instance();
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx, config.getMongoConnectionString());
+    WebClient webClient = WebClient.create(vertx);
+
+    String suffix = ":" + System.currentTimeMillis();
+    JsonObject requestBody = new JsonObject().put("username", "username" + suffix)
+        .put("password", "password" + suffix).put("fullName", "fullName" + suffix)
+        .put("email", "email" + suffix).put("telegramId", "telegramId" + suffix);
+
+    mongoClient.rxSave("users", requestBody).subscribe(id -> {
+      webClient.post(config.getAppPort(), config.getAppHost(), "/user")
+          .putHeader("Accept", "application/json").putHeader("Content-Type", "application/json")
+          .rxSendJsonObject(requestBody).subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 400);
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              TestUtils.testResponseBodyError(response, "E101", "User create failed!");
+              checkpoint.flag();
+            });
+          });
+    }, error -> testContext.failNow(error));
+  }
 }

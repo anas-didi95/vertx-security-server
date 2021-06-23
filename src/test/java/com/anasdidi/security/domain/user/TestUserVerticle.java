@@ -2,6 +2,7 @@ package com.anasdidi.security.domain.user;
 
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConfig;
+import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +60,7 @@ public class TestUserVerticle {
             String id = response.bodyAsJsonObject().getString("id");
             JsonObject query = new JsonObject().put("_id", id);
             JsonObject fields = new JsonObject();
-            mongoClient.findOne(UserConstants.COLLECTION_NAME, query, fields).toSingle()
+            mongoClient.findOne(ApplicationConstants.Collection.USER.name, query, fields).toSingle()
                 .subscribe(result -> {
                   Assertions.assertEquals(requestBody.getString("username"),
                       result.getString("username"));
@@ -132,7 +133,7 @@ public class TestUserVerticle {
         .put("password", "password" + suffix).put("fullName", "fullName" + suffix)
         .put("email", "email" + suffix).put("telegramId", "telegramId" + suffix);
 
-    mongoClient.rxSave("users", requestBody).subscribe(id -> {
+    mongoClient.rxSave(ApplicationConstants.Collection.USER.name, requestBody).subscribe(id -> {
       webClient.post(config.getAppPort(), config.getAppHost(), "/user")
           .putHeader("Accept", "application/json").putHeader("Content-Type", "application/json")
           .rxSendJsonObject(requestBody).subscribe(response -> {

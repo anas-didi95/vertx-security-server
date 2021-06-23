@@ -23,7 +23,7 @@ public class ApplicationConstants {
 
     public final String address;
 
-    Event(String address) {
+    private Event(String address) {
       this.address = address;
     }
   }
@@ -35,9 +35,19 @@ public class ApplicationConstants {
     public final String code;
     public final String message;
 
-    ErrorValue(String code, String message) {
+    private ErrorValue(String code, String message) {
       this.code = code;
       this.message = message;
+    }
+  }
+
+  public enum Collection {
+    USER("users");
+
+    public final String name;
+
+    private Collection(String name) {
+      this.name = name;
     }
   }
 }

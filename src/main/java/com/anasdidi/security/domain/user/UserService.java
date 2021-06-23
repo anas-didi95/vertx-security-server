@@ -18,8 +18,8 @@ class UserService {
   }
 
   Single<String> create(UserVO vo) {
-    JsonObject requestBody = new JsonObject().put("collection", UserConstants.COLLECTION_NAME)
-        .put("document", vo.toJson());
+    JsonObject requestBody = new JsonObject()
+        .put("collection", ApplicationConstants.Collection.USER.name).put("document", vo.toJson());
 
     if (logger.isDebugEnabled()) {
       logger.debug("[create] requestBody {}", requestBody.encode());

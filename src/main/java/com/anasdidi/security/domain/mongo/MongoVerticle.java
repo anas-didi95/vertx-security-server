@@ -1,7 +1,9 @@
 package com.anasdidi.security.domain.mongo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.BaseVerticle;
@@ -67,10 +69,10 @@ public class MongoVerticle extends BaseVerticle {
   private Future<Void> createCollections(MongoClient mongoClient) {
     return Future.future(promise -> {
       mongoClient.rxGetCollections().subscribe(collectionList -> {
-        List<Completable> createCollection = new ArrayList<>();
-        if (!collectionList.contains("users")) {
-          createCollection.add(mongoClient.rxCreateCollection("users"));
-        }
+        List<Completable> createCollection = Arrays.asList(ApplicationConstants.Collection.values())
+            .stream().filter(collection -> !collectionList.contains(collection.name))
+            .map(collection -> mongoClient.rxCreateCollection(collection.name))
+            .collect(Collectors.toList());
 
         if (!createCollection.isEmpty()) {
           Completable.merge(createCollection).subscribe(() -> {
@@ -87,19 +89,20 @@ public class MongoVerticle extends BaseVerticle {
 
   private Future<Void> createIndexes(MongoClient mongoClient) {
     return Future.future(promise -> {
-      mongoClient.rxListIndexes("users").subscribe(indexList -> {
+      mongoClient.rxListIndexes(ApplicationConstants.Collection.USER.name).subscribe(indexList -> {
         List<Completable> completableList = new ArrayList<>();
 
         indexList.stream().map(o -> (JsonObject) o).forEach(index -> {
           String indexName = index.getString("name");
           if (!indexName.startsWith("_id")) {
-            completableList.add(mongoClient.rxDropIndex("users", indexName));
+            completableList
+                .add(mongoClient.rxDropIndex(ApplicationConstants.Collection.USER.name, indexName));
           }
         });
 
-        completableList
-            .add(mongoClient.rxCreateIndexWithOptions("users", new JsonObject().put("username", 1),
-                new IndexOptions().name("uq_username").unique(true)));
+        completableList.add(mongoClient.rxCreateIndexWithOptions(
+            ApplicationConstants.Collection.USER.name, new JsonObject().put("username", 1),
+            new IndexOptions().name("uq_username").unique(true)));
 
         Completable.mergeDelayError(completableList).subscribe(() -> {
           logger.info("[createIndexes] Done");

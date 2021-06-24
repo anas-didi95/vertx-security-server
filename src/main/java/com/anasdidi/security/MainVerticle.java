@@ -66,7 +66,7 @@ public class MainVerticle extends AbstractVerticle {
     router.route().handler(BodyHandler.create());
     router.route().handler(
         routingContext -> routingContext.put("traceId", ApplicationUtils.getFormattedUUID())
-            .put("traceStartTime", System.currentTimeMillis()).next());
+            .put("startTime", System.currentTimeMillis()).next());
 
     return router;
   }

@@ -23,8 +23,11 @@ public abstract class BaseHandler {
   protected void sendResponse(Single<JsonObject> subscriber, RoutingContext routingContext,
       HttpStatus httpStatus) {
     String traceId = routingContext.get("traceId");
+    long timeTaken = System.currentTimeMillis() - (Long) routingContext.get("startTime");
+
     subscriber.subscribe(responseBody -> {
-      logger.info("[sendResponse:{}] Success: httpStatus={}", traceId, httpStatus);
+      logger.info("[sendResponse:{}] Success ({}ms): httpStatus={}", traceId, timeTaken,
+          httpStatus);
       sendResponse(routingContext, responseBody.encode(), httpStatus);
     }, error -> {
       String responseBody = null;
@@ -38,7 +41,7 @@ public abstract class BaseHandler {
         responseBody = new JsonObject().put("message", error.getMessage()).encode();
       }
 
-      logger.error("[sendResponse:{}] Error! {}", traceId, responseBody);
+      logger.error("[sendResponse:{}] Error ({}ms): {}", traceId, timeTaken, responseBody);
       sendResponse(routingContext, responseBody, HttpStatus.BAD_REQUEST);
     });
   }
@@ -56,7 +59,7 @@ public abstract class BaseHandler {
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[create] requestBody {}", requestBody.encode());
+        logger.debug("[create:{}] requestBody {}", traceId, requestBody.encode());
       }
 
       return requestBody;

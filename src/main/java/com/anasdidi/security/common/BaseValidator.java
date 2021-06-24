@@ -31,7 +31,7 @@ public abstract class BaseValidator<T extends BaseVO> {
       throws ApplicationException {
     if (errorList == null) {
       logger.warn("[validate:{}] action={}, vo={}", vo.traceId, action, vo);
-      logger.warn("[validate] Validation not implemented!");
+      logger.warn("[validate:{}] Validation not implemented!", vo.traceId);
     } else if (!errorList.isEmpty()) {
       logger.error("[validate:{}] action={}, vo={}", vo.traceId, action, vo);
       throw new ApplicationException(ErrorValue.VALIDATION, vo.traceId, errorList);

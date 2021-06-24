@@ -126,4 +126,51 @@ public class TestUserVerticle {
           });
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserUpdateSuccess(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject requestBody = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
+      requestBody.put("username", "testUserUpdateSuccess1");
+      requestBody.put("email", "testUserUpdateSuccess2");
+      requestBody.put("telegramId", "testUserUpdateSuccess3");
+
+      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id)
+          .rxSendJsonObject(requestBody).subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 200);
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              JsonObject responseBody = response.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody);
+              Assertions.assertEquals(id, responseBody.getString("id"));
+              checkpoint.flag();
+            });
+
+            JsonObject query = new JsonObject().put("_id", id);
+            JsonObject fields = new JsonObject();
+            mongoClient.rxFindOne(CollectionRecord.USER.name, query, fields).toSingle()
+                .subscribe(result -> {
+                  testContext.verify(() -> {
+                    Assertions.assertEquals(requestBody.getString("username"),
+                        result.getString("username"));
+                    Assertions.assertEquals(requestBody.getString("password"),
+                        result.getString("password"));
+                    Assertions.assertEquals(requestBody.getString("fullName"),
+                        result.getString("fullName"));
+                    Assertions.assertEquals(requestBody.getString("email"),
+                        result.getString("email"));
+                    Assertions.assertEquals(requestBody.getString("telegramId"),
+                        result.getString("telegramId"));
+                    checkpoint.flag();
+                  });
+                }, error -> testContext.failNow(error));
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
+  }
 }

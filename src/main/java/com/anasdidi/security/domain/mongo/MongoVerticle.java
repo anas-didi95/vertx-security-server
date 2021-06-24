@@ -112,7 +112,7 @@ public class MongoVerticle extends BaseVerticle {
             new IndexOptions().name("uq_username").unique(true)));
 
         Completable.concatDelayError(completableList).subscribe(() -> {
-          logger.info("[createIndexes] Done");
+          logger.info("[createIndexes] Total process finished: {}", completableList.size());
           promise.complete();
         }, error -> promise.fail(error));
       }, error -> promise.fail(error));

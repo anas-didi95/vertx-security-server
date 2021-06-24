@@ -3,9 +3,9 @@ package com.anasdidi.security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConfig;
+import com.anasdidi.security.common.ApplicationUtils;
 import com.anasdidi.security.common.BaseVerticle;
 import com.anasdidi.security.domain.mongo.MongoVerticle;
 import com.anasdidi.security.domain.user.UserVerticle;
@@ -64,8 +64,8 @@ public class MainVerticle extends AbstractVerticle {
   private Router getRouter() {
     Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create());
-    router.route()
-        .handler(routingContext -> routingContext.put("traceId", UUID.randomUUID().toString())
+    router.route().handler(
+        routingContext -> routingContext.put("traceId", ApplicationUtils.getFormattedUUID())
             .put("traceStartTime", System.currentTimeMillis()).next());
 
     return router;

@@ -120,7 +120,7 @@ public class TestUserVerticle {
             });
 
             testContext.verify(() -> {
-              TestUtils.testResponseBodyError(response, "E101", "User create failed!");
+              TestUtils.testResponseBodyError(response, "E100", "Create user failed!");
               checkpoint.flag();
             });
           });

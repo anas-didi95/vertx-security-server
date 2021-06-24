@@ -1,11 +1,17 @@
 package com.anasdidi.security.common;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Assertions;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.MultiMap;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
+import io.vertx.rxjava3.ext.web.client.HttpRequest;
 import io.vertx.rxjava3.ext.web.client.HttpResponse;
+import io.vertx.rxjava3.ext.web.client.WebClient;
 
 public class TestUtils {
 
@@ -24,8 +30,31 @@ public class TestUtils {
     Assertions.assertTrue(!responseBody.getJsonArray("errors").isEmpty());
   }
 
-  public static MongoClient getMongoClient(Vertx vertx, String connectionString) {
-    return MongoClient.create(vertx, new JsonObject()//
-        .put("connection_string", connectionString));
+  public static MongoClient getMongoClient(Vertx vertx) {
+    ApplicationConfig config = ApplicationConfig.instance();
+    return MongoClient.create(vertx,
+        new JsonObject().put("connection_string", config.getMongoConnectionString()));
+  }
+
+  public static HttpRequest<Buffer> doPostRequest(Vertx vertx, String requestURI) {
+    return sendRequest(vertx, HttpMethod.POST, requestURI);
+  }
+
+  private static HttpRequest<Buffer> sendRequest(Vertx vertx, HttpMethod method,
+      String requestURI) {
+    WebClient webClient = WebClient.create(vertx);
+    ApplicationConfig config = ApplicationConfig.instance();
+
+    Map<String, String> map = new HashMap<>();
+    map.put("Accept", "application/json");
+    map.put("Content-Type", "application/json");
+    MultiMap headers = MultiMap.caseInsensitiveMultiMap().addAll(map);
+
+    if (method == HttpMethod.POST) {
+      return webClient.post(config.getAppPort(), config.getAppHost(), requestURI)
+          .putHeaders(headers);
+    }
+
+    return null;
   }
 }

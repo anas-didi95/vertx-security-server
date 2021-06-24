@@ -104,7 +104,7 @@ public class MongoVerticle extends BaseVerticle {
             ApplicationConstants.Collection.USER.name, new JsonObject().put("username", 1),
             new IndexOptions().name("uq_username").unique(true)));
 
-        Completable.mergeDelayError(completableList).subscribe(() -> {
+        Completable.concatDelayError(completableList).subscribe(() -> {
           logger.info("[createIndexes] Done");
           promise.complete();
         }, error -> promise.fail(error));

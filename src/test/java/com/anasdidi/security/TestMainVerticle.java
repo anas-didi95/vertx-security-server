@@ -31,8 +31,7 @@ public class TestMainVerticle {
 
   @Test
   void testMongoClientGetCollectionsSuccess(Vertx vertx, VertxTestContext testContext) {
-    ApplicationConfig config = ApplicationConfig.instance();
-    MongoClient mongoClient = TestUtils.getMongoClient(vertx, config.getMongoConnectionString());
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
 
     mongoClient.rxGetCollections().subscribe(collectionList -> {
       testContext.verify(() -> {

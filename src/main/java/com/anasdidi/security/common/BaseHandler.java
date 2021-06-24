@@ -22,8 +22,12 @@ public abstract class BaseHandler {
 
   protected void sendResponse(Single<JsonObject> subscriber, RoutingContext routingContext,
       HttpStatus httpStatus) {
+    String traceId = routingContext.get("traceId");
+    long timeTaken = System.currentTimeMillis() - (Long) routingContext.get("startTime");
+
     subscriber.subscribe(responseBody -> {
-      logger.info("[sendResponse] Success: httpStatus={}", httpStatus);
+      logger.info("[sendResponse:{}] Success ({}ms): httpStatus={}", traceId, timeTaken,
+          httpStatus);
       sendResponse(routingContext, responseBody.encode(), httpStatus);
     }, error -> {
       String responseBody = null;
@@ -37,7 +41,7 @@ public abstract class BaseHandler {
         responseBody = new JsonObject().put("message", error.getMessage()).encode();
       }
 
-      logger.error("[sendResponse] Error! {}", responseBody);
+      logger.error("[sendResponse:{}] Error ({}ms): {}", traceId, timeTaken, responseBody);
       sendResponse(routingContext, responseBody, HttpStatus.BAD_REQUEST);
     });
   }
@@ -45,14 +49,17 @@ public abstract class BaseHandler {
   protected Single<JsonObject> getRequestBody(RoutingContext routingContext, String... jsonKeys) {
     return Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
+      String traceId = routingContext.get("traceId");
 
       if (requestBody == null || requestBody.isEmpty()) {
         String error = String.format("Required keys: %s", String.join(",", jsonKeys));
-        throw new ApplicationException(ErrorValue.REQUEST_BODY_EMPTY, error);
+        throw new ApplicationException(ErrorValue.REQUEST_BODY_EMPTY, traceId, error);
+      } else {
+        requestBody.put("traceId", traceId);
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[create] requestBody {}", requestBody.encode());
+        logger.debug("[create:{}] requestBody {}", traceId, requestBody.encode());
       }
 
       return requestBody;

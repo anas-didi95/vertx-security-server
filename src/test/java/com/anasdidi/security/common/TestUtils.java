@@ -27,6 +27,7 @@ public class TestUtils {
     Assertions.assertNotNull(responseBody);
     Assertions.assertEquals(code, responseBody.getString("code"));
     Assertions.assertEquals(message, responseBody.getString("message"));
+    Assertions.assertNotNull(responseBody.getString("traceId"));
     Assertions.assertTrue(!responseBody.getJsonArray("errors").isEmpty());
   }
 

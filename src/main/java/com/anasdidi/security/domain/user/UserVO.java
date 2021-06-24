@@ -1,8 +1,9 @@
 package com.anasdidi.security.domain.user;
 
+import com.anasdidi.security.common.BaseVO;
 import io.vertx.core.json.JsonObject;
 
-class UserVO {
+class UserVO extends BaseVO {
 
   final String id;
   final String username;
@@ -11,8 +12,9 @@ class UserVO {
   final String email;
   final String telegramId;
 
-  private UserVO(String id, String username, String password, String fullName, String email,
-      String telegramId) {
+  private UserVO(String traceId, String id, String username, String password, String fullName,
+      String email, String telegramId) {
+    super(traceId);
     this.id = id;
     this.username = username;
     this.password = password;
@@ -22,6 +24,7 @@ class UserVO {
   }
 
   static UserVO fromJson(JsonObject json) {
+    String traceId = json.getString("traceId");
     String id = json.getString("id");
     String username = json.getString("username");
     String password = json.getString("password");
@@ -29,7 +32,7 @@ class UserVO {
     String email = json.getString("email");
     String telegramId = json.getString("telegramId");
 
-    return new UserVO(id, username, password, fullName, email, telegramId);
+    return new UserVO(traceId, id, username, password, fullName, email, telegramId);
   }
 
   JsonObject toJson() {

@@ -134,7 +134,7 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
-      requestBody.put("username", "testUserUpdateSuccess1");
+      requestBody.put("fullName", "testUserUpdateSuccess1");
       requestBody.put("email", "testUserUpdateSuccess2");
       requestBody.put("telegramId", "testUserUpdateSuccess3");
 

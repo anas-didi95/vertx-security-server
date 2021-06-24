@@ -1,8 +1,8 @@
 package com.anasdidi.security.domain.user;
 
 import com.anasdidi.security.common.ApplicationConstants.HttpStatus;
-import com.anasdidi.security.common.BaseValidator.ValidateAction;
 import com.anasdidi.security.common.BaseHandler;
+import com.anasdidi.security.common.BaseValidator.ValidateAction;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -25,5 +25,11 @@ class UserHandler extends BaseHandler {
             .flatMap(vo -> userService.create(vo)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(subscriber, routingContext, HttpStatus.CREATED);
+  }
+
+  void update(RoutingContext routingContext) {
+    Single<JsonObject> subscriber = getRequestBody(routingContext);
+
+    sendResponse(subscriber, routingContext, HttpStatus.OK);
   }
 }

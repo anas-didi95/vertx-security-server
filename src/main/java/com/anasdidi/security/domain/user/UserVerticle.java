@@ -50,6 +50,7 @@ public class UserVerticle extends BaseVerticle {
   protected Future<Void> setHandler(Router router, EventBus eventBus) {
     return Future.future(promise -> {
       router.post("/").handler(userHandler::create);
+      router.put("/:userId").handler(userHandler::update);
       promise.complete();
     });
   }

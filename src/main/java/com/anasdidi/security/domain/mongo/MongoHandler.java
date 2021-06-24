@@ -20,4 +20,13 @@ class MongoHandler {
         id -> request.reply(new JsonObject().put("id", id)),
         error -> request.fail(1, error.getMessage()));
   }
+
+  void update(Message<Object> request) {
+    Single.fromCallable(() -> {
+      JsonObject requestBody = (JsonObject) request.body();
+      return requestBody;
+    }).map(json -> MongoVO.fromJson(json)).flatMap(vo -> mongoService.update(vo)).subscribe(
+        id -> request.reply(new JsonObject().put("id", id)),
+        error -> request.fail(2, error.getMessage()));
+  }
 }

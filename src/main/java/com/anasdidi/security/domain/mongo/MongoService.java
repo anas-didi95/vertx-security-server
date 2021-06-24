@@ -14,4 +14,9 @@ class MongoService {
   Single<String> create(MongoVO vo) {
     return mongoClient.rxSave(vo.collection, vo.document).toSingle();
   }
+
+  Single<String> update(MongoVO vo) {
+    return mongoClient.rxFindOneAndUpdate(vo.collection, vo.query, vo.document)
+        .map(result -> result.getString("_id")).toSingle();
+  }
 }

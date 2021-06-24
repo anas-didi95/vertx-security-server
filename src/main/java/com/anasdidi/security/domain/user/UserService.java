@@ -37,4 +37,18 @@ class UserService {
       return responseBody.getString("id");
     });
   }
+
+  Single<String> update(UserVO vo) {
+    JsonObject requestBody =
+        new JsonObject().put("collection", CollectionRecord.USER.name).put("document", vo.toJson());
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[update:{}] requestBody {}", vo.traceId, requestBody.encode());
+    }
+
+    return eventBus.rxRequest(EventValue.MONGO_UPDATE.address, requestBody).map(response -> {
+      JsonObject responseBody = (JsonObject) response.body();
+      return responseBody.getString("id");
+    });
+  }
 }

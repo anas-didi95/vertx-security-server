@@ -59,7 +59,7 @@ public abstract class BaseHandler {
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[create:{}] requestBody {}", traceId, requestBody.encode());
+        logger.debug("[getRequestBody:{}] requestBody {}", traceId, requestBody.encode());
       }
 
       return requestBody;

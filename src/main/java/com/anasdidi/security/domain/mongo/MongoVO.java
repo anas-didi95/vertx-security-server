@@ -6,6 +6,7 @@ class MongoVO {
 
   final String collection;
   final JsonObject document;
+  JsonObject query;
 
   private MongoVO(String collection, JsonObject document) {
     this.collection = collection;

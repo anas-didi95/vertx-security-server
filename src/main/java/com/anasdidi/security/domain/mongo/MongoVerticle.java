@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationConstants;
+import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
+import com.anasdidi.security.common.ApplicationConstants.EventValue;
 import com.anasdidi.security.common.BaseVerticle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,7 +60,7 @@ public class MongoVerticle extends BaseVerticle {
   @Override
   protected Future<Void> setHandler(Router router, EventBus eventBus) {
     return Future.future(promise -> {
-      eventBus.consumer(ApplicationConstants.Event.MONGO_CREATE.address, mongoHandler::create);
+      eventBus.consumer(EventValue.MONGO_CREATE.address, mongoHandler::create);
       promise.complete();
     });
   }
@@ -75,8 +77,8 @@ public class MongoVerticle extends BaseVerticle {
   private Future<Void> createCollections(MongoClient mongoClient) {
     return Future.future(promise -> {
       mongoClient.rxGetCollections().subscribe(collectionList -> {
-        List<Completable> createCollection = Arrays.asList(ApplicationConstants.Collection.values())
-            .stream().filter(collection -> !collectionList.contains(collection.name))
+        List<Completable> createCollection = Arrays.asList(CollectionRecord.values()).stream()
+            .filter(collection -> !collectionList.contains(collection.name))
             .map(collection -> mongoClient.rxCreateCollection(collection.name))
             .collect(Collectors.toList());
 
@@ -95,19 +97,18 @@ public class MongoVerticle extends BaseVerticle {
 
   private Future<Void> createIndexes(MongoClient mongoClient) {
     return Future.future(promise -> {
-      mongoClient.rxListIndexes(ApplicationConstants.Collection.USER.name).subscribe(indexList -> {
+      mongoClient.rxListIndexes(CollectionRecord.USER.name).subscribe(indexList -> {
         List<Completable> completableList = new ArrayList<>();
 
         indexList.stream().map(o -> (JsonObject) o).forEach(index -> {
           String indexName = index.getString("name");
           if (!indexName.startsWith("_id")) {
-            completableList
-                .add(mongoClient.rxDropIndex(ApplicationConstants.Collection.USER.name, indexName));
+            completableList.add(mongoClient.rxDropIndex(CollectionRecord.USER.name, indexName));
           }
         });
 
         completableList.add(mongoClient.rxCreateIndexWithOptions(
-            ApplicationConstants.Collection.USER.name, new JsonObject().put("username", 1),
+            ApplicationConstants.CollectionRecord.USER.name, new JsonObject().put("username", 1),
             new IndexOptions().name("uq_username").unique(true)));
 
         Completable.concatDelayError(completableList).subscribe(() -> {

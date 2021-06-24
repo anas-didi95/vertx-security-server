@@ -18,12 +18,12 @@ public class ApplicationConstants {
     HEADERS.put("X-FRAME-OPTIONS", "DENY");
   }
 
-  public enum Event {
+  public enum EventValue {
     MONGO_CREATE("mongo-create");
 
     public final String address;
 
-    private Event(String address) {
+    private EventValue(String address) {
       this.address = address;
     }
   }
@@ -41,13 +41,23 @@ public class ApplicationConstants {
     }
   }
 
-  public enum Collection {
+  public enum CollectionRecord {
     USER("users");
 
     public final String name;
 
-    private Collection(String name) {
+    private CollectionRecord(String name) {
       this.name = name;
+    }
+  }
+
+  public enum HttpStatus {
+    OK(200), CREATED(201), BAD_REQUEST(400);
+
+    public final int code;
+
+    private HttpStatus(int code) {
+      this.code = code;
     }
   }
 }

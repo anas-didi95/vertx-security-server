@@ -35,7 +35,7 @@ public class UserVerticle extends BaseVerticle {
 
   @Override
   public String getContextPath() {
-    return "/user";
+    return UserConstants.CONTEXT_PATH;
   }
 
   @Override

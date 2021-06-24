@@ -1,6 +1,8 @@
 package com.anasdidi.security.domain.user;
 
-import com.anasdidi.security.common.ApplicationConstants;
+import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
+import com.anasdidi.security.common.ApplicationConstants.ErrorValue;
+import com.anasdidi.security.common.ApplicationConstants.EventValue;
 import com.anasdidi.security.common.ApplicationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,22 +20,21 @@ class UserService {
   }
 
   Single<String> create(UserVO vo) {
-    JsonObject requestBody = new JsonObject()
-        .put("collection", ApplicationConstants.Collection.USER.name).put("document", vo.toJson());
+    JsonObject requestBody =
+        new JsonObject().put("collection", CollectionRecord.USER.name).put("document", vo.toJson());
 
     if (logger.isDebugEnabled()) {
       logger.debug("[create] requestBody {}", requestBody.encode());
     }
 
-    return eventBus.rxRequest(ApplicationConstants.Event.MONGO_CREATE.address, requestBody)
-        .doOnError(error -> {
-          logger.error("[create] requestBody {}", requestBody.encode());
-          logger.error("[create] {}", error.getMessage());
-          error.addSuppressed(new ApplicationException(ApplicationConstants.ErrorValue.USER_CREATE,
-              "Unable to create user with username: " + vo.username));
-        }).map(response -> {
-          JsonObject responseBody = (JsonObject) response.body();
-          return responseBody.getString("id");
-        });
+    return eventBus.rxRequest(EventValue.MONGO_CREATE.address, requestBody).doOnError(error -> {
+      logger.error("[create] requestBody {}", requestBody.encode());
+      logger.error("[create] {}", error.getMessage());
+      error.addSuppressed(new ApplicationException(ErrorValue.USER_CREATE,
+          "Unable to create user with username: " + vo.username));
+    }).map(response -> {
+      JsonObject responseBody = (JsonObject) response.body();
+      return responseBody.getString("id");
+    });
   }
 }

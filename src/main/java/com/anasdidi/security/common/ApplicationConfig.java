@@ -36,7 +36,7 @@ public class ApplicationConfig {
     JsonObject copy = json.copy();
     copy.put(KEY_MONGO_CONNECTION_STRING, String.format("[len: %d]",
         getMongoConnectionString() != null ? getMongoConnectionString().length() : -1));
-    return this.getClass().getSimpleName() + " :: " + copy;
+    return this.getClass().getSimpleName() + copy.encode();
   }
 
   public String getAppHost() {

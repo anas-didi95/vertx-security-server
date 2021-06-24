@@ -18,25 +18,46 @@ public class ApplicationConstants {
     HEADERS.put("X-FRAME-OPTIONS", "DENY");
   }
 
-  public enum Event {
+  public enum EventValue {
     MONGO_CREATE("mongo-create");
 
     public final String address;
 
-    Event(String address) {
+    private EventValue(String address) {
       this.address = address;
     }
   }
 
   public enum ErrorValue {
-    REQUEST_BODY_EMPTY("E001", "Request body is empty!"), VALIDATION("E002", "Validation error!");
+    REQUEST_BODY_EMPTY("E001", "Request body is empty!"), VALIDATION("E002",
+        "Validation error!"), USER_CREATE("E100", "Create user failed!");
 
     public final String code;
     public final String message;
 
-    ErrorValue(String code, String message) {
+    private ErrorValue(String code, String message) {
       this.code = code;
       this.message = message;
+    }
+  }
+
+  public enum CollectionRecord {
+    USER("users");
+
+    public final String name;
+
+    private CollectionRecord(String name) {
+      this.name = name;
+    }
+  }
+
+  public enum HttpStatus {
+    OK(200), CREATED(201), BAD_REQUEST(400);
+
+    public final int code;
+
+    private HttpStatus(int code) {
+      this.code = code;
     }
   }
 }

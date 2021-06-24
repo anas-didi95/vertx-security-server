@@ -1,6 +1,7 @@
 package com.anasdidi.security.common;
 
 import java.util.List;
+import com.anasdidi.security.common.ApplicationConstants.ErrorValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -8,13 +9,13 @@ public abstract class BaseValidator<T> {
 
   private static Logger logger = LogManager.getLogger(BaseValidator.class);
 
-  public enum Action {
+  public enum ValidateAction {
     CREATE
   }
 
   protected abstract List<String> validateCreate(T vo);
 
-  public final T validate(T vo, Action action) throws ApplicationException {
+  public final T validate(T vo, ValidateAction action) throws ApplicationException {
     List<String> errorList = null;
 
     switch (action) {
@@ -26,14 +27,14 @@ public abstract class BaseValidator<T> {
     return validate(errorList, vo, action);
   };
 
-  private final T validate(List<String> errorList, T vo, Action action)
+  private final T validate(List<String> errorList, T vo, ValidateAction action)
       throws ApplicationException {
     if (errorList == null) {
       logger.warn("[validate] action={}, vo={}", action, vo);
       logger.warn("[validate] Validation not implemented!");
     } else if (!errorList.isEmpty()) {
       logger.error("[validate] action={}, vo={}", action, vo);
-      throw new ApplicationException(ApplicationConstants.ErrorValue.VALIDATION, errorList);
+      throw new ApplicationException(ErrorValue.VALIDATION, errorList);
     }
 
     return vo;

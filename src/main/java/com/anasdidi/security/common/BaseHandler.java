@@ -1,5 +1,8 @@
 package com.anasdidi.security.common;
 
+import java.util.Arrays;
+import com.anasdidi.security.common.ApplicationConstants.ErrorValue;
+import com.anasdidi.security.common.ApplicationConstants.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Single;
@@ -10,17 +13,32 @@ public abstract class BaseHandler {
 
   private static final Logger logger = LogManager.getLogger(BaseHandler.class);
 
+  private void sendResponse(RoutingContext routingContext, String responseBody,
+      HttpStatus httpStatus) {
+    routingContext.response().setStatusCode(httpStatus.code).headers()
+        .addAll(ApplicationConstants.HEADERS);
+    routingContext.response().end(responseBody);
+  }
+
   protected void sendResponse(Single<JsonObject> subscriber, RoutingContext routingContext,
-      int statusCode) {
+      HttpStatus httpStatus) {
     subscriber.subscribe(responseBody -> {
-      logger.info("[sendResponse] Success: statusCode={}", statusCode);
-      routingContext.response().setStatusCode(statusCode).headers()
-          .addAll(ApplicationConstants.HEADERS);
-      routingContext.response().end(responseBody.encode());
+      logger.info("[sendResponse] Success: httpStatus={}", httpStatus);
+      sendResponse(routingContext, responseBody.encode(), httpStatus);
     }, error -> {
-      logger.error("[sendResponse] Error! {}", error.getMessage());
-      routingContext.response().setStatusCode(400).headers().addAll(ApplicationConstants.HEADERS);
-      routingContext.response().end(error.getMessage());
+      String responseBody = null;
+
+      if (error instanceof ApplicationException) {
+        responseBody = error.getMessage();
+      } else if (error.getSuppressed().length > 0) {
+        responseBody = Arrays.asList(error.getSuppressed()).stream()
+            .filter(e -> e instanceof ApplicationException).findFirst().get().getMessage();
+      } else {
+        responseBody = new JsonObject().put("message", error.getMessage()).encode();
+      }
+
+      logger.error("[sendResponse] Error! {}", responseBody);
+      sendResponse(routingContext, responseBody, HttpStatus.BAD_REQUEST);
     });
   }
 
@@ -30,7 +48,7 @@ public abstract class BaseHandler {
 
       if (requestBody == null || requestBody.isEmpty()) {
         String error = String.format("Required keys: %s", String.join(",", jsonKeys));
-        throw new ApplicationException(ApplicationConstants.ErrorValue.REQUEST_BODY_EMPTY, error);
+        throw new ApplicationException(ErrorValue.REQUEST_BODY_EMPTY, error);
       }
 
       if (logger.isDebugEnabled()) {

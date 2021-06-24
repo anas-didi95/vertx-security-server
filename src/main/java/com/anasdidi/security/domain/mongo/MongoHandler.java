@@ -4,11 +4,11 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.eventbus.Message;
 
-class MongoEvent {
+class MongoHandler {
 
   private final MongoService mongoService;
 
-  MongoEvent(MongoService mongoService) {
+  MongoHandler(MongoService mongoService) {
     this.mongoService = mongoService;
   }
 

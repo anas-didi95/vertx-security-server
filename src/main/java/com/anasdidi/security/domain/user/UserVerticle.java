@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.web.Router;
 
 public class UserVerticle extends BaseVerticle {
@@ -26,8 +27,8 @@ public class UserVerticle extends BaseVerticle {
     userService.setEventBus(vertx.eventBus());
 
     Future<Void> future = startFuture.future();
-    future.compose(v -> Future.succeededFuture(getRouter()))
-        .onComplete(v -> logger.info("[start] Get router completed"));
+    future.compose(v -> setHandler(getRouter(), null))
+        .onComplete(v -> logger.info("[start] Set handler completed"));
 
     startFuture.complete();
   }
@@ -41,8 +42,15 @@ public class UserVerticle extends BaseVerticle {
   public Router getRouter() {
     if (router == null) {
       this.router = Router.router(vertx);
-      router.post("/").handler(userHandler::create);
     }
     return router;
+  }
+
+  @Override
+  protected Future<Void> setHandler(Router router, EventBus eventBus) {
+    return Future.future(promise -> {
+      router.post("/").handler(userHandler::create);
+      promise.complete();
+    });
   }
 }

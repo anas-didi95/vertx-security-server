@@ -22,12 +22,12 @@ public class MongoVerticle extends BaseVerticle {
 
   private final static Logger logger = LogManager.getLogger(MongoVerticle.class);
   private final MongoService mongoService;
-  private final MongoEvent mongoEvent;
+  private final MongoHandler mongoHandler;
   private MongoClient mongoClient;
 
   public MongoVerticle() {
     this.mongoService = new MongoService();
-    this.mongoEvent = new MongoEvent(mongoService);
+    this.mongoHandler = new MongoHandler(mongoService);
   }
 
   @Override
@@ -35,14 +35,12 @@ public class MongoVerticle extends BaseVerticle {
     mongoService.setMongoClient(getMongoClient());
 
     Future<Void> future = startFuture.future();
-    future.compose(v -> Future.succeededFuture(getMongoClient()))
-        .onComplete(v -> logger.info("[start] Get mongo client completed"));
     future.compose(v -> createCollections(getMongoClient()))
         .onComplete(v -> logger.info("[start] Create collections completed"))
         .compose(v -> createIndexes(getMongoClient()))
         .onComplete(v -> logger.info("[start] Create indexes completed"));
-    future.compose(v -> setEvent(vertx.eventBus()))
-        .onComplete(v -> logger.info("[start] Set event completed"));
+    future.compose(v -> Future.succeededFuture(setHandler(null, vertx.eventBus())))
+        .onComplete(v -> logger.info("[start] Set handler completed"));
 
     startFuture.complete();
   }
@@ -55,6 +53,14 @@ public class MongoVerticle extends BaseVerticle {
   @Override
   public Router getRouter() {
     return null;
+  }
+
+  @Override
+  protected Future<Void> setHandler(Router router, EventBus eventBus) {
+    return Future.future(promise -> {
+      eventBus.consumer(ApplicationConstants.Event.MONGO_CREATE.address, mongoHandler::create);
+      promise.complete();
+    });
   }
 
   private MongoClient getMongoClient() {
@@ -109,14 +115,6 @@ public class MongoVerticle extends BaseVerticle {
           promise.complete();
         }, error -> promise.fail(error));
       }, error -> promise.fail(error));
-    });
-  }
-
-  private Future<Void> setEvent(EventBus eventBus) {
-    return Future.future(promise -> {
-      eventBus.consumer(ApplicationConstants.Event.MONGO_CREATE.address,
-          request -> mongoEvent.create(request));
-      promise.complete();
     });
   }
 }

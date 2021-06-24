@@ -5,7 +5,7 @@ import com.anasdidi.security.common.ApplicationConstants.ErrorValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class BaseValidator<T> {
+public abstract class BaseValidator<T extends BaseVO> {
 
   private static Logger logger = LogManager.getLogger(BaseValidator.class);
 
@@ -30,11 +30,11 @@ public abstract class BaseValidator<T> {
   private final T validate(List<String> errorList, T vo, ValidateAction action)
       throws ApplicationException {
     if (errorList == null) {
-      logger.warn("[validate] action={}, vo={}", action, vo);
+      logger.warn("[validate:{}] action={}, vo={}", vo.traceId, action, vo);
       logger.warn("[validate] Validation not implemented!");
     } else if (!errorList.isEmpty()) {
-      logger.error("[validate] action={}, vo={}", action, vo);
-      throw new ApplicationException(ErrorValue.VALIDATION, errorList);
+      logger.error("[validate:{}] action={}, vo={}", vo.traceId, action, vo);
+      throw new ApplicationException(ErrorValue.VALIDATION, vo.traceId, errorList);
     }
 
     return vo;

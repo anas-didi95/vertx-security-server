@@ -39,8 +39,11 @@ class UserService {
   }
 
   Single<String> update(UserVO vo) {
-    JsonObject requestBody =
-        new JsonObject().put("collection", CollectionRecord.USER.name).put("document", vo.toJson());
+    JsonObject query = new JsonObject().put("_id", vo.id);
+    JsonObject document = new JsonObject().put("fullName", vo.fullName).put("email", vo.email)
+        .put("telegramId", vo.telegramId);
+    JsonObject requestBody = new JsonObject().put("collection", CollectionRecord.USER.name)
+        .put("query", query).put("document", document);
 
     if (logger.isDebugEnabled()) {
       logger.debug("[update:{}] requestBody {}", vo.traceId, requestBody.encode());

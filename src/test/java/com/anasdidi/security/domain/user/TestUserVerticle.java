@@ -31,11 +31,7 @@ public class TestUserVerticle {
   void testUserCreateSuccess(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
-
-    String suffix = ":" + System.currentTimeMillis();
-    JsonObject requestBody = new JsonObject().put("username", "username" + suffix)
-        .put("password", "password" + suffix).put("fullName", "fullName" + suffix)
-        .put("email", "email" + suffix).put("telegramId", "telegramId" + suffix);
+    JsonObject requestBody = TestUtils.generateUserJson();
 
     TestUtils.doPostRequest(vertx, "/user").rxSendJsonObject(requestBody).subscribe(response -> {
       testContext.verify(() -> {
@@ -110,11 +106,7 @@ public class TestUserVerticle {
   void testUserCreateUserServiceError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
-
-    String suffix = ":" + System.currentTimeMillis();
-    JsonObject requestBody = new JsonObject().put("username", "username" + suffix)
-        .put("password", "password" + suffix).put("fullName", "fullName" + suffix)
-        .put("email", "email" + suffix).put("telegramId", "telegramId" + suffix);
+    JsonObject requestBody = TestUtils.generateUserJson();
 
     mongoClient.rxSave(ApplicationConstants.Collection.USER.name, requestBody).subscribe(id -> {
       TestUtils.doPostRequest(vertx, "/user").rxSendJsonObject(requestBody).subscribe(response -> {

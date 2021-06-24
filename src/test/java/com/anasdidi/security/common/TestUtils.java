@@ -36,6 +36,13 @@ public class TestUtils {
         new JsonObject().put("connection_string", config.getMongoConnectionString()));
   }
 
+  public static JsonObject generateUserJson() {
+    String suffix = ":" + System.currentTimeMillis();
+    return new JsonObject().put("username", "username" + suffix)
+        .put("password", "password" + suffix).put("fullName", "fullName" + suffix)
+        .put("email", "email" + suffix).put("telegramId", "telegramId" + suffix);
+  }
+
   public static HttpRequest<Buffer> doPostRequest(Vertx vertx, String requestURI) {
     return sendRequest(vertx, HttpMethod.POST, requestURI);
   }

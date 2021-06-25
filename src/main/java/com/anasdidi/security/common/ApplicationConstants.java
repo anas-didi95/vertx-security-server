@@ -18,12 +18,12 @@ public class ApplicationConstants {
     HEADERS.put("X-FRAME-OPTIONS", "DENY");
   }
 
-  public enum EventValue {
-    MONGO_CREATE("mongo-create");
+  public enum EventMongo {
+    MONGO_CREATE("mongo-create"), MONGO_UPDATE("mongo-update");
 
     public final String address;
 
-    private EventValue(String address) {
+    private EventMongo(String address) {
       this.address = address;
     }
   }

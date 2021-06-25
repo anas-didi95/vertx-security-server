@@ -24,8 +24,12 @@ class UserVO extends BaseVO {
   }
 
   static UserVO fromJson(JsonObject json) {
+    return fromJson(json, json.getString("id"));
+  }
+
+  static UserVO fromJson(JsonObject json, String userId) {
     String traceId = json.getString("traceId");
-    String id = json.getString("id");
+    String id = userId;
     String username = json.getString("username");
     String password = json.getString("password");
     String fullName = json.getString("fullName");

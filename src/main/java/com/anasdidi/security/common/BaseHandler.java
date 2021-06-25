@@ -6,12 +6,24 @@ import com.anasdidi.security.common.ApplicationConstants.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 public abstract class BaseHandler {
 
   private static final Logger logger = LogManager.getLogger(BaseHandler.class);
+
+  private void logResponse(RoutingContext routingContext, HttpStatus httpStatus) {
+    String traceId = routingContext.get("traceId");
+    HttpMethod method = routingContext.request().method();
+    String path = routingContext.request().path();
+    int statusCode = httpStatus.code;
+    long timeTaken = System.currentTimeMillis() - (Long) routingContext.get("startTime");
+
+    logger.info("[logResponse:{}] method={}, path={}, statusCode={}, timeTaken={}ms", traceId,
+        method, path, statusCode, timeTaken);
+  }
 
   private void sendResponse(RoutingContext routingContext, String responseBody,
       HttpStatus httpStatus) {
@@ -20,14 +32,16 @@ public abstract class BaseHandler {
     routingContext.response().end(responseBody);
   }
 
-  protected void sendResponse(Single<JsonObject> subscriber, RoutingContext routingContext,
+  protected final void sendResponse(Single<JsonObject> subscriber, RoutingContext routingContext,
       HttpStatus httpStatus) {
     String traceId = routingContext.get("traceId");
-    long timeTaken = System.currentTimeMillis() - (Long) routingContext.get("startTime");
 
     subscriber.subscribe(responseBody -> {
-      logger.info("[sendResponse:{}] Success ({}ms): httpStatus={}", traceId, timeTaken,
-          httpStatus);
+      if (logger.isDebugEnabled()) {
+        logger.debug("[sendResponse:{}] responseBody{}", traceId, responseBody.encode());
+      }
+
+      logResponse(routingContext, httpStatus);
       sendResponse(routingContext, responseBody.encode(), httpStatus);
     }, error -> {
       String responseBody = null;
@@ -41,12 +55,14 @@ public abstract class BaseHandler {
         responseBody = new JsonObject().put("message", error.getMessage()).encode();
       }
 
-      logger.error("[sendResponse:{}] Error ({}ms): {}", traceId, timeTaken, responseBody);
+      logger.error("[sendResponse:{}] responseBody{}", traceId, responseBody);
+      logResponse(routingContext, HttpStatus.BAD_REQUEST);
       sendResponse(routingContext, responseBody, HttpStatus.BAD_REQUEST);
     });
   }
 
-  protected Single<JsonObject> getRequestBody(RoutingContext routingContext, String... jsonKeys) {
+  protected final Single<JsonObject> getRequestBody(RoutingContext routingContext,
+      String... jsonKeys) {
     return Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
       String traceId = routingContext.get("traceId");
@@ -59,7 +75,7 @@ public abstract class BaseHandler {
       }
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[create:{}] requestBody {}", traceId, requestBody.encode());
+        logger.debug("[getRequestBody:{}] requestBody{}", traceId, requestBody.encode());
       }
 
       return requestBody;

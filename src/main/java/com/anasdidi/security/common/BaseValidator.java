@@ -40,7 +40,7 @@ public abstract class BaseValidator<T extends BaseVO> {
     return vo;
   }
 
-  protected void isMandatory(List<String> errorList, String value, String fieldName) {
+  protected final void isMandatory(List<String> errorList, String value, String fieldName) {
     if (value == null || value.isBlank()) {
       errorList.add(String.format("%s is mandatory field!", fieldName));
     }

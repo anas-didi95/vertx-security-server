@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
-import com.anasdidi.security.common.ApplicationConstants.EventValue;
+import com.anasdidi.security.common.ApplicationConstants.EventMongo;
 import com.anasdidi.security.common.BaseVerticle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,8 +60,8 @@ public class MongoVerticle extends BaseVerticle {
   @Override
   protected Future<Void> setHandler(Router router, EventBus eventBus) {
     return Future.future(promise -> {
-      eventBus.consumer(EventValue.MONGO_CREATE.address, mongoHandler::create);
-      eventBus.consumer(EventValue.MONGO_UPDATE.address, mongoHandler::update);
+      eventBus.consumer(EventMongo.MONGO_CREATE.address, mongoHandler::create);
+      eventBus.consumer(EventMongo.MONGO_UPDATE.address, mongoHandler::update);
       promise.complete();
     });
   }

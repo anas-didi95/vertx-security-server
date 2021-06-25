@@ -32,7 +32,7 @@ public abstract class BaseHandler {
     routingContext.response().end(responseBody);
   }
 
-  protected void sendResponse(Single<JsonObject> subscriber, RoutingContext routingContext,
+  protected final void sendResponse(Single<JsonObject> subscriber, RoutingContext routingContext,
       HttpStatus httpStatus) {
     String traceId = routingContext.get("traceId");
 
@@ -61,7 +61,8 @@ public abstract class BaseHandler {
     });
   }
 
-  protected Single<JsonObject> getRequestBody(RoutingContext routingContext, String... jsonKeys) {
+  protected final Single<JsonObject> getRequestBody(RoutingContext routingContext,
+      String... jsonKeys) {
     return Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
       String traceId = routingContext.get("traceId");

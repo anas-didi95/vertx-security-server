@@ -24,11 +24,11 @@ class UserService {
         new JsonObject().put("collection", CollectionRecord.USER.name).put("document", vo.toJson());
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[create:{}] requestBody {}", vo.traceId, requestBody.encode());
+      logger.debug("[create:{}] requestBody{}", vo.traceId, requestBody.encode());
     }
 
     return eventBus.rxRequest(EventValue.MONGO_CREATE.address, requestBody).doOnError(error -> {
-      logger.error("[create:{}] requestBody {}", vo.traceId, requestBody.encode());
+      logger.error("[create:{}] requestBody{}", vo.traceId, requestBody.encode());
       logger.error("[create:{}] {}", vo.traceId, error.getMessage());
       error.addSuppressed(new ApplicationException(ErrorValue.USER_CREATE, vo.traceId,
           "Unable to create user with username: " + vo.username));
@@ -46,7 +46,7 @@ class UserService {
         .put("query", query).put("document", document);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[update:{}] requestBody {}", vo.traceId, requestBody.encode());
+      logger.debug("[update:{}] requestBody{}", vo.traceId, requestBody.encode());
     }
 
     return eventBus.rxRequest(EventValue.MONGO_UPDATE.address, requestBody).map(response -> {

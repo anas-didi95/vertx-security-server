@@ -17,4 +17,14 @@ class UserValidator extends BaseValidator<UserVO> {
 
     return errorList;
   }
+
+  @Override
+  protected List<String> validateUpdate(UserVO vo) {
+    List<String> errorList = new ArrayList<>();
+
+    isMandatory(errorList, vo.fullName, "Full Name");
+    isMandatory(errorList, vo.email, "Email");
+
+    return errorList;
+  }
 }

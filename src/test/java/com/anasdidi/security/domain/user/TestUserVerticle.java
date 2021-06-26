@@ -191,7 +191,31 @@ public class TestUserVerticle {
             testContext.verify(() -> {
               TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
             });
-          });
-    });
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserUpdateValidationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(1);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject requestBody = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
+      requestBody.clear().put("a", "a");
+
+      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id)
+          .rxSendJsonObject(requestBody).subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 400);
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              TestUtils.testResponseBodyError(response, "E002", "Validation error!");
+              checkpoint.flag();
+            });
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
   }
 }

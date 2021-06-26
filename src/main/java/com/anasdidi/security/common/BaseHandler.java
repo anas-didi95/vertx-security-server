@@ -68,11 +68,14 @@ public abstract class BaseHandler {
       String traceId = routingContext.get("traceId");
 
       if (requestBody == null || requestBody.isEmpty()) {
-        String error = String.format("Required keys: %s", String.join(",", jsonKeys));
-        throw new ApplicationException(ErrorValue.REQUEST_BODY_EMPTY, traceId, error);
-      } else {
-        requestBody.put("traceId", traceId);
+        if (jsonKeys.length > 0) {
+          String error = String.format("Required keys: %s", String.join(",", jsonKeys));
+          throw new ApplicationException(ErrorValue.REQUEST_BODY_EMPTY, traceId, error);
+        } else {
+          requestBody = new JsonObject();
+        }
       }
+      requestBody.put("traceId", traceId);
 
       if (logger.isDebugEnabled()) {
         logger.debug("[getRequestBody:{}] requestBody{}", traceId, requestBody.encode());

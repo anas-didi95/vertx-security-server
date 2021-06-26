@@ -173,4 +173,25 @@ public class TestUserVerticle {
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserUpdateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(1);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject requestBody = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
+      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id).rxSend()
+          .subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 400);
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
+            });
+          });
+    });
+  }
 }

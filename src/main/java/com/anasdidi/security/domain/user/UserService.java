@@ -23,7 +23,7 @@ class UserService extends BaseService {
 
     return sendRequest(EventMongo.MONGO_CREATE, CollectionRecord.USER, null, document)
         .doOnError(error -> {
-          logger.debug("[create:{}] document{}", vo.traceId, document.encode());
+          logger.error("[create:{}] document{}", vo.traceId, document.encode());
           logger.error("[create:{}] {}", vo.traceId, error.getMessage());
           error.addSuppressed(new ApplicationException(ErrorValue.USER_CREATE, vo.traceId,
               "Unable to create user with username: " + vo.username));

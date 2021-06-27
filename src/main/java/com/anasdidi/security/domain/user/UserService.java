@@ -48,8 +48,8 @@ class UserService extends BaseService {
           logger.error("[update:{}] query{}", vo.traceId, query.encode());
           logger.error("[update:{}] document{}", vo.traceId, document.encode());
           logger.error("[update:{}] {}", vo.traceId, error.getMessage());
-          error.addSuppressed(new ApplicationException(ErrorValue.USER_UPDATE, vo.traceId,
-              "Unable to update user with id=" + vo.id));
+          error.addSuppressed(
+              new ApplicationException(ErrorValue.USER_UPDATE, vo.traceId, error.getMessage()));
         }).map(response -> {
           JsonObject responseBody = (JsonObject) response.body();
           return responseBody.getString("id");

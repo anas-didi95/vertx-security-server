@@ -221,10 +221,11 @@ public class TestUserVerticle {
 
   @Test
   void testUserUpdateRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+    Checkpoint checkpoint = testContext.checkpoint(3);
     JsonObject requestBody = TestUtils.generateUserJson();
+    String userId = "" + System.currentTimeMillis();
 
-    TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + System.currentTimeMillis())
+    TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + userId)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -233,6 +234,12 @@ public class TestUserVerticle {
 
           testContext.verify(() -> {
             TestUtils.testResponseBodyError(response, "E102", "Update user failed!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Record not found with id: " + userId, error);
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));

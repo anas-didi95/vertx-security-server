@@ -44,7 +44,13 @@ class UserService extends BaseService {
     }
 
     return sendRequest(EventMongo.MONGO_UPDATE, CollectionRecord.USER, query, document)
-        .map(response -> {
+        .doOnError(error -> {
+          logger.error("[update:{}] query{}", vo.traceId, query.encode());
+          logger.error("[update:{}] document{}", vo.traceId, document.encode());
+          logger.error("[update:{}] {}", vo.traceId, error.getMessage());
+          error.addSuppressed(new ApplicationException(ErrorValue.USER_UPDATE, vo.traceId,
+              "Unable to update user with id=" + vo.id));
+        }).map(response -> {
           JsonObject responseBody = (JsonObject) response.body();
           return responseBody.getString("id");
         });

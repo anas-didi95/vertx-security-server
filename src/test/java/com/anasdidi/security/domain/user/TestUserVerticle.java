@@ -218,4 +218,23 @@ public class TestUserVerticle {
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserUpdateRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+    JsonObject requestBody = TestUtils.generateUserJson();
+
+    TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + System.currentTimeMillis())
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E101", "Update user failed!");
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
 }

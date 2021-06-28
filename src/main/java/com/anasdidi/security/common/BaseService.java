@@ -16,9 +16,9 @@ public abstract class BaseService {
   }
 
   protected final Single<Message<Object>> sendRequest(EventMongo event, CollectionRecord collection,
-      JsonObject query, JsonObject document) {
+      JsonObject query, JsonObject document, Long version) {
     JsonObject requestBody = new JsonObject().put("collection", collection.name).put("query", query)
-        .put("document", document);
+        .put("document", document).put("version", version);
     return eventBus.rxRequest(event.address, requestBody);
   }
 }

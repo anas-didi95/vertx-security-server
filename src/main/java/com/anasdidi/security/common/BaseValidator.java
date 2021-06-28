@@ -45,9 +45,15 @@ public abstract class BaseValidator<T extends BaseVO> {
     return vo;
   }
 
-  protected final void isMandatory(List<String> errorList, String value, String fieldName) {
-    if (value == null || value.isBlank()) {
-      errorList.add(String.format("%s is mandatory field!", fieldName));
+  protected final void isMandatory(List<String> errorList, Object value, String fieldName) {
+    if (value instanceof String) {
+      if (value == null || ((String) value).isBlank()) {
+        errorList.add(String.format("%s is mandatory field!", fieldName));
+      }
+    } else {
+      if (value == null) {
+        errorList.add(String.format("%s is mandatory field!", fieldName));
+      }
     }
   }
 }

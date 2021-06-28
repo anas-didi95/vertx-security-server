@@ -76,6 +76,7 @@ public class TestUserVerticle {
                       result.getString("email"));
                   Assertions.assertEquals(requestBody.getString("telegramId"),
                       result.getString("telegramId"));
+                  Assertions.assertEquals(0, result.getLong("version"));
                   checkpoint.flag();
                 }, error -> testContext.failNow(error));
           });
@@ -180,6 +181,8 @@ public class TestUserVerticle {
                         result.getString("email"));
                     Assertions.assertEquals(requestBody.getString("telegramId"),
                         result.getString("telegramId"));
+                    Assertions.assertEquals(requestBody.getLong("version") + 1,
+                        result.getLong("version"));
                     checkpoint.flag();
                   });
                 }, error -> testContext.failNow(error));
@@ -235,7 +238,7 @@ public class TestUserVerticle {
   @Test
   void testUserUpdateRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
-    JsonObject requestBody = TestUtils.generateUserJson();
+    JsonObject requestBody = TestUtils.generateUserJson().put("version", 0);
     String userId = "" + System.currentTimeMillis();
 
     TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + userId)

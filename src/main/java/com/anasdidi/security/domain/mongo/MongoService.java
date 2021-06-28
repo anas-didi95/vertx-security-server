@@ -20,7 +20,6 @@ class MongoService {
   Single<String> update(MongoVO vo) {
     JsonObject update = new JsonObject().put("$set", vo.document.put("version", vo.version + 1));
 
-    System.out.println(update);
     return mongoClient.rxFindOne(vo.collection, vo.query, new JsonObject())
         .switchIfEmpty(
             Maybe.error(new Exception("Record not found with id: " + vo.query.getString("_id"))))

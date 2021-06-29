@@ -23,7 +23,14 @@ class MongoService {
     return mongoClient.rxFindOne(vo.collection, vo.query, new JsonObject())
         .switchIfEmpty(
             Maybe.error(new Exception("Record not found with id: " + vo.query.getString("_id"))))
-        .flatMap(json -> mongoClient.rxFindOneAndUpdate(vo.collection, vo.query, update))
+        .flatMap(json -> {
+          if (json.getLong("version") != vo.version) {
+            return Maybe.error(new Exception(
+                "Current record has version mismatch with requested value: " + vo.version));
+          } else {
+            return Maybe.just(json);
+          }
+        }).flatMap(json -> mongoClient.rxFindOneAndUpdate(vo.collection, vo.query, update))
         .map(result -> result.getString("_id")).toSingle();
   }
 }

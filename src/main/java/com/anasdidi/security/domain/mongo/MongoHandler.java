@@ -1,10 +1,10 @@
 package com.anasdidi.security.domain.mongo;
 
-import io.reactivex.rxjava3.core.Single;
+import com.anasdidi.security.common.BaseHandler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.eventbus.Message;
 
-class MongoHandler {
+class MongoHandler extends BaseHandler {
 
   private final MongoService mongoService;
 
@@ -13,20 +13,16 @@ class MongoHandler {
   }
 
   void create(Message<Object> request) {
-    Single.fromCallable(() -> {
-      JsonObject requestBody = (JsonObject) request.body();
-      return requestBody;
-    }).map(json -> MongoVO.fromJson(json)).flatMap(vo -> mongoService.create(vo)).subscribe(
-        id -> request.reply(new JsonObject().put("id", id)),
-        error -> request.fail(1, error.getMessage()));
+    getRequestBody(request).map(json -> MongoVO.fromJson(json))
+        .flatMap(vo -> mongoService.create(vo))
+        .subscribe(id -> request.reply(new JsonObject().put("id", id)),
+            error -> request.fail(1, error.getMessage()));
   }
 
   void update(Message<Object> request) {
-    Single.fromCallable(() -> {
-      JsonObject requestBody = (JsonObject) request.body();
-      return requestBody;
-    }).map(json -> MongoVO.fromJson(json)).flatMap(vo -> mongoService.update(vo)).subscribe(
-        id -> request.reply(new JsonObject().put("id", id)),
-        error -> request.fail(2, error.getMessage()));
+    getRequestBody(request).map(json -> MongoVO.fromJson(json))
+        .flatMap(vo -> mongoService.update(vo))
+        .subscribe(id -> request.reply(new JsonObject().put("id", id)),
+            error -> request.fail(2, error.getMessage()));
   }
 }

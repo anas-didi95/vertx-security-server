@@ -21,7 +21,7 @@ class UserService extends BaseService {
       logger.debug("[create:{}] document{}", vo.traceId, document.encode());
     }
 
-    return sendRequest(EventMongo.MONGO_CREATE, CollectionRecord.USER, null, document)
+    return sendRequest(EventMongo.MONGO_CREATE, CollectionRecord.USER, null, document, null)
         .doOnError(error -> {
           logger.error("[create:{}] document{}", vo.traceId, document.encode());
           logger.error("[create:{}] {}", vo.traceId, error.getMessage());
@@ -43,7 +43,7 @@ class UserService extends BaseService {
       logger.debug("[update:{}] document{}", vo.traceId, document.encode());
     }
 
-    return sendRequest(EventMongo.MONGO_UPDATE, CollectionRecord.USER, query, document)
+    return sendRequest(EventMongo.MONGO_UPDATE, CollectionRecord.USER, query, document, vo.version)
         .doOnError(error -> {
           logger.error("[update:{}] query{}", vo.traceId, query.encode());
           logger.error("[update:{}] document{}", vo.traceId, document.encode());

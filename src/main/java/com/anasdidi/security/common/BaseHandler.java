@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.eventbus.Message;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 public abstract class BaseHandler {
@@ -81,6 +82,13 @@ public abstract class BaseHandler {
         logger.debug("[getRequestBody:{}] requestBody{}", traceId, requestBody.encode());
       }
 
+      return requestBody;
+    });
+  }
+
+  protected final Single<JsonObject> getRequestBody(Message<Object> request) {
+    return Single.fromCallable(() -> {
+      JsonObject requestBody = (JsonObject) request.body();
       return requestBody;
     });
   }

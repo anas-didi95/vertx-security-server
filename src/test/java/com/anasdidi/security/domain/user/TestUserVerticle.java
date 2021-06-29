@@ -3,6 +3,7 @@ package com.anasdidi.security.domain.user;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import com.anasdidi.security.common.TestUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,18 @@ public class TestUserVerticle {
         testContext.completeNow();
       });
     }, error -> testContext.failNow(error));
+  }
+
+  @AfterAll
+  static void postTesting(Vertx vertx, VertxTestContext testContext) throws Exception {
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+
+    mongoClient.rxRemoveDocuments(CollectionRecord.USER.name, new JsonObject())
+        .subscribe(result -> {
+          testContext.verify(() -> {
+            testContext.completeNow();
+          });
+        }, e -> testContext.failNow(e));
   }
 
   @Test
@@ -63,6 +76,7 @@ public class TestUserVerticle {
                       result.getString("email"));
                   Assertions.assertEquals(requestBody.getString("telegramId"),
                       result.getString("telegramId"));
+                  Assertions.assertEquals(0, result.getLong("version"));
                   checkpoint.flag();
                 }, error -> testContext.failNow(error));
           });
@@ -167,6 +181,8 @@ public class TestUserVerticle {
                         result.getString("email"));
                     Assertions.assertEquals(requestBody.getString("telegramId"),
                         result.getString("telegramId"));
+                    Assertions.assertEquals(requestBody.getLong("version") + 1,
+                        result.getLong("version"));
                     checkpoint.flag();
                   });
                 }, error -> testContext.failNow(error));
@@ -222,7 +238,7 @@ public class TestUserVerticle {
   @Test
   void testUserUpdateRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
-    JsonObject requestBody = TestUtils.generateUserJson();
+    JsonObject requestBody = TestUtils.generateUserJson().put("version", 0);
     String userId = "" + System.currentTimeMillis();
 
     TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + userId)
@@ -243,5 +259,39 @@ public class TestUserVerticle {
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserUpdateVersionMismatch(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject requestBody = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
+      long version = -1;
+      requestBody.put("fullName", "testUserUpdateVersionMismatch1");
+      requestBody.put("email", "testUserUpdateVersionMismatch2");
+      requestBody.put("telegramId", "testUserUpdateVersionMismatch3");
+      requestBody.put("version", version);
+
+      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id)
+          .rxSendJsonObject(requestBody).subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 400);
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              TestUtils.testResponseBodyError(response, "E102", "Update user failed!");
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+              Assertions.assertEquals(
+                  "Current record has version mismatch with requested value: " + version, error);
+            });
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
   }
 }

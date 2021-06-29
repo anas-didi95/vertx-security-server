@@ -24,6 +24,7 @@ class UserValidator extends BaseValidator<UserVO> {
 
     isMandatory(errorList, vo.fullName, "Full Name");
     isMandatory(errorList, vo.email, "Email");
+    isMandatory(errorList, vo.version, "Version");
 
     return errorList;
   }

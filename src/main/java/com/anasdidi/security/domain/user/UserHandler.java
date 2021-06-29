@@ -31,7 +31,7 @@ class UserHandler extends BaseHandler {
     String userId = routingContext.pathParam("userId");
 
     Single<JsonObject> subscriber =
-        getRequestBody(routingContext, "fullName", "email", "telegramId")
+        getRequestBody(routingContext, "fullName", "email", "telegramId", "version")
             .map(json -> UserVO.fromJson(json, userId))
             .map(vo -> userValidator.validate(vo, ValidateAction.UPDATE))
             .flatMap(vo -> userService.update(vo)).map(id -> new JsonObject().put("id", id));

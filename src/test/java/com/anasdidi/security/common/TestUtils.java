@@ -41,7 +41,7 @@ public class TestUtils {
     String suffix = ":" + System.currentTimeMillis();
     return new JsonObject().put("username", "username" + suffix)
         .put("password", "password" + suffix).put("fullName", "fullName" + suffix)
-        .put("email", "email" + suffix).put("telegramId", "telegramId" + suffix);
+        .put("email", "email" + suffix).put("telegramId", "telegramId" + suffix).put("version", 0);
   }
 
   public static HttpRequest<Buffer> doPostRequest(Vertx vertx, String requestURI) {

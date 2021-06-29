@@ -11,9 +11,10 @@ class UserVO extends BaseVO {
   final String fullName;
   final String email;
   final String telegramId;
+  final Long version;
 
   private UserVO(String traceId, String id, String username, String password, String fullName,
-      String email, String telegramId) {
+      String email, String telegramId, Long version) {
     super(traceId);
     this.id = id;
     this.username = username;
@@ -21,6 +22,7 @@ class UserVO extends BaseVO {
     this.fullName = fullName;
     this.email = email;
     this.telegramId = telegramId;
+    this.version = version;
   }
 
   static UserVO fromJson(JsonObject json) {
@@ -35,13 +37,15 @@ class UserVO extends BaseVO {
     String fullName = json.getString("fullName");
     String email = json.getString("email");
     String telegramId = json.getString("telegramId");
+    Long version = json.getLong("version");
 
-    return new UserVO(traceId, id, username, password, fullName, email, telegramId);
+    return new UserVO(traceId, id, username, password, fullName, email, telegramId, version);
   }
 
   JsonObject toJson() {
     return new JsonObject().put("username", username).put("password", password)
-        .put("fullName", fullName).put("email", email).put("telegramId", telegramId);
+        .put("fullName", fullName).put("email", email).put("telegramId", telegramId)
+        .put("version", version);
   }
 
   @Override

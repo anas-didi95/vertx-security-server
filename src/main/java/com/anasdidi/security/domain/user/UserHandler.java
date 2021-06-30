@@ -38,4 +38,9 @@ class UserHandler extends BaseHandler {
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);
   }
+
+  void delete(RoutingContext routingContext) {
+    Single<JsonObject> subscriber = getRequestBody(routingContext);
+    sendResponse(subscriber, routingContext, HttpStatus.NO_CONTENT);
+  }
 }

@@ -152,7 +152,7 @@ public class TestUserVerticle {
       requestBody.put("email", "testUserUpdateSuccess2");
       requestBody.put("telegramId", "testUserUpdateSuccess3");
 
-      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id)
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 200);
@@ -197,8 +197,8 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
-      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id).rxSend()
-          .subscribe(response -> {
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
+          .rxSend().subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
               checkpoint.flag();
@@ -220,7 +220,7 @@ public class TestUserVerticle {
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
       requestBody.clear().put("a", "a");
 
-      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id)
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
@@ -241,7 +241,7 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson().put("version", 0);
     String userId = "" + System.currentTimeMillis();
 
-    TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + userId)
+    TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, userId))
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -274,7 +274,7 @@ public class TestUserVerticle {
       requestBody.put("telegramId", "testUserUpdateVersionMismatch3");
       requestBody.put("version", version);
 
-      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id)
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
@@ -302,8 +302,8 @@ public class TestUserVerticle {
     JsonObject userJson = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
-      TestUtils.doDeleteRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id).rxSend()
-          .subscribe(response -> {
+      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
+          .rxSend().subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 200);
               checkpoint.flag();

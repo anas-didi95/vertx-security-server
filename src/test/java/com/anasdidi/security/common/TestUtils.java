@@ -37,6 +37,16 @@ public class TestUtils {
         new JsonObject().put("connection_string", config.getMongoConnectionString()));
   }
 
+  public static String getRequestURI(String baseURI, String... paths) {
+    String requestURI = baseURI;
+
+    if (paths.length > 0) {
+      requestURI += "/" + String.join("/", paths);
+    }
+
+    return requestURI;
+  }
+
   public static JsonObject generateUserJson() {
     String suffix = ":" + System.currentTimeMillis();
     return new JsonObject().put("username", "username" + suffix)

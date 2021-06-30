@@ -19,7 +19,7 @@ public class ApplicationConstants {
   }
 
   public enum EventMongo {
-    MONGO_CREATE("mongo-create"), MONGO_UPDATE("mongo-update");
+    MONGO_CREATE("mongo-create"), MONGO_UPDATE("mongo-update"), MONGO_DELETE("mongo-delete");
 
     public final String address;
 

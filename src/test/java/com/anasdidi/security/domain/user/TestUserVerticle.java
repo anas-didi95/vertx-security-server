@@ -152,7 +152,7 @@ public class TestUserVerticle {
       requestBody.put("email", "testUserUpdateSuccess2");
       requestBody.put("telegramId", "testUserUpdateSuccess3");
 
-      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id)
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 200);
@@ -197,8 +197,8 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
-      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id).rxSend()
-          .subscribe(response -> {
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
+          .rxSend().subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
               checkpoint.flag();
@@ -220,7 +220,7 @@ public class TestUserVerticle {
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
       requestBody.clear().put("a", "a");
 
-      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id)
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
@@ -241,7 +241,7 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson().put("version", 0);
     String userId = "" + System.currentTimeMillis();
 
-    TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + userId)
+    TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, userId))
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -274,7 +274,7 @@ public class TestUserVerticle {
       requestBody.put("telegramId", "testUserUpdateVersionMismatch3");
       requestBody.put("version", version);
 
-      TestUtils.doPutRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id)
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
@@ -291,6 +291,36 @@ public class TestUserVerticle {
               Assertions.assertEquals(
                   "Current record has version mismatch with requested value: " + version, error);
             });
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserDeleteSuccess(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject userJson = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
+      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
+          .rxSend().subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 200);
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              JsonObject responseBody = response.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody);
+              Assertions.assertEquals(id, responseBody.getString("id"));
+              checkpoint.flag();
+            });
+
+            JsonObject query = new JsonObject().put("_id", id);
+            JsonObject fields = new JsonObject();
+            mongoClient.rxFindOne(CollectionRecord.USER.name, query, fields).subscribe(
+                result -> testContext.failNow("Record not deleted!"),
+                error -> testContext.failNow(error), () -> checkpoint.flag());
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
   }

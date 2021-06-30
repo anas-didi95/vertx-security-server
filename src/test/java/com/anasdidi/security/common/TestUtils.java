@@ -37,6 +37,16 @@ public class TestUtils {
         new JsonObject().put("connection_string", config.getMongoConnectionString()));
   }
 
+  public static String getRequestURI(String baseURI, String... paths) {
+    String requestURI = baseURI;
+
+    if (paths.length > 0) {
+      requestURI += "/" + String.join("/", paths);
+    }
+
+    return requestURI;
+  }
+
   public static JsonObject generateUserJson() {
     String suffix = ":" + System.currentTimeMillis();
     return new JsonObject().put("username", "username" + suffix)
@@ -50,6 +60,10 @@ public class TestUtils {
 
   public static HttpRequest<Buffer> doPutRequest(Vertx vertx, String requestURI) {
     return sendRequest(vertx, HttpMethod.PUT, requestURI);
+  }
+
+  public static HttpRequest<Buffer> doDeleteRequest(Vertx vertx, String requestURI) {
+    return sendRequest(vertx, HttpMethod.DELETE, requestURI);
   }
 
   private static HttpRequest<Buffer> sendRequest(Vertx vertx, HttpMethod method,
@@ -67,6 +81,9 @@ public class TestUtils {
           .putHeaders(headers);
     } else if (method == HttpMethod.PUT) {
       return webClient.put(config.getAppPort(), config.getAppHost(), requestURI)
+          .putHeaders(headers);
+    } else if (method == HttpMethod.DELETE) {
+      return webClient.delete(config.getAppPort(), config.getAppHost(), requestURI)
           .putHeaders(headers);
     }
 

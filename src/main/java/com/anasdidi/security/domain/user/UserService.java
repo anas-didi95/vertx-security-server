@@ -55,4 +55,18 @@ class UserService extends BaseService {
           return responseBody.getString("id");
         });
   }
+
+  Single<String> delete(UserVO vo) {
+    JsonObject query = new JsonObject().put("_id", vo.id);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[delete:{}] query{}", vo.traceId, query.encode());
+    }
+
+    return sendRequest(EventMongo.MONGO_DELETE, CollectionRecord.USER, query, null, null)
+        .map(response -> {
+          JsonObject responseBody = (JsonObject) response.body();
+          return responseBody.getString("id");
+        });
+  }
 }

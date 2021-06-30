@@ -33,4 +33,9 @@ class MongoService {
         }).flatMap(json -> mongoClient.rxFindOneAndUpdate(vo.collection, vo.query, update))
         .map(result -> result.getString("_id")).toSingle();
   }
+
+  Single<String> delete(MongoVO vo) {
+    return mongoClient.rxFindOneAndDelete(vo.collection, vo.query)
+        .map(result -> result.getString("_id")).toSingle();
+  }
 }

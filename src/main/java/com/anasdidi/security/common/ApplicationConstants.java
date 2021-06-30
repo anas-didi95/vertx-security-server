@@ -19,7 +19,7 @@ public class ApplicationConstants {
   }
 
   public enum EventMongo {
-    MONGO_CREATE("mongo-create"), MONGO_UPDATE("mongo-update");
+    MONGO_CREATE("mongo-create"), MONGO_UPDATE("mongo-update"), MONGO_DELETE("mongo-delete");
 
     public final String address;
 
@@ -53,7 +53,7 @@ public class ApplicationConstants {
   }
 
   public enum HttpStatus {
-    OK(200), CREATED(201), BAD_REQUEST(400), NO_CONTENT(204);
+    OK(200), CREATED(201), BAD_REQUEST(400);
 
     public final int code;
 

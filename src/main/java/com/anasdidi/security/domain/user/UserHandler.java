@@ -40,7 +40,12 @@ class UserHandler extends BaseHandler {
   }
 
   void delete(RoutingContext routingContext) {
-    Single<JsonObject> subscriber = getRequestBody(routingContext);
-    sendResponse(subscriber, routingContext, HttpStatus.NO_CONTENT);
+    String userId = routingContext.pathParam("userId");
+
+    Single<JsonObject> subscriber =
+        getRequestBody(routingContext).map(json -> UserVO.fromJson(json, userId))
+            .flatMap(vo -> userService.delete(vo)).map(id -> new JsonObject().put("id", id));
+
+    sendResponse(subscriber, routingContext, HttpStatus.OK);
   }
 }

@@ -25,4 +25,11 @@ class MongoHandler extends BaseHandler {
         .subscribe(id -> request.reply(new JsonObject().put("id", id)),
             error -> request.fail(2, error.getMessage()));
   }
+
+  void delete(Message<Object> request) {
+    getRequestBody(request).map(json -> MongoVO.fromJson(json))
+        .flatMap(vo -> mongoService.delete(vo))
+        .subscribe(id -> request.reply(new JsonObject().put("id", id)),
+            error -> request.fail(3, error.getMessage()));
+  }
 }

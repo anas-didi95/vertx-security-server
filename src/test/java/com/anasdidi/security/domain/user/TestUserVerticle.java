@@ -297,7 +297,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserDeleteSuccess(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+    Checkpoint checkpoint = testContext.checkpoint(3);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject userJson = TestUtils.generateUserJson();
 
@@ -305,10 +305,16 @@ public class TestUserVerticle {
       TestUtils.doDeleteRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id).rxSend()
           .subscribe(response -> {
             testContext.verify(() -> {
-              TestUtils.testResponseHeader(response, 204);
+              TestUtils.testResponseHeader(response, 200);
               checkpoint.flag();
             });
 
+            testContext.verify(() -> {
+              JsonObject responseBody = response.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody);
+              Assertions.assertEquals(id, responseBody.getString("id"));
+              checkpoint.flag();
+            });
 
             JsonObject query = new JsonObject().put("_id", id);
             JsonObject fields = new JsonObject();

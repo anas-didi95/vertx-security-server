@@ -294,4 +294,28 @@ public class TestUserVerticle {
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserDeleteSuccess(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject userJson = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
+      TestUtils.doDeleteRequest(vertx, UserConstants.CONTEXT_PATH + "/" + id).rxSend()
+          .subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 204);
+              checkpoint.flag();
+            });
+
+
+            JsonObject query = new JsonObject().put("_id", id);
+            JsonObject fields = new JsonObject();
+            mongoClient.rxFindOne(CollectionRecord.USER.name, query, fields).subscribe(
+                result -> testContext.failNow("Record not deleted!"),
+                error -> testContext.failNow(error), () -> checkpoint.flag());
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
+  }
 }

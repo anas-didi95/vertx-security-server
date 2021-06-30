@@ -52,6 +52,10 @@ public class TestUtils {
     return sendRequest(vertx, HttpMethod.PUT, requestURI);
   }
 
+  public static HttpRequest<Buffer> doDeleteRequest(Vertx vertx, String requestURI) {
+    return sendRequest(vertx, HttpMethod.DELETE, requestURI);
+  }
+
   private static HttpRequest<Buffer> sendRequest(Vertx vertx, HttpMethod method,
       String requestURI) {
     WebClient webClient = WebClient.create(vertx);
@@ -67,6 +71,9 @@ public class TestUtils {
           .putHeaders(headers);
     } else if (method == HttpMethod.PUT) {
       return webClient.put(config.getAppPort(), config.getAppHost(), requestURI)
+          .putHeaders(headers);
+    } else if (method == HttpMethod.DELETE) {
+      return webClient.delete(config.getAppPort(), config.getAppHost(), requestURI)
           .putHeaders(headers);
     }
 

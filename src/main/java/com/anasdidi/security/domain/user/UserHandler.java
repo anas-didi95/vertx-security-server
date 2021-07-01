@@ -44,6 +44,7 @@ class UserHandler extends BaseHandler {
 
     Single<JsonObject> subscriber =
         getRequestBody(routingContext, "version").map(json -> UserVO.fromJson(json, userId))
+            .map(vo -> userValidator.validate(vo, ValidateAction.DELETE))
             .flatMap(vo -> userService.delete(vo)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);

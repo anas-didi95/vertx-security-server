@@ -85,7 +85,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+    Checkpoint checkpoint = testContext.checkpoint(3);
 
     TestUtils.doPostRequest(vertx, UserConstants.CONTEXT_PATH).rxSend().subscribe(response -> {
       testContext.verify(() -> {
@@ -95,6 +95,13 @@ public class TestUserVerticle {
 
       testContext.verify(() -> {
         TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Required keys: username,password,fullName,email,telegramId",
+            error);
         checkpoint.flag();
       });
     }, error -> testContext.failNow(error));
@@ -192,7 +199,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserUpdateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(1);
+    Checkpoint checkpoint = testContext.checkpoint(3);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
 
@@ -206,6 +213,13 @@ public class TestUserVerticle {
 
             testContext.verify(() -> {
               TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+              Assertions.assertEquals("Required keys: fullName,email,telegramId,version", error);
+              checkpoint.flag();
             });
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
@@ -263,7 +277,7 @@ public class TestUserVerticle {
 
   @Test
   void testUserUpdateVersionMismatch(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+    Checkpoint checkpoint = testContext.checkpoint(3);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
 
@@ -290,6 +304,7 @@ public class TestUserVerticle {
               String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
               Assertions.assertEquals(
                   "Current record has version mismatch with requested value: " + version, error);
+              checkpoint.flag();
             });
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
@@ -302,8 +317,10 @@ public class TestUserVerticle {
     JsonObject userJson = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
+      JsonObject requestBody = new JsonObject().put("version", userJson.getLong("version"));
+
       TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
-          .rxSend().subscribe(response -> {
+          .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 200);
               checkpoint.flag();
@@ -321,6 +338,35 @@ public class TestUserVerticle {
             mongoClient.rxFindOne(CollectionRecord.USER.name, query, fields).subscribe(
                 result -> testContext.failNow("Record not deleted!"),
                 error -> testContext.failNow(error), () -> checkpoint.flag());
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
+  }
+
+
+  @Test
+  void testUserDeleteRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject userJson = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
+      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
+          .rxSend().subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 400);
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+              Assertions.assertEquals("Required keys: version", error);
+              checkpoint.flag();
+            });
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
   }

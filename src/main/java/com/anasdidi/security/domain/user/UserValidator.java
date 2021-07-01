@@ -28,4 +28,13 @@ class UserValidator extends BaseValidator<UserVO> {
 
     return errorList;
   }
+
+  @Override
+  protected List<String> validateDelete(UserVO vo) {
+    List<String> errorList = new ArrayList<>();
+
+    isMandatory(errorList, vo.version, "Version");
+
+    return errorList;
+  }
 }

@@ -123,7 +123,7 @@ public class TestUserVerticle {
             TestUtils.testResponseBodyError(response, "E002", "Validation error!");
             checkpoint.flag();
           });
-        });
+        }, error -> testContext.failNow(error));
   }
 
   @Test
@@ -365,6 +365,30 @@ public class TestUserVerticle {
             testContext.verify(() -> {
               String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
               Assertions.assertEquals("Required keys: version", error);
+              checkpoint.flag();
+            });
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserDeleteValidationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject userJson = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
+      JsonObject requestBody = new JsonObject().put("key", "value");
+
+      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
+          .rxSendJsonObject(requestBody).subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 400);
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              TestUtils.testResponseBodyError(response, "E002", "Validation error!");
               checkpoint.flag();
             });
           }, error -> testContext.failNow(error));

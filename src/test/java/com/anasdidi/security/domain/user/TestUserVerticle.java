@@ -394,4 +394,30 @@ public class TestUserVerticle {
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserDeleteRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    String userId = "" + System.currentTimeMillis();
+    JsonObject requestBody = new JsonObject().put("version", 0);
+
+    TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, userId))
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E103", "Delete user failed!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Record not found with id: " + userId, error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
 }

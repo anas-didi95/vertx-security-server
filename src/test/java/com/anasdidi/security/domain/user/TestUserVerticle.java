@@ -269,7 +269,8 @@ public class TestUserVerticle {
 
           testContext.verify(() -> {
             String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
-            Assertions.assertEquals("Record not found with id: " + userId, error);
+            JsonObject query = new JsonObject().put("_id", userId);
+            Assertions.assertEquals("Record not found with query: " + query.encode(), error);
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));
@@ -415,7 +416,8 @@ public class TestUserVerticle {
 
           testContext.verify(() -> {
             String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
-            Assertions.assertEquals("Record not found with id: " + userId, error);
+            JsonObject query = new JsonObject().put("_id", userId);
+            Assertions.assertEquals("Record not found with query: " + query.encode(), error);
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));

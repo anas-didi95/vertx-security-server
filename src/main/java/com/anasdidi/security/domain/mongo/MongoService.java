@@ -22,7 +22,7 @@ class MongoService {
 
     return mongoClient.rxFindOne(vo.collection, vo.query, new JsonObject())
         .switchIfEmpty(
-            Maybe.error(new Exception("Record not found with id: " + vo.query.getString("_id"))))
+            Maybe.error(new Exception("Record not found with query: " + vo.query.encode())))
         .flatMap(json -> {
           if (json.getLong("version") != vo.version) {
             return Maybe.error(new Exception(
@@ -37,7 +37,7 @@ class MongoService {
   Single<String> delete(MongoVO vo) {
     return mongoClient.findOne(vo.collection, vo.query, new JsonObject())
         .switchIfEmpty(
-            Maybe.error(new Exception("Record not found with id: " + vo.query.getString("_id"))))
+            Maybe.error(new Exception("Record not found with query: " + vo.query.encode())))
         .flatMap(json -> mongoClient.rxFindOneAndDelete(vo.collection, vo.query))
         .map(result -> result.getString("_id")).toSingle();
   }

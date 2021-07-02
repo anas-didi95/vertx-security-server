@@ -35,7 +35,10 @@ class MongoService {
   }
 
   Single<String> delete(MongoVO vo) {
-    return mongoClient.rxFindOneAndDelete(vo.collection, vo.query)
+    return mongoClient.findOne(vo.collection, vo.query, new JsonObject())
+        .switchIfEmpty(
+            Maybe.error(new Exception("Record not found with id: " + vo.query.getString("_id"))))
+        .flatMap(json -> mongoClient.rxFindOneAndDelete(vo.collection, vo.query))
         .map(result -> result.getString("_id")).toSingle();
   }
 }

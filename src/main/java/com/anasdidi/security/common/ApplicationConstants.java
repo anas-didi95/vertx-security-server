@@ -29,9 +29,11 @@ public class ApplicationConstants {
   }
 
   public enum ErrorValue {
-    REQUEST_BODY_EMPTY("E001", "Request body is empty!"), VALIDATION("E002",
-        "Validation error!"), USER_CREATE("E101",
-            "Create user failed!"), USER_UPDATE("E102", "Update user failed!");
+    REQUEST_BODY_EMPTY("E001", "Request body is empty!"), //
+    VALIDATION("E002", "Validation error!"), //
+    USER_CREATE("E101", "Create user failed!"), //
+    USER_UPDATE("E102", "Update user failed!"), //
+    USER_DELETE("E103", "Delete user failed!");
 
     public final String code;
     public final String message;

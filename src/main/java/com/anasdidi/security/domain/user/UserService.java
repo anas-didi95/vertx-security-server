@@ -64,7 +64,12 @@ class UserService extends BaseService {
     }
 
     return sendRequest(EventMongo.MONGO_DELETE, CollectionRecord.USER, query, null, null)
-        .map(response -> {
+        .doOnError(error -> {
+          logger.error("[delete:{}] query{}", vo.traceId, query.encode());
+          logger.error("[delete:{}] {}", vo.traceId, error.getMessage());
+          error.addSuppressed(
+              new ApplicationException(ErrorValue.USER_DELETE, vo.traceId, error.getMessage()));
+        }).map(response -> {
           JsonObject responseBody = (JsonObject) response.body();
           return responseBody.getString("id");
         });

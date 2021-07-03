@@ -19,6 +19,6 @@ public abstract class BaseService {
       JsonObject query, JsonObject document, Long version) {
     JsonObject requestBody = new JsonObject().put("collection", collection.name).put("query", query)
         .put("document", document).put("version", version);
-    return eventBus.rxRequest(event.address, requestBody);
+    return eventBus.rxRequest(event.toString(), requestBody);
   }
 }

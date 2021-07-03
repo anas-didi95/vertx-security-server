@@ -63,7 +63,7 @@ class UserService extends BaseService {
       logger.debug("[delete:{}] query{}", vo.traceId, query.encode());
     }
 
-    return sendRequest(EventMongo.MONGO_DELETE, CollectionRecord.USER, query, null, null)
+    return sendRequest(EventMongo.MONGO_DELETE, CollectionRecord.USER, query, null, vo.version)
         .doOnError(error -> {
           logger.error("[delete:{}] query{}", vo.traceId, query.encode());
           logger.error("[delete:{}] {}", vo.traceId, error.getMessage());

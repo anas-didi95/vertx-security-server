@@ -21,7 +21,7 @@ class UserHandler extends BaseHandler {
     Single<JsonObject> subscriber =
         getRequestBody(routingContext, "username", "password", "fullName", "email", "telegramId")
             .map(json -> UserVO.fromJson(json))
-            .map(vo -> userValidator.validate(vo, ValidateAction.CREATE))
+            .flatMap(vo -> userValidator.validate(vo, ValidateAction.CREATE))
             .flatMap(vo -> userService.create(vo)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(subscriber, routingContext, HttpStatus.CREATED);
@@ -33,7 +33,7 @@ class UserHandler extends BaseHandler {
     Single<JsonObject> subscriber =
         getRequestBody(routingContext, "fullName", "email", "telegramId", "version")
             .map(json -> UserVO.fromJson(json, userId))
-            .map(vo -> userValidator.validate(vo, ValidateAction.UPDATE))
+            .flatMap(vo -> userValidator.validate(vo, ValidateAction.UPDATE))
             .flatMap(vo -> userService.update(vo)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);
@@ -44,7 +44,7 @@ class UserHandler extends BaseHandler {
 
     Single<JsonObject> subscriber =
         getRequestBody(routingContext, "version").map(json -> UserVO.fromJson(json, userId))
-            .map(vo -> userValidator.validate(vo, ValidateAction.DELETE))
+            .flatMap(vo -> userValidator.validate(vo, ValidateAction.DELETE))
             .flatMap(vo -> userService.delete(vo)).map(id -> new JsonObject().put("id", id));
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);

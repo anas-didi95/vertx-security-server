@@ -277,7 +277,7 @@ public class TestUserVerticle {
   }
 
   @Test
-  void testUserUpdateVersionMismatch(Vertx vertx, VertxTestContext testContext) {
+  void testUserUpdateVersionMismatchError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
@@ -421,5 +421,37 @@ public class TestUserVerticle {
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserDeleteVersionMismatchError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject userJson = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
+      long version = -1;
+      JsonObject requestBody = new JsonObject().put("version", version);
+
+      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(UserConstants.CONTEXT_PATH, id))
+          .rxSendJsonObject(requestBody).subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 400);
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              TestUtils.testResponseBodyError(response, "E103", "Delete user failed!");
+              checkpoint.flag();
+            });
+
+            testContext.verify(() -> {
+              String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+              Assertions.assertEquals(
+                  "Current record has version mismatch with requested value: " + version, error);
+              checkpoint.flag();
+            });
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
   }
 }

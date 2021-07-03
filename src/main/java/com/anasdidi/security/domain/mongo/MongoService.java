@@ -32,8 +32,14 @@ class MongoService {
   }
 
   Single<String> delete(MongoVO vo) {
-    return checkRecordExist(vo)
-        .flatMap(json -> mongoClient.rxFindOneAndDelete(vo.collection, vo.query))
+    return checkRecordExist(vo).flatMap(json -> {
+      if (json.getLong("version") != vo.version) {
+        return Maybe.error(new Exception(
+            "Current record has version mismatch with requested value: " + vo.version));
+      } else {
+        return Maybe.just(json);
+      }
+    }).flatMap(json -> mongoClient.rxFindOneAndDelete(vo.collection, vo.query))
         .map(result -> result.getString("_id")).toSingle();
   }
 

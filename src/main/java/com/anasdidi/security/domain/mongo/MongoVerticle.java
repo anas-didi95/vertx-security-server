@@ -60,9 +60,9 @@ public class MongoVerticle extends BaseVerticle {
   @Override
   protected Future<Void> setHandler(Router router, EventBus eventBus) {
     return Future.future(promise -> {
-      eventBus.consumer(EventMongo.MONGO_CREATE.address, mongoHandler::create);
-      eventBus.consumer(EventMongo.MONGO_UPDATE.address, mongoHandler::update);
-      eventBus.consumer(EventMongo.MONGO_DELETE.address, mongoHandler::delete);
+      eventBus.consumer(EventMongo.MONGO_CREATE.toString(), mongoHandler::create);
+      eventBus.consumer(EventMongo.MONGO_UPDATE.toString(), mongoHandler::update);
+      eventBus.consumer(EventMongo.MONGO_DELETE.toString(), mongoHandler::delete);
       promise.complete();
     });
   }

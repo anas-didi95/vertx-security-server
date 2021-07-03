@@ -19,21 +19,14 @@ public class ApplicationConstants {
   }
 
   public enum EventMongo {
-    MONGO_CREATE("mongo-create"), MONGO_UPDATE("mongo-update"), MONGO_DELETE("mongo-delete");
-
-    public final String address;
-
-    private EventMongo(String address) {
-      this.address = address;
-    }
+    MONGO_CREATE, MONGO_UPDATE, MONGO_DELETE;
   }
 
   public enum ErrorValue {
     REQUEST_BODY_EMPTY("E001", "Request body is empty!"), //
     VALIDATION("E002", "Validation error!"), //
     USER_CREATE("E101", "Create user failed!"), //
-    USER_UPDATE("E102", "Update user failed!"), //
-    USER_DELETE("E103", "Delete user failed!");
+    USER_UPDATE("E102", "Update user failed!"), USER_DELETE("E103", "Delete user failed!");
 
     public final String code;
     public final String message;

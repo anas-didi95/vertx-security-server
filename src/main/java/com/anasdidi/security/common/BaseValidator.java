@@ -4,6 +4,7 @@ import java.util.List;
 import com.anasdidi.security.common.ApplicationConstants.ErrorValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import io.reactivex.rxjava3.core.Single;
 
 public abstract class BaseValidator<T extends BaseVO> {
 
@@ -19,7 +20,7 @@ public abstract class BaseValidator<T extends BaseVO> {
 
   protected abstract List<String> validateDelete(T vo);
 
-  public final T validate(T vo, ValidateAction action) throws ApplicationException {
+  public final Single<T> validate(T vo, ValidateAction action) throws ApplicationException {
     List<String> errorList = null;
 
     switch (action) {
@@ -37,17 +38,16 @@ public abstract class BaseValidator<T extends BaseVO> {
     return validate(errorList, vo, action);
   };
 
-  private final T validate(List<String> errorList, T vo, ValidateAction action)
-      throws ApplicationException {
+  private final Single<T> validate(List<String> errorList, T vo, ValidateAction action) {
     if (errorList == null) {
       logger.warn("[validate:{}] action={}, vo={}", vo.traceId, action, vo);
       logger.warn("[validate:{}] Validation not implemented!", vo.traceId);
     } else if (!errorList.isEmpty()) {
       logger.error("[validate:{}] action={}, vo={}", vo.traceId, action, vo);
-      throw new ApplicationException(ErrorValue.VALIDATION, vo.traceId, errorList);
+      return Single.error(new ApplicationException(ErrorValue.VALIDATION, vo.traceId, errorList));
     }
 
-    return vo;
+    return Single.just(vo);
   }
 
   protected final void isMandatory(List<String> errorList, Object value, String fieldName) {

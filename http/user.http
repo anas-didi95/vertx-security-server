@@ -1,11 +1,10 @@
-@baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/api/user
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdfQ.GxIlBwCt3dRWrNWg3xhLSmqHJtcVEHHTKu2A9D9_wug
+@baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/user
+@userId = {{create.response.body.$.id}}
 
-// @name createContent
+// @name create
 POST {{baseUrl}}
 Accept: application/json
 Content-Type: application/json
-Authorization: Bearer {{accessToken}}
 
 {
   "username": "superadmin",
@@ -21,13 +20,11 @@ Authorization: Bearer {{accessToken}}
 
 ###
 
-@userId = {{createContent.response.body.$.data.id}}
 
-// @name updateContent
+// @name update
 PUT {{baseUrl}}/{{userId}}
 Accept: application/json
 Content-Type: application/json
-Authorization: Bearer {{accessToken}}
 
 {
   "fullName": "anas juwaidi 123",
@@ -42,26 +39,11 @@ Authorization: Bearer {{accessToken}}
 
 ###
 
-// @name deleteContent
+// @name delete
 DELETE {{baseUrl}}/{{userId}}
 Accept: application/json
 Content-Type: application/json
-Authorization: Bearer {{accessToken}}
 
 {
   "version": 1
-}
-
-###
-
-// @name changePassword
-POST {{baseUrl}}/{{userId}}/changePassword
-Accept: application/json
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-{
-  "version": 0,
-  "oldPassword": "password",
-  "newPassword": "newPassword"
 }

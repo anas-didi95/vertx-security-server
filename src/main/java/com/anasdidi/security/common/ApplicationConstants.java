@@ -5,7 +5,8 @@ import java.util.Map;
 
 public class ApplicationConstants {
 
-  public static Map<String, String> HEADERS;
+  public static final String CONTEXT_PATH = "/security";
+  public static final Map<String, String> HEADERS;
 
   static {
     HEADERS = new HashMap<>();

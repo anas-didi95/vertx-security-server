@@ -63,12 +63,12 @@ public class TestUserVerticle {
             checkpoint.flag();
           });
 
-          testContext.verify(() -> {
-            String id = response.bodyAsJsonObject().getString("id");
-            JsonObject query = new JsonObject().put("_id", id);
-            JsonObject fields = new JsonObject();
-            mongoClient.findOne(CollectionRecord.USER.name, query, fields).toSingle()
-                .subscribe(result -> {
+          String id = response.bodyAsJsonObject().getString("id");
+          JsonObject query = new JsonObject().put("_id", id);
+          JsonObject fields = new JsonObject();
+          mongoClient.findOne(CollectionRecord.USER.name, query, fields).toSingle()
+              .subscribe(result -> {
+                testContext.verify(() -> {
                   Assertions.assertEquals(requestBody.getString("username"),
                       result.getString("username"));
                   Assertions.assertEquals(requestBody.getString("password"),
@@ -80,9 +80,11 @@ public class TestUserVerticle {
                   Assertions.assertEquals(requestBody.getString("telegramId"),
                       result.getString("telegramId"));
                   Assertions.assertEquals(0, result.getLong("version"));
+                  Assertions
+                      .assertNotNull(result.getJsonObject("lastModifiedDate").getInstant("$date"));
                   checkpoint.flag();
-                }, error -> testContext.failNow(error));
-          });
+                });
+              }, error -> testContext.failNow(error));
         }, error -> testContext.failNow(error));
   }
 
@@ -194,6 +196,8 @@ public class TestUserVerticle {
                         result.getString("telegramId"));
                     Assertions.assertEquals(requestBody.getLong("version") + 1,
                         result.getLong("version"));
+                    Assertions.assertNotNull(
+                        result.getJsonObject("lastModifiedDate").getInstant("$date"));
                     checkpoint.flag();
                   });
                 }, error -> testContext.failNow(error));

@@ -3,6 +3,7 @@ package com.anasdidi.security.domain.user;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import com.anasdidi.security.common.ApplicationConstants;
+import com.anasdidi.security.common.ApplicationUtils;
 import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -81,7 +82,7 @@ public class TestUserVerticle {
                       result.getString("telegramId"));
                   Assertions.assertEquals(0, result.getLong("version"));
                   Assertions
-                      .assertNotNull(result.getJsonObject("lastModifiedDate").getInstant("$date"));
+                      .assertNotNull(ApplicationUtils.getRecordDate(result, "lastModifiedDate"));
                   checkpoint.flag();
                 });
               }, error -> testContext.failNow(error));
@@ -196,8 +197,8 @@ public class TestUserVerticle {
                         result.getString("telegramId"));
                     Assertions.assertEquals(requestBody.getLong("version") + 1,
                         result.getLong("version"));
-                    Assertions.assertNotNull(
-                        result.getJsonObject("lastModifiedDate").getInstant("$date"));
+                    Assertions
+                        .assertNotNull(ApplicationUtils.getRecordDate(result, "lastModifiedDate"));
                     checkpoint.flag();
                   });
                 }, error -> testContext.failNow(error));

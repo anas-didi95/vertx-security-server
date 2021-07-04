@@ -1,6 +1,6 @@
 package com.anasdidi.security.domain.mongo;
 
-import java.time.Instant;
+import com.anasdidi.security.common.ApplicationUtils;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -15,14 +15,13 @@ class MongoService {
   }
 
   Single<String> create(MongoVO vo) {
-    vo.document.put("version", 0).put("lastModifiedDate",
-        new JsonObject().put("$date", Instant.now()));
+    vo.document.put("version", 0).put("lastModifiedDate", ApplicationUtils.setRecordDate());
     return mongoClient.rxSave(vo.collection, vo.document).toSingle();
   }
 
   Single<String> update(MongoVO vo) {
     JsonObject update = new JsonObject().put("$set", vo.document.put("version", vo.version + 1)
-        .put("lastModifiedDate", new JsonObject().put("$date", Instant.now())));
+        .put("lastModifiedDate", ApplicationUtils.setRecordDate()));
 
     return checkRecordExist(vo).flatMap(record -> checkRecordVersion(record, vo.version))
         .flatMap(json -> mongoClient.rxFindOneAndUpdate(vo.collection, vo.query, update))

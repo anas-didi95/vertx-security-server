@@ -1,6 +1,7 @@
 package com.anasdidi.security.domain.user;
 
 import java.time.Instant;
+import com.anasdidi.security.common.ApplicationUtils;
 import com.anasdidi.security.common.BaseVO;
 import io.vertx.core.json.JsonObject;
 
@@ -41,12 +42,7 @@ class UserVO extends BaseVO {
     String email = json.getString("email");
     String telegramId = json.getString("telegramId");
     Long version = json.getLong("version");
-
-    Instant lastModifiedDate = null;
-    JsonObject lastModifiedDateJson = json.getJsonObject("lastModifiedDate", new JsonObject());
-    if (!lastModifiedDateJson.isEmpty()) {
-      lastModifiedDate = lastModifiedDateJson.getInstant("$date");
-    }
+    Instant lastModifiedDate = ApplicationUtils.getRecordDate(json, "lastModifiedDate");
 
     return new UserVO(traceId, id, username, password, fullName, email, telegramId, version,
         lastModifiedDate);

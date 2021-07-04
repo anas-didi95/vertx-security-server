@@ -1,5 +1,6 @@
 package com.anasdidi.security.domain.user;
 
+import java.time.Instant;
 import com.anasdidi.security.common.BaseVO;
 import io.vertx.core.json.JsonObject;
 
@@ -12,9 +13,10 @@ class UserVO extends BaseVO {
   final String email;
   final String telegramId;
   final Long version;
+  final Instant lastModifiedDate;
 
   private UserVO(String traceId, String id, String username, String password, String fullName,
-      String email, String telegramId, Long version) {
+      String email, String telegramId, Long version, Instant lastModifiedDate) {
     super(traceId);
     this.id = id;
     this.username = username;
@@ -23,6 +25,7 @@ class UserVO extends BaseVO {
     this.email = email;
     this.telegramId = telegramId;
     this.version = version;
+    this.lastModifiedDate = lastModifiedDate;
   }
 
   static UserVO fromJson(JsonObject json) {
@@ -39,13 +42,20 @@ class UserVO extends BaseVO {
     String telegramId = json.getString("telegramId");
     Long version = json.getLong("version");
 
-    return new UserVO(traceId, id, username, password, fullName, email, telegramId, version);
+    Instant lastModifiedDate = null;
+    JsonObject lastModifiedDateJson = json.getJsonObject("lastModifiedDate", new JsonObject());
+    if (!lastModifiedDateJson.isEmpty()) {
+      lastModifiedDate = lastModifiedDateJson.getInstant("$date");
+    }
+
+    return new UserVO(traceId, id, username, password, fullName, email, telegramId, version,
+        lastModifiedDate);
   }
 
   JsonObject toJson() {
     return new JsonObject().put("username", username).put("password", password)
         .put("fullName", fullName).put("email", email).put("telegramId", telegramId)
-        .put("version", version);
+        .put("version", version).put("lastModifiedDate", lastModifiedDate);
   }
 
   @Override

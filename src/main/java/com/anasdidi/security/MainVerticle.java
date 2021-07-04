@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConfig;
+import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationUtils;
 import com.anasdidi.security.common.BaseVerticle;
 import com.anasdidi.security.domain.mongo.MongoVerticle;
@@ -43,10 +44,15 @@ public class MainVerticle extends AbstractVerticle {
 
       Single.mergeDelayError(deployer).toList().subscribe(verticleList -> {
         logger.info("[start] Total deployed verticle: {}", verticleList.size());
-        vertx.createHttpServer().requestHandler(router)
+
+        Router contextPath = Router.router(vertx);
+        contextPath.mountSubRouter(ApplicationConstants.CONTEXT_PATH, router);
+        logger.info("[start] Set context path: {}", ApplicationConstants.CONTEXT_PATH);
+
+        vertx.createHttpServer().requestHandler(contextPath)
             .listen(config.getAppPort(), config.getAppHost()).subscribe(server -> {
               logger.info("[start] HTTP server started on {}:{}", config.getAppHost(),
-                  config.getAppPort());
+                  server.actualPort());
               startFuture.complete();
             }, error -> startFuture.fail(error));
       }, error -> startFuture.fail(error));

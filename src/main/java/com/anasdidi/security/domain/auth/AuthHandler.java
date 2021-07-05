@@ -9,7 +9,8 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 class AuthHandler extends BaseHandler {
 
   void login(RoutingContext routingContext) {
-    Single<JsonObject> subscriber = getRequestBody(routingContext);
+    Single<JsonObject> subscriber = getRequestBody(routingContext)
+        .map(json -> new JsonObject().put("accessToken", System.currentTimeMillis()));
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);
   }

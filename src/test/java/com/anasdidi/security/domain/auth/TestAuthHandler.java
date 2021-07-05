@@ -15,7 +15,7 @@ import io.vertx.rxjava3.core.Vertx;
 @ExtendWith(VertxExtension.class)
 public class TestAuthHandler {
 
-  private final String baseURI = ApplicationConstants.CONTEXT_PATH + "/auth";
+  private final String baseURI = ApplicationConstants.CONTEXT_PATH + AuthConstants.CONTEXT_PATH;
 
   @BeforeEach
   void deployVerticle(Vertx vertx, VertxTestContext testContext) {

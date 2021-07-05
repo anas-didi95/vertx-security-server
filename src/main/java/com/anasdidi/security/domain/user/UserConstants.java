@@ -2,5 +2,5 @@ package com.anasdidi.security.domain.user;
 
 class UserConstants {
 
-  static String CONTEXT_PATH = "/user";
+  static final String CONTEXT_PATH = "/user";
 }

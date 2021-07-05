@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -29,7 +30,7 @@ public class TestAuthHandler {
 
   @Test
   void testAuthLoginSuccess(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(1);
+    Checkpoint checkpoint = testContext.checkpoint(2);
 
     TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login")).rxSend()
         .subscribe(response -> {
@@ -38,6 +39,12 @@ public class TestAuthHandler {
             checkpoint.flag();
           });
 
+          testContext.verify(() -> {
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
+            Assertions.assertNotNull(responseBody.getString("accessToken"));
+            checkpoint.flag();
+          });
         }, error -> testContext.failNow(error));
   }
 }

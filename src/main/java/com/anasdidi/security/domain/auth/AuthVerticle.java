@@ -11,11 +11,13 @@ import io.vertx.rxjava3.ext.web.Router;
 public class AuthVerticle extends BaseVerticle {
 
   private static final Logger logger = LogManager.getLogger(AuthVerticle.class);
+  private final AuthService authService;
   private final AuthHandler authHandler;
   private Router router;
 
   public AuthVerticle() {
-    this.authHandler = new AuthHandler();
+    this.authService = new AuthService();
+    this.authHandler = new AuthHandler(authService);
   }
 
   @Override

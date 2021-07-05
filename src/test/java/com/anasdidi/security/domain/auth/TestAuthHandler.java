@@ -31,9 +31,10 @@ public class TestAuthHandler {
   @Test
   void testAuthLoginSuccess(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
+    JsonObject requestBody = new JsonObject().put("username", "admin").put("password", "password");
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login")).rxSend()
-        .subscribe(response -> {
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
+        .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 200);
             checkpoint.flag();

@@ -8,9 +8,16 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 
 class AuthHandler extends BaseHandler {
 
+  private final AuthService authService;
+
+  AuthHandler(AuthService authService) {
+    this.authService = authService;
+  }
+
   void login(RoutingContext routingContext) {
     Single<JsonObject> subscriber = getRequestBody(routingContext)
-        .map(json -> new JsonObject().put("accessToken", System.currentTimeMillis()));
+        .map(json -> AuthVO.fromJson(json)).flatMap(vo -> authService.login(vo))
+        .map(accessToken -> new JsonObject().put("accessToken", accessToken));
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);
   }

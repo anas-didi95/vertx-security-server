@@ -30,7 +30,7 @@ public class TestAuthHandler {
 
   @Test
   void testAuthLoginSuccess(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(2);
+    Checkpoint checkpoint = testContext.checkpoint(3);
     JsonObject requestBody = new JsonObject().put("username", "admin").put("password", "password");
 
     TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
@@ -46,6 +46,15 @@ public class TestAuthHandler {
             Assertions.assertNotNull(responseBody.getString("accessToken"));
             checkpoint.flag();
           });
+
+          String accessToken = response.bodyAsJsonObject().getString("accessToken");
+          TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), accessToken)
+              .rxSend().subscribe(response1 -> {
+                testContext.verify(() -> {
+                  TestUtils.testResponseHeader(response1, 200);
+                  checkpoint.flag();
+                });
+              }, error -> testContext.failNow(error));
         }, error -> testContext.failNow(error));
   }
 }

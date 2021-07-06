@@ -66,14 +66,27 @@ public class TestUtils {
     return sendRequest(vertx, HttpMethod.DELETE, requestURI);
   }
 
+  public static HttpRequest<Buffer> doGetRequest(Vertx vertx, String requestURI,
+      String accessToken) {
+    return sendRequest(vertx, HttpMethod.GET, requestURI, accessToken);
+  }
+
   private static HttpRequest<Buffer> sendRequest(Vertx vertx, HttpMethod method,
       String requestURI) {
+    return sendRequest(vertx, method, requestURI, null);
+  }
+
+  private static HttpRequest<Buffer> sendRequest(Vertx vertx, HttpMethod method, String requestURI,
+      String accessToken) {
     WebClient webClient = WebClient.create(vertx);
     ApplicationConfig config = ApplicationConfig.instance();
 
     Map<String, String> map = new HashMap<>();
     map.put("Accept", "application/json");
     map.put("Content-Type", "application/json");
+    if (accessToken != null) {
+      map.put("Authorization", "Bearer " + accessToken);
+    }
     MultiMap headers = MultiMap.caseInsensitiveMultiMap().addAll(map);
 
     if (method == HttpMethod.POST) {
@@ -85,6 +98,11 @@ public class TestUtils {
     } else if (method == HttpMethod.DELETE) {
       return webClient.delete(config.getAppPort(), config.getAppHost(), requestURI)
           .putHeaders(headers);
+    } else if (method == HttpMethod.GET) {
+      return webClient.get(config.getAppPort(), config.getAppHost(), requestURI)
+          .putHeaders(headers);
+    } else {
+      System.err.println("[sendRequest] Method not implemented! " + method);
     }
 
     return null;

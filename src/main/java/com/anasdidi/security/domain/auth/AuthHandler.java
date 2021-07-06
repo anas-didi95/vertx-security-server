@@ -21,4 +21,10 @@ class AuthHandler extends BaseHandler {
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);
   }
+
+  void check(RoutingContext routingContext) {
+    Single<JsonObject> subscriber = getRequestBody(routingContext);
+
+    sendResponse(subscriber, routingContext, HttpStatus.OK);
+  }
 }

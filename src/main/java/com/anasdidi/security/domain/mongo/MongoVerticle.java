@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import com.anasdidi.security.common.ApplicationConstants.EventMongo;
@@ -56,6 +57,12 @@ public class MongoVerticle extends BaseVerticle {
     eventBus.consumer(EventMongo.MONGO_CREATE.toString(), mongoHandler::create);
     eventBus.consumer(EventMongo.MONGO_UPDATE.toString(), mongoHandler::update);
     eventBus.consumer(EventMongo.MONGO_DELETE.toString(), mongoHandler::delete);
+  }
+
+  private MongoClient getMongoClient() {
+    ApplicationConfig config = ApplicationConfig.instance();
+    return MongoClient.create(vertx,
+        new JsonObject().put("connection_string", config.getMongoConnectionString()));
   }
 
   private Future<Void> createCollections(MongoClient mongoClient) {

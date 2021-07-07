@@ -1,13 +1,11 @@
 package com.anasdidi.security.common;
 
 import io.vertx.core.Promise;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.auth.jwt.JWTAuth;
-import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.handler.JWTAuthHandler;
 
@@ -33,12 +31,6 @@ public abstract class BaseVerticle extends AbstractVerticle {
     }
     return null;
   };
-
-  protected final MongoClient getMongoClient() {
-    ApplicationConfig config = ApplicationConfig.instance();
-    return MongoClient.create(vertx,
-        new JsonObject().put("connection_string", config.getMongoConnectionString()));
-  }
 
   protected final JWTAuth getAuthProvider() {
     return JWTAuth.create(vertx, new JWTAuthOptions()

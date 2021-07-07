@@ -13,12 +13,26 @@ import io.vertx.rxjava3.ext.web.handler.JWTAuthHandler;
 
 public abstract class BaseVerticle extends AbstractVerticle {
 
-  public abstract String getContextPath();
+  private Router router;
 
-  public abstract Router getRouter();
+  public abstract String getContextPath();
 
   protected abstract void setHandler(Router router, EventBus eventBus,
       JWTAuthHandler jwtAuthHandler);
+
+  public final boolean hasRouter() {
+    return getContextPath() != null && !getContextPath().isBlank();
+  }
+
+  public final Router getRouter() {
+    if (hasRouter()) {
+      if (router == null) {
+        router = Router.router(vertx);
+      }
+      return router;
+    }
+    return null;
+  };
 
   protected final MongoClient getMongoClient() {
     ApplicationConfig config = ApplicationConfig.instance();
@@ -31,12 +45,12 @@ public abstract class BaseVerticle extends AbstractVerticle {
         .addPubSecKey(new PubSecKeyOptions().setAlgorithm("HS256").setBuffer("secret")));
   }
 
-  protected final JWTAuthHandler getAuthHandler() {
+  protected final JWTAuthHandler getJwtAuthHandler() {
     return JWTAuthHandler.create(getAuthProvider());
   }
 
   @Override
   public void start(Promise<Void> startFuture) throws Exception {
-    setHandler(getRouter(), vertx.eventBus(), getAuthHandler());
+    setHandler(getRouter(), vertx.eventBus(), getJwtAuthHandler());
   }
 }

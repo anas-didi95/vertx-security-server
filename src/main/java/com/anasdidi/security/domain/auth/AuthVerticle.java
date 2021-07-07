@@ -13,7 +13,6 @@ public class AuthVerticle extends BaseVerticle {
   private static final Logger logger = LogManager.getLogger(AuthVerticle.class);
   private final AuthService authService;
   private final AuthHandler authHandler;
-  private Router router;
 
   public AuthVerticle() {
     this.authService = new AuthService();
@@ -32,14 +31,6 @@ public class AuthVerticle extends BaseVerticle {
   @Override
   public String getContextPath() {
     return AuthConstants.CONTEXT_PATH;
-  }
-
-  @Override
-  public Router getRouter() {
-    if (router == null) {
-      router = Router.router(vertx);
-    }
-    return router;
   }
 
   @Override

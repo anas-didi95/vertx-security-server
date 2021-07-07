@@ -52,11 +52,6 @@ public class MongoVerticle extends BaseVerticle {
   }
 
   @Override
-  public Router getRouter() {
-    return null;
-  }
-
-  @Override
   protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler) {
     eventBus.consumer(EventMongo.MONGO_CREATE.toString(), mongoHandler::create);
     eventBus.consumer(EventMongo.MONGO_UPDATE.toString(), mongoHandler::update);

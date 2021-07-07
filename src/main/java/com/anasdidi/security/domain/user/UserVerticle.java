@@ -14,7 +14,6 @@ public class UserVerticle extends BaseVerticle {
   private final UserService userService;
   private final UserValidator userValidator;
   private final UserHandler userHandler;
-  private Router router;
 
   public UserVerticle() {
     this.userService = new UserService();
@@ -34,14 +33,6 @@ public class UserVerticle extends BaseVerticle {
   @Override
   public String getContextPath() {
     return UserConstants.CONTEXT_PATH;
-  }
-
-  @Override
-  public Router getRouter() {
-    if (router == null) {
-      this.router = Router.router(vertx);
-    }
-    return router;
   }
 
   @Override

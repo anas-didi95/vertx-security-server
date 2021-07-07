@@ -87,7 +87,7 @@ public class MainVerticle extends AbstractVerticle {
     return vertx.rxDeployVerticle(verticle).doOnSuccess(id -> {
       logger.info("[deployVerticle] {} OK: {}", verticle.getClass().getName(), id);
 
-      if (verticle.getContextPath() != null) {
+      if (verticle.hasRouter()) {
         router.mountSubRouter(verticle.getContextPath(), verticle.getRouter());
         logger.info("[deployVerticle] {} Mount router: {}", verticle.getClass().getName(),
             verticle.getContextPath());

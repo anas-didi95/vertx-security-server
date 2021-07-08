@@ -7,6 +7,7 @@ import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.BaseService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.mindrot.jbcrypt.BCrypt;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 
@@ -15,7 +16,7 @@ class UserService extends BaseService {
   private final static Logger logger = LogManager.getLogger(UserService.class);
 
   Single<String> create(UserVO vo) {
-    JsonObject document = vo.toJson();
+    JsonObject document = vo.toJson().put("password", BCrypt.hashpw(vo.password, BCrypt.gensalt()));
 
     if (logger.isDebugEnabled()) {
       logger.debug("[create:{}] document{}", vo.traceId, document.encode());
@@ -27,9 +28,9 @@ class UserService extends BaseService {
           logger.error("[create:{}] {}", vo.traceId, error.getMessage());
           error.addSuppressed(new ApplicationException(ErrorValue.USER_CREATE, vo.traceId,
               "Unable to create user with username: " + vo.username));
-        }).map(response -> {
+        }).flatMap(response -> {
           JsonObject responseBody = (JsonObject) response.body();
-          return responseBody.getString("id");
+          return Single.just(responseBody.getString("id"));
         });
   }
 
@@ -50,9 +51,9 @@ class UserService extends BaseService {
           logger.error("[update:{}] {}", vo.traceId, error.getMessage());
           error.addSuppressed(
               new ApplicationException(ErrorValue.USER_UPDATE, vo.traceId, error.getMessage()));
-        }).map(response -> {
+        }).flatMap(response -> {
           JsonObject responseBody = (JsonObject) response.body();
-          return responseBody.getString("id");
+          return Single.just(responseBody.getString("id"));
         });
   }
 
@@ -69,9 +70,9 @@ class UserService extends BaseService {
           logger.error("[delete:{}] {}", vo.traceId, error.getMessage());
           error.addSuppressed(
               new ApplicationException(ErrorValue.USER_DELETE, vo.traceId, error.getMessage()));
-        }).map(response -> {
+        }).flatMap(response -> {
           JsonObject responseBody = (JsonObject) response.body();
-          return responseBody.getString("id");
+          return Single.just(responseBody.getString("id"));
         });
   }
 }

@@ -23,6 +23,7 @@ public class AuthVerticle extends BaseVerticle {
   public void start(Promise<Void> startFuture) throws Exception {
     super.start(startFuture);
     authService.setJwtAuth(getAuthProvider());
+    authService.setEventBus(vertx.eventBus());
 
     logger.info("[start] Verticle started");
     startFuture.complete();

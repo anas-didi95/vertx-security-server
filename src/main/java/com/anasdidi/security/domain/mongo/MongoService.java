@@ -34,6 +34,11 @@ class MongoService {
         .map(result -> result.getString("_id")).toSingle();
   }
 
+  Single<JsonObject> read(MongoVO vo) {
+    return mongoClient.rxFindOne(vo.collection, vo.query, new JsonObject())
+        .defaultIfEmpty(new JsonObject());
+  }
+
   private Maybe<JsonObject> checkRecordExist(MongoVO vo) {
     return mongoClient.findOne(vo.collection, vo.query, new JsonObject().put("version", 1))
         .switchIfEmpty(

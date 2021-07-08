@@ -57,6 +57,7 @@ public class MongoVerticle extends BaseVerticle {
     eventBus.consumer(EventMongo.MONGO_CREATE.toString(), mongoHandler::create);
     eventBus.consumer(EventMongo.MONGO_UPDATE.toString(), mongoHandler::update);
     eventBus.consumer(EventMongo.MONGO_DELETE.toString(), mongoHandler::delete);
+    eventBus.consumer(EventMongo.MONGO_READ.toString(), mongoHandler::read);
   }
 
   private MongoClient getMongoClient() {

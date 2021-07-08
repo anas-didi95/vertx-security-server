@@ -3,10 +3,10 @@ package com.anasdidi.security.domain.user;
 import com.anasdidi.security.common.BaseVerticle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.web.Router;
+import io.vertx.rxjava3.ext.web.handler.JWTAuthHandler;
 
 public class UserVerticle extends BaseVerticle {
 
@@ -14,7 +14,6 @@ public class UserVerticle extends BaseVerticle {
   private final UserService userService;
   private final UserValidator userValidator;
   private final UserHandler userHandler;
-  private Router router;
 
   public UserVerticle() {
     this.userService = new UserService();
@@ -24,12 +23,10 @@ public class UserVerticle extends BaseVerticle {
 
   @Override
   public void start(Promise<Void> startFuture) throws Exception {
+    super.start(startFuture);
     userService.setEventBus(vertx.eventBus());
 
-    Future<Void> future = startFuture.future();
-    future.compose(v -> setHandler(getRouter(), null))
-        .onComplete(v -> logger.info("[start] Set handler completed"));
-
+    logger.info("[start] Verticle started");
     startFuture.complete();
   }
 
@@ -39,20 +36,9 @@ public class UserVerticle extends BaseVerticle {
   }
 
   @Override
-  public Router getRouter() {
-    if (router == null) {
-      this.router = Router.router(vertx);
-    }
-    return router;
-  }
-
-  @Override
-  protected Future<Void> setHandler(Router router, EventBus eventBus) {
-    return Future.future(promise -> {
-      router.post("/").handler(userHandler::create);
-      router.put("/:userId").handler(userHandler::update);
-      router.delete("/:userId").handler(userHandler::delete);
-      promise.complete();
-    });
+  protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler) {
+    router.post("/").handler(userHandler::create);
+    router.put("/:userId").handler(userHandler::update);
+    router.delete("/:userId").handler(userHandler::delete);
   }
 }

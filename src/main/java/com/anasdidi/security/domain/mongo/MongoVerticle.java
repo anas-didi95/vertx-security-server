@@ -19,13 +19,13 @@ import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.Router;
+import io.vertx.rxjava3.ext.web.handler.JWTAuthHandler;
 
 public class MongoVerticle extends BaseVerticle {
 
   private final static Logger logger = LogManager.getLogger(MongoVerticle.class);
   private final MongoService mongoService;
   private final MongoHandler mongoHandler;
-  private MongoClient mongoClient;
 
   public MongoVerticle() {
     this.mongoService = new MongoService();
@@ -34,6 +34,7 @@ public class MongoVerticle extends BaseVerticle {
 
   @Override
   public void start(Promise<Void> startFuture) throws Exception {
+    super.start(startFuture);
     mongoService.setMongoClient(getMongoClient());
 
     Future<Void> future = startFuture.future();
@@ -41,9 +42,8 @@ public class MongoVerticle extends BaseVerticle {
         .onComplete(v -> logger.info("[start] Create collections completed"))
         .compose(v -> createIndexes(getMongoClient()))
         .onComplete(v -> logger.info("[start] Create indexes completed"));
-    future.compose(v -> Future.succeededFuture(setHandler(null, vertx.eventBus())))
-        .onComplete(v -> logger.info("[start] Set handler completed"));
 
+    logger.info("[start] Verticle started");
     startFuture.complete();
   }
 
@@ -53,27 +53,17 @@ public class MongoVerticle extends BaseVerticle {
   }
 
   @Override
-  public Router getRouter() {
-    return null;
-  }
-
-  @Override
-  protected Future<Void> setHandler(Router router, EventBus eventBus) {
-    return Future.future(promise -> {
-      eventBus.consumer(EventMongo.MONGO_CREATE.toString(), mongoHandler::create);
-      eventBus.consumer(EventMongo.MONGO_UPDATE.toString(), mongoHandler::update);
-      eventBus.consumer(EventMongo.MONGO_DELETE.toString(), mongoHandler::delete);
-      promise.complete();
-    });
+  protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler) {
+    eventBus.consumer(EventMongo.MONGO_CREATE.toString(), mongoHandler::create);
+    eventBus.consumer(EventMongo.MONGO_UPDATE.toString(), mongoHandler::update);
+    eventBus.consumer(EventMongo.MONGO_DELETE.toString(), mongoHandler::delete);
+    eventBus.consumer(EventMongo.MONGO_READ.toString(), mongoHandler::read);
   }
 
   private MongoClient getMongoClient() {
-    if (mongoClient == null) {
-      ApplicationConfig config = ApplicationConfig.instance();
-      this.mongoClient = MongoClient.create(vertx,
-          new JsonObject().put("connection_string", config.getMongoConnectionString()));
-    }
-    return mongoClient;
+    ApplicationConfig config = ApplicationConfig.instance();
+    return MongoClient.create(vertx,
+        new JsonObject().put("connection_string", config.getMongoConnectionString()));
   }
 
   private Future<Void> createCollections(MongoClient mongoClient) {

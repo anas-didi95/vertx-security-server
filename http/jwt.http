@@ -1,4 +1,4 @@
-@baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/api/jwt
+@baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/auth
 
 // @name login
 POST {{baseUrl}}/login

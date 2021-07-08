@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mindrot.jbcrypt.BCrypt;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
@@ -72,8 +73,8 @@ public class TestUserVerticle {
                 testContext.verify(() -> {
                   Assertions.assertEquals(requestBody.getString("username"),
                       result.getString("username"));
-                  Assertions.assertEquals(requestBody.getString("password"),
-                      result.getString("password"));
+                  Assertions.assertTrue(BCrypt.checkpw(requestBody.getString("password"),
+                      result.getString("password")));
                   Assertions.assertEquals(requestBody.getString("fullName"),
                       result.getString("fullName"));
                   Assertions.assertEquals(requestBody.getString("email"),

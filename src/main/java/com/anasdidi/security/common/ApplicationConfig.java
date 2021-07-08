@@ -34,8 +34,7 @@ public class ApplicationConfig {
   @Override
   public String toString() {
     JsonObject copy = json.copy();
-    copy.put(KEY_MONGO_CONNECTION_STRING, String.format("[len: %d]",
-        getMongoConnectionString() != null ? getMongoConnectionString().length() : -1));
+    copy.put(KEY_MONGO_CONNECTION_STRING, ApplicationUtils.hideValue(getMongoConnectionString()));
     return this.getClass().getSimpleName() + copy.encode();
   }
 

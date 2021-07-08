@@ -39,7 +39,14 @@ public abstract class BaseHandler {
 
     subscriber.subscribe(responseBody -> {
       if (logger.isDebugEnabled()) {
-        logger.debug("[sendResponse:{}] responseBody{}", traceId, responseBody.encode());
+        JsonObject copy = responseBody.copy();
+        Arrays.asList("accessToken").stream().forEach(key -> {
+          if (copy.containsKey(key)) {
+            copy.put(key, ApplicationUtils.hideValue(copy.getString(key)));
+          }
+        });
+
+        logger.debug("[sendResponse:{}] responseBody{}", traceId, copy.encode());
       }
 
       logResponse(routingContext, httpStatus);
@@ -79,7 +86,14 @@ public abstract class BaseHandler {
       requestBody.put("traceId", traceId);
 
       if (logger.isDebugEnabled()) {
-        logger.debug("[getRequestBody:{}] requestBody{}", traceId, requestBody.encode());
+        JsonObject copy = requestBody.copy();
+        Arrays.asList("password").stream().forEach(key -> {
+          if (copy.containsKey(key)) {
+            copy.put(key, ApplicationUtils.hideValue(copy.getString(key)));
+          }
+        });
+
+        logger.debug("[getRequestBody:{}] requestBody{}", traceId, copy.encode());
       }
 
       return requestBody;

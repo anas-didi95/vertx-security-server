@@ -17,4 +17,8 @@ public class ApplicationUtils {
   public static final Instant getRecordDate(JsonObject json, String field) {
     return json.getJsonObject(field, new JsonObject()).getInstant("$date");
   }
+
+  public static final String hideValue(String value) {
+    return String.format("[len: %d]", value != null ? value.length() : -1);
+  }
 }

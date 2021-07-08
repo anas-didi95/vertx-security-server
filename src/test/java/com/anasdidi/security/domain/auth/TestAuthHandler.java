@@ -3,6 +3,7 @@ package com.anasdidi.security.domain.auth;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.TestUtils;
+import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.ext.mongo.MongoClient;
 
 @ExtendWith(VertxExtension.class)
 public class TestAuthHandler {
@@ -31,30 +33,37 @@ public class TestAuthHandler {
   @Test
   void testAuthLoginSuccess(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
-    JsonObject requestBody = new JsonObject().put("username", "admin").put("password", "password");
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String testPassword = "testAuthLoginSuccess:" + System.currentTimeMillis();
+    JsonObject document = TestUtils.generateUserJson(testPassword);
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
-        .rxSendJsonObject(requestBody).subscribe(response -> {
-          testContext.verify(() -> {
-            TestUtils.testResponseHeader(response, 200);
-            checkpoint.flag();
-          });
+    mongoClient.rxSave(CollectionRecord.USER.name, document).subscribe(id -> {
+      JsonObject requestBody = new JsonObject().put("username", document.getString("username"))
+          .put("password", testPassword);
 
-          testContext.verify(() -> {
-            JsonObject responseBody = response.bodyAsJsonObject();
-            Assertions.assertNotNull(responseBody);
-            Assertions.assertNotNull(responseBody.getString("accessToken"));
-            checkpoint.flag();
-          });
+      TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
+          .rxSendJsonObject(requestBody).subscribe(response -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response, 200);
+              checkpoint.flag();
+            });
 
-          String accessToken = response.bodyAsJsonObject().getString("accessToken");
-          TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), accessToken)
-              .rxSend().subscribe(response1 -> {
-                testContext.verify(() -> {
-                  TestUtils.testResponseHeader(response1, 200);
-                  checkpoint.flag();
-                });
-              }, error -> testContext.failNow(error));
-        }, error -> testContext.failNow(error));
+            testContext.verify(() -> {
+              JsonObject responseBody = response.bodyAsJsonObject();
+              Assertions.assertNotNull(responseBody);
+              Assertions.assertNotNull(responseBody.getString("accessToken"));
+              checkpoint.flag();
+            });
+
+            String accessToken = response.bodyAsJsonObject().getString("accessToken");
+            TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), accessToken)
+                .rxSend().subscribe(response1 -> {
+                  testContext.verify(() -> {
+                    TestUtils.testResponseHeader(response1, 200);
+                    checkpoint.flag();
+                  });
+                }, error -> testContext.failNow(error));
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
   }
 }

@@ -3,6 +3,7 @@ package com.anasdidi.security.common;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
+import org.mindrot.jbcrypt.BCrypt;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.MultiMap;
@@ -48,10 +49,20 @@ public class TestUtils {
   }
 
   public static JsonObject generateUserJson() {
+    return generateUserJson(null);
+  }
+
+  public static JsonObject generateUserJson(String password) {
     String suffix = ":" + System.currentTimeMillis();
-    return new JsonObject().put("username", "username" + suffix)
-        .put("password", "password" + suffix).put("fullName", "fullName" + suffix)
-        .put("email", "email" + suffix).put("telegramId", "telegramId" + suffix).put("version", 0);
+    if (password != null) {
+      password = BCrypt.hashpw(password, BCrypt.gensalt());
+    } else {
+      password = "password" + suffix;
+    }
+
+    return new JsonObject().put("username", "username" + suffix).put("password", password)
+        .put("fullName", "fullName" + suffix).put("email", "email" + suffix)
+        .put("telegramId", "telegramId" + suffix).put("version", 0);
   }
 
   public static HttpRequest<Buffer> doPostRequest(Vertx vertx, String requestURI) {

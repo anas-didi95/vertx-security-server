@@ -30,8 +30,8 @@ class AuthService extends BaseService {
 
     return sendRequest(EventMongo.MONGO_READ, CollectionRecord.USER, query, null, null)
         .doOnError(error -> {
-          logger.debug("[login:{}] query{}", vo.traceId, query.encode());
-          logger.debug("[login:{}] {}", vo.traceId, error.getMessage());
+          logger.error("[login:{}] query{}", vo.traceId, query.encode());
+          logger.error("[login:{}] {}", vo.traceId, error.getMessage());
         }).flatMap(response -> {
           JsonObject user = (JsonObject) response.body();
 

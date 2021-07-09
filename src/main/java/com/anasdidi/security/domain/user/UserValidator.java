@@ -37,9 +37,4 @@ class UserValidator extends BaseValidator<UserVO> {
 
     return errorList;
   }
-
-  @Override
-  protected List<String> validateLogin(UserVO vo) {
-    return null;
-  }
 }

@@ -15,19 +15,4 @@ class AuthValidator extends BaseValidator<AuthVO> {
 
     return errorList;
   }
-
-  @Override
-  protected List<String> validateCreate(AuthVO vo) {
-    return null;
-  }
-
-  @Override
-  protected List<String> validateDelete(AuthVO vo) {
-    return null;
-  }
-
-  @Override
-  protected List<String> validateUpdate(AuthVO vo) {
-    return null;
-  }
 }

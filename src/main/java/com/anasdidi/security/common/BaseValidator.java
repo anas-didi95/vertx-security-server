@@ -14,13 +14,21 @@ public abstract class BaseValidator<T extends BaseVO> {
     CREATE, UPDATE, DELETE, LOGIN
   }
 
-  protected abstract List<String> validateCreate(T vo);
+  protected List<String> validateCreate(T vo) {
+    return null;
+  }
 
-  protected abstract List<String> validateUpdate(T vo);
+  protected List<String> validateUpdate(T vo) {
+    return null;
+  }
 
-  protected abstract List<String> validateDelete(T vo);
+  protected List<String> validateDelete(T vo) {
+    return null;
+  }
 
-  protected abstract List<String> validateLogin(T vo);
+  protected List<String> validateLogin(T vo) {
+    return null;
+  }
 
   public final Single<T> validate(T vo, ValidateAction action) throws ApplicationException {
     List<String> errorList = null;

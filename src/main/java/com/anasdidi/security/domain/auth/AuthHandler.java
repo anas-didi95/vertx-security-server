@@ -15,7 +15,7 @@ class AuthHandler extends BaseHandler {
   }
 
   void login(RoutingContext routingContext) {
-    Single<JsonObject> subscriber = getRequestBody(routingContext)
+    Single<JsonObject> subscriber = getRequestBody(routingContext, "username", "password")
         .map(json -> AuthVO.fromJson(json)).flatMap(vo -> authService.login(vo))
         .map(accessToken -> new JsonObject().put("accessToken", accessToken));
 

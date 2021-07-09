@@ -12,11 +12,13 @@ public class AuthVerticle extends BaseVerticle {
 
   private static final Logger logger = LogManager.getLogger(AuthVerticle.class);
   private final AuthService authService;
+  private final AuthValidator authValidator;
   private final AuthHandler authHandler;
 
   public AuthVerticle() {
     this.authService = new AuthService();
-    this.authHandler = new AuthHandler(authService);
+    this.authValidator = new AuthValidator();
+    this.authHandler = new AuthHandler(authService, authValidator);
   }
 
   @Override

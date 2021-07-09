@@ -66,4 +66,28 @@ public class TestAuthHandler {
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testAuthLoginRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login")).rxSend()
+        .subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Required keys: username,password", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
 }

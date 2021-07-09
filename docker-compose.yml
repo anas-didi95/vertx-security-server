@@ -27,8 +27,10 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:?Required}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Required}
+      MONGO_INITDB_DATABASE: security
     volumes:
       - ./mongodump:/mongodump
+      - ./mongo_migration:/docker-entrypoint-initdb.d
 
   mongo-express:
     image: mongo-express:0.54.0

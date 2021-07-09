@@ -27,7 +27,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:?Required}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Required}
-      MONGO_INITDB_DATABASE: security
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:?Required}
     volumes:
       - ./mongodump:/mongodump
       - ./mongo_migration:/docker-entrypoint-initdb.d

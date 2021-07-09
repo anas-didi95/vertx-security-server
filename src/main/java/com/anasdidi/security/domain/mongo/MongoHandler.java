@@ -37,6 +37,4 @@ class MongoHandler extends BaseHandler {
     getRequestBody(request).map(json -> MongoVO.fromJson(json)).flatMap(vo -> mongoService.read(vo))
         .subscribe(json -> request.reply(json), error -> request.fail(4, error.getMessage()));
   }
-
-
 }

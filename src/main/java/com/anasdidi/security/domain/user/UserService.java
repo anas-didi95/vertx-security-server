@@ -28,9 +28,9 @@ class UserService extends BaseService {
           logger.error("[create:{}] {}", vo.traceId, error.getMessage());
           error.addSuppressed(new ApplicationException(ErrorValue.USER_CREATE, vo.traceId,
               "Unable to create user with username: " + vo.username));
-        }).flatMap(response -> {
+        }).map(response -> {
           JsonObject responseBody = (JsonObject) response.body();
-          return Single.just(responseBody.getString("id"));
+          return responseBody.getString("id");
         });
   }
 
@@ -51,9 +51,9 @@ class UserService extends BaseService {
           logger.error("[update:{}] {}", vo.traceId, error.getMessage());
           error.addSuppressed(
               new ApplicationException(ErrorValue.USER_UPDATE, vo.traceId, error.getMessage()));
-        }).flatMap(response -> {
+        }).map(response -> {
           JsonObject responseBody = (JsonObject) response.body();
-          return Single.just(responseBody.getString("id"));
+          return responseBody.getString("id");
         });
   }
 
@@ -70,9 +70,9 @@ class UserService extends BaseService {
           logger.error("[delete:{}] {}", vo.traceId, error.getMessage());
           error.addSuppressed(
               new ApplicationException(ErrorValue.USER_DELETE, vo.traceId, error.getMessage()));
-        }).flatMap(response -> {
+        }).map(response -> {
           JsonObject responseBody = (JsonObject) response.body();
-          return Single.just(responseBody.getString("id"));
+          return responseBody.getString("id");
         });
   }
 }

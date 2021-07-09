@@ -90,4 +90,23 @@ public class TestAuthHandler {
           });
         }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testAuthLoginValidatorError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+    JsonObject requestBody = new JsonObject().put("key", "value");
+
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E002", "Validation error!");
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
 }

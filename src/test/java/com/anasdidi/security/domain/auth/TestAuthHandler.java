@@ -2,8 +2,8 @@ package com.anasdidi.security.domain.auth;
 
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants;
-import com.anasdidi.security.common.TestUtils;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
+import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,5 +108,63 @@ public class TestAuthHandler {
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testAuthLoginRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    String testValue = "testAuthLoginRecordNotFoundError:" + System.currentTimeMillis();
+    JsonObject requestBody = new JsonObject().put("username", testValue).put("password", testValue);
+
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E201", "Invalid credentials!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Record not found with username: " + testValue, error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testAuthLoginWrongPasswordError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson("test");
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("username", user.getString("username"))
+          .put("password", "testAuthLoginWrongPasswordError:" + System.currentTimeMillis());
+
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
+          .rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E201", "Invalid credentials!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Wrong password for username: " + user.getString("username"),
+            error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
   }
 }

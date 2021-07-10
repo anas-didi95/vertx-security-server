@@ -33,8 +33,9 @@ public abstract class BaseVerticle extends AbstractVerticle {
   };
 
   protected final JWTAuth getAuthProvider() {
-    return JWTAuth.create(vertx, new JWTAuthOptions()
-        .addPubSecKey(new PubSecKeyOptions().setAlgorithm("HS256").setBuffer("secret")));
+    ApplicationConfig config = ApplicationConfig.instance();
+    return JWTAuth.create(vertx, new JWTAuthOptions().addPubSecKey(
+        new PubSecKeyOptions().setAlgorithm("HS256").setBuffer(config.getJwtSecret())));
   }
 
   protected final JWTAuthHandler getJwtAuthHandler() {

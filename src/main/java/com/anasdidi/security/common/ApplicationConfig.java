@@ -9,6 +9,11 @@ public class ApplicationConfig {
   private static String KEY_APP_HOST = "APP_HOST";
   private static String KEY_APP_PORT = "APP_PORT";
   private static String KEY_MONGO_CONNECTION_STRING = "MONGO_CONNECTION_STRING";
+  private static String KEY_JWT_SECRET = "JWT_SECRET";
+  private static String KEY_JWT_ISSUER = "JWT_ISSUER";
+  private static String KEY_JWT_EXPIRE_IN_MINUTES = "JWT_EXPIRE_IN_MINUTES";
+  private static String KEY_JWT_PERMISSION_KEY = "JWT_PERMISSION_KEY";
+
   private final JsonObject json;
 
   private ApplicationConfig(JsonObject json) {
@@ -28,13 +33,16 @@ public class ApplicationConfig {
   }
 
   public static JsonArray getKeyList() {
-    return new JsonArray().add(KEY_APP_HOST).add(KEY_APP_PORT).add(KEY_MONGO_CONNECTION_STRING);
+    return new JsonArray().add(KEY_APP_HOST).add(KEY_APP_PORT).add(KEY_MONGO_CONNECTION_STRING)
+        .add(KEY_JWT_SECRET).add(KEY_JWT_ISSUER).add(KEY_JWT_EXPIRE_IN_MINUTES)
+        .add(KEY_JWT_PERMISSION_KEY);
   }
 
   @Override
   public String toString() {
     JsonObject copy = json.copy();
     copy.put(KEY_MONGO_CONNECTION_STRING, ApplicationUtils.hideValue(getMongoConnectionString()));
+    copy.put(KEY_JWT_SECRET, ApplicationUtils.hideValue(getJwtSecret()));
     return this.getClass().getSimpleName() + copy.encode();
   }
 
@@ -48,5 +56,21 @@ public class ApplicationConfig {
 
   public String getMongoConnectionString() {
     return json.getString(KEY_MONGO_CONNECTION_STRING);
+  }
+
+  public String getJwtSecret() {
+    return json.getString(KEY_JWT_SECRET);
+  }
+
+  public String getJwtIssuer() {
+    return json.getString(KEY_JWT_ISSUER);
+  }
+
+  public Integer getJwtExpireInMinutes() {
+    return json.getInteger(KEY_JWT_EXPIRE_IN_MINUTES);
+  }
+
+  public String getJwtPermissionKey() {
+    return json.getString(KEY_JWT_PERMISSION_KEY);
   }
 }

@@ -49,6 +49,10 @@ public class TestMainVerticle {
     Assertions.assertNotNull(config.getAppHost());
     Assertions.assertNotNull(config.getAppPort());
     Assertions.assertNotNull(config.getMongoConnectionString());
+    Assertions.assertNotNull(config.getJwtSecret());
+    Assertions.assertNotNull(config.getJwtIssuer());
+    Assertions.assertNotNull(config.getJwtExpireInMinutes());
+    Assertions.assertNotNull(config.getJwtPermissionKey());
     testContext.completeNow();
   }
 }

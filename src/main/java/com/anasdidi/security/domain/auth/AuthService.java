@@ -1,7 +1,9 @@
 package com.anasdidi.security.domain.auth;
 
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
+import com.anasdidi.security.common.ApplicationConstants.ErrorValue;
 import com.anasdidi.security.common.ApplicationConstants.EventMongo;
+import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.BaseService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +37,10 @@ class AuthService extends BaseService {
         }).flatMap(response -> {
           JsonObject user = (JsonObject) response.body();
 
-          if (BCrypt.checkpw(vo.password, user.getString("password"))) {
+          if (user.isEmpty()) {
+            return Single.error(new ApplicationException(ErrorValue.AUTH_LOGIN, vo.traceId,
+                "Record not found with username: " + vo.username));
+          } else if (BCrypt.checkpw(vo.password, user.getString("password"))) {
             String accessToken =
                 jwtAuth.generateToken(new JsonObject(), new JWTOptions().setSubject("username"));
             return Single.just(accessToken);

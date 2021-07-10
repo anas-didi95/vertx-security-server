@@ -40,13 +40,14 @@ class AuthService extends BaseService {
           if (user.isEmpty()) {
             return Single.error(new ApplicationException(ErrorValue.AUTH_LOGIN, vo.traceId,
                 "Record not found with username: " + vo.username));
-          } else if (BCrypt.checkpw(vo.password, user.getString("password"))) {
-            String accessToken =
-                jwtAuth.generateToken(new JsonObject(), new JWTOptions().setSubject("username"));
-            return Single.just(accessToken);
-          } else {
-            return Single.error(new Exception("Login failed!"));
+          } else if (!BCrypt.checkpw(vo.password, user.getString("password"))) {
+            return Single.error(new ApplicationException(ErrorValue.AUTH_LOGIN, vo.traceId,
+                "Wrong password for username: " + vo.username));
           }
+
+          String accessToken =
+              jwtAuth.generateToken(new JsonObject(), new JWTOptions().setSubject("username"));
+          return Single.just(accessToken);
         });
   }
 }

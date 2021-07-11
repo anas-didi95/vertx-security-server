@@ -66,15 +66,30 @@ public class TestUtils {
   }
 
   public static HttpRequest<Buffer> doPostRequest(Vertx vertx, String requestURI) {
-    return sendRequest(vertx, HttpMethod.POST, requestURI);
+    return doPostRequest(vertx, requestURI, null);
+  }
+
+  public static HttpRequest<Buffer> doPostRequest(Vertx vertx, String requestURI,
+      String accessToken) {
+    return sendRequest(vertx, HttpMethod.POST, requestURI, accessToken);
   }
 
   public static HttpRequest<Buffer> doPutRequest(Vertx vertx, String requestURI) {
-    return sendRequest(vertx, HttpMethod.PUT, requestURI);
+    return doPutRequest(vertx, requestURI, null);
+  }
+
+  public static HttpRequest<Buffer> doPutRequest(Vertx vertx, String requestURI,
+      String accessToken) {
+    return sendRequest(vertx, HttpMethod.PUT, requestURI, accessToken);
   }
 
   public static HttpRequest<Buffer> doDeleteRequest(Vertx vertx, String requestURI) {
-    return sendRequest(vertx, HttpMethod.DELETE, requestURI);
+    return doDeleteRequest(vertx, requestURI, null);
+  }
+
+  public static HttpRequest<Buffer> doDeleteRequest(Vertx vertx, String requestURI,
+      String accessToken) {
+    return sendRequest(vertx, HttpMethod.DELETE, requestURI, accessToken);
   }
 
   public static HttpRequest<Buffer> doGetRequest(Vertx vertx, String requestURI,

@@ -22,6 +22,9 @@ import io.vertx.rxjava3.ext.mongo.MongoClient;
 public class TestUserVerticle {
 
   private final String baseURI = ApplicationConstants.CONTEXT_PATH + UserConstants.CONTEXT_PATH;
+  // { "sub": "SYSTEM", "iss": "anasdidi.dev" } = secret
+  private final String accessToken =
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.r4TEqMUl0oju_QiAtm5Y6DZbcSRQQGyQFLTzJBeyPuE";
 
   @BeforeEach
   void deployVerticle(Vertx vertx, VertxTestContext testContext) {
@@ -51,8 +54,8 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI)).rxSendJsonObject(requestBody)
-        .subscribe(response -> {
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 201);
             checkpoint.flag();
@@ -94,7 +97,7 @@ public class TestUserVerticle {
   void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI)).rxSend()
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken).rxSend()
         .subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -120,8 +123,8 @@ public class TestUserVerticle {
     Checkpoint checkpoint = testContext.checkpoint(2);
     JsonObject requestBody = new JsonObject().put("a", "a");
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI)).rxSendJsonObject(requestBody)
-        .subscribe(response -> {
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
             checkpoint.flag();
@@ -141,8 +144,8 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
-      TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI)).rxSendJsonObject(requestBody)
-          .subscribe(response -> {
+      TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken)
+          .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
               checkpoint.flag();
@@ -167,7 +170,7 @@ public class TestUserVerticle {
       requestBody.put("email", "testUserUpdateSuccess2");
       requestBody.put("telegramId", "testUserUpdateSuccess3");
 
-      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id))
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 200);
@@ -214,7 +217,7 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
-      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id)).rxSend()
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken).rxSend()
           .subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
@@ -244,7 +247,7 @@ public class TestUserVerticle {
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
       requestBody.clear().put("a", "a");
 
-      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id))
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
@@ -265,7 +268,7 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson().put("version", 0);
     String userId = "" + System.currentTimeMillis();
 
-    TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, userId))
+    TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, userId), accessToken)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -299,7 +302,7 @@ public class TestUserVerticle {
       requestBody.put("telegramId", "testUserUpdateVersionMismatch3");
       requestBody.put("version", version);
 
-      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id))
+      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
@@ -330,7 +333,7 @@ public class TestUserVerticle {
     mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
       JsonObject requestBody = new JsonObject().put("version", userJson.getLong("version"));
 
-      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id))
+      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 200);
@@ -361,7 +364,7 @@ public class TestUserVerticle {
     JsonObject userJson = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
-      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id)).rxSend()
+      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken).rxSend()
           .subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
@@ -391,7 +394,7 @@ public class TestUserVerticle {
     mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
       JsonObject requestBody = new JsonObject().put("key", "value");
 
-      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id))
+      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);
@@ -412,7 +415,7 @@ public class TestUserVerticle {
     String userId = "" + System.currentTimeMillis();
     JsonObject requestBody = new JsonObject().put("version", 0);
 
-    TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, userId))
+    TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, userId), accessToken)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -443,7 +446,7 @@ public class TestUserVerticle {
       long version = -1;
       JsonObject requestBody = new JsonObject().put("version", version);
 
-      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id))
+      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
           .rxSendJsonObject(requestBody).subscribe(response -> {
             testContext.verify(() -> {
               TestUtils.testResponseHeader(response, 400);

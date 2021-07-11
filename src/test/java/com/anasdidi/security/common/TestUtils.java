@@ -97,11 +97,6 @@ public class TestUtils {
     return sendRequest(vertx, HttpMethod.GET, requestURI, accessToken);
   }
 
-  private static HttpRequest<Buffer> sendRequest(Vertx vertx, HttpMethod method,
-      String requestURI) {
-    return sendRequest(vertx, method, requestURI, null);
-  }
-
   private static HttpRequest<Buffer> sendRequest(Vertx vertx, HttpMethod method, String requestURI,
       String accessToken) {
     WebClient webClient = WebClient.create(vertx);

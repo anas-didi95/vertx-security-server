@@ -1,6 +1,7 @@
 package com.anasdidi.security.common;
 
 import io.vertx.core.Promise;
+import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.rxjava3.core.AbstractVerticle;
@@ -34,8 +35,10 @@ public abstract class BaseVerticle extends AbstractVerticle {
 
   protected final JWTAuth getAuthProvider() {
     ApplicationConfig config = ApplicationConfig.instance();
-    return JWTAuth.create(vertx, new JWTAuthOptions().addPubSecKey(
-        new PubSecKeyOptions().setAlgorithm("HS256").setBuffer(config.getJwtSecret())));
+    return JWTAuth.create(vertx,
+        new JWTAuthOptions().setJWTOptions(new JWTOptions().setIssuer(config.getJwtIssuer()))
+            .addPubSecKey(
+                new PubSecKeyOptions().setAlgorithm("HS256").setBuffer(config.getJwtSecret())));
   }
 
   protected final JWTAuthHandler getJwtAuthHandler() {

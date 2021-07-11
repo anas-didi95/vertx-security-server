@@ -1,10 +1,12 @@
 @baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/user
+@accessToken = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.r4TEqMUl0oju_QiAtm5Y6DZbcSRQQGyQFLTzJBeyPuE
 @userId = {{create.response.body.$.id}}
 
 // @name create
 POST {{baseUrl}}
 Accept: application/json
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "username": "superadmin",
@@ -25,6 +27,7 @@ Content-Type: application/json
 PUT {{baseUrl}}/{{userId}}
 Accept: application/json
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "fullName": "anas juwaidi 123",
@@ -43,6 +46,7 @@ Content-Type: application/json
 DELETE {{baseUrl}}/{{userId}}
 Accept: application/json
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
 
 {
   "version": 1

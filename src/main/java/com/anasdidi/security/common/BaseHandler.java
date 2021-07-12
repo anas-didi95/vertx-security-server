@@ -69,6 +69,23 @@ public abstract class BaseHandler {
     });
   }
 
+  public final void sendResponseFailure(RoutingContext routingContext) {
+    String traceId = routingContext.get("traceId");
+    int statusCode = routingContext.statusCode();
+
+    try {
+      switch (statusCode) {
+        case 401:
+          throw new ApplicationException(ErrorValue.AUTHENTICATION, traceId,
+              "Lacks valid authentication credentials for resource");
+      }
+    } catch (ApplicationException error) {
+      routingContext.response().setStatusCode(statusCode).headers()
+          .addAll(ApplicationConstants.HEADERS);
+      routingContext.response().end(error.getMessage());
+    }
+  }
+
   protected final Single<JsonObject> getRequestBody(RoutingContext routingContext,
       String... jsonKeys) {
     return Single.fromCallable(() -> {

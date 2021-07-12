@@ -37,7 +37,7 @@ public class UserVerticle extends BaseVerticle {
 
   @Override
   protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler) {
-    router.route().handler(jwtAuthHandler);
+    router.route().handler(jwtAuthHandler).failureHandler(userHandler::sendResponseFailure);
     router.post("/").handler(userHandler::create);
     router.put("/:userId").handler(userHandler::update);
     router.delete("/:userId").handler(userHandler::delete);

@@ -25,6 +25,8 @@ public class TestUserVerticle {
   // { "sub": "SYSTEM", "iss": "anasdidi.dev" } = secret
   private final String accessToken =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.r4TEqMUl0oju_QiAtm5Y6DZbcSRQQGyQFLTzJBeyPuE";
+  private final String invalidAccessToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.hxbVCLgVWkOTtGMj1OnfzGcDA_6pvaPczBQFebn2PPI";
 
   @BeforeEach
   void deployVerticle(Vertx vertx, VertxTestContext testContext) {
@@ -157,6 +159,31 @@ public class TestUserVerticle {
         checkpoint.flag();
       });
     }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserCreateAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    JsonObject requestBody = TestUtils.generateUserJson();
+
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), invalidAccessToken)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 401);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
   }
 
   @Test
@@ -324,6 +351,34 @@ public class TestUserVerticle {
   }
 
   @Test
+  void testUserUpdateAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint();
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson("password");
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), invalidAccessToken)
+          .rxSendJsonObject(user);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 401);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
   void testUserDeleteSuccess(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
@@ -463,6 +518,35 @@ public class TestUserVerticle {
         String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
         Assertions.assertEquals(
             "Current record has version mismatch with requested value: " + version, error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserDeleteAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson("password");
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      return TestUtils
+          .doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), invalidAccessToken)
+          .rxSendJsonObject(user);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 401);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
         checkpoint.flag();
       });
     }, error -> testContext.failNow(error));

@@ -85,6 +85,12 @@ public abstract class BaseHandler {
         case 401:
           throw new ApplicationException(ErrorValue.AUTHENTICATION, traceId,
               "Lacks valid authentication credentials for resource");
+        case 403:
+          throw new ApplicationException(ErrorValue.AUTHORIZATION, traceId,
+              "Insufficient permissions for resource");
+        default:
+          throw new ApplicationException(ErrorValue.ERROR, traceId,
+              "System error with status code: " + statusCode);
       }
     } catch (ApplicationException error) {
       logger.error("[sendResponseFailure:{}] responseBody{}", traceId, error.getMessage());

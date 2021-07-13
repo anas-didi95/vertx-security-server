@@ -22,8 +22,10 @@ import io.vertx.rxjava3.ext.mongo.MongoClient;
 public class TestUserVerticle {
 
   private final String baseURI = ApplicationConstants.CONTEXT_PATH + UserConstants.CONTEXT_PATH;
-  // { "sub": "SYSTEM", "iss": "anasdidi.dev" } = secret
+  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"] }
   private final String accessToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJyb290Q2xhaW0iOlsidXNlcjp3cml0ZSJdfQ.2SMap5PwkaRAdRUBfsXXxo8WDYbYo0QyTnJoRbeuUbU";
+  private final String accessTokenNoPermission =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.r4TEqMUl0oju_QiAtm5Y6DZbcSRQQGyQFLTzJBeyPuE";
   private final String invalidAccessToken =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.hxbVCLgVWkOTtGMj1OnfzGcDA_6pvaPczBQFebn2PPI";
@@ -181,6 +183,31 @@ public class TestUserVerticle {
           testContext.verify(() -> {
             String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
             Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserCreateAuthorizationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    JsonObject requestBody = TestUtils.generateUserJson();
+
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessTokenNoPermission)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 403);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E004", "Forbidden!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Insufficient permissions for resource", error);
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));
@@ -379,6 +406,35 @@ public class TestUserVerticle {
   }
 
   @Test
+  void testUserUpdateAuthorzationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint();
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson("password");
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      return TestUtils
+          .doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessTokenNoPermission)
+          .rxSendJsonObject(user);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 403);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E004", "Forbidden!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Insufficient permissions for resource", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
   void testUserDeleteSuccess(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
@@ -547,6 +603,35 @@ public class TestUserVerticle {
       testContext.verify(() -> {
         String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
         Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserDeleteAuthorizationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson("password");
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      return TestUtils
+          .doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessTokenNoPermission)
+          .rxSendJsonObject(user);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 403);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E004", "Forbidden!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Insufficient permissions for resource", error);
         checkpoint.flag();
       });
     }, error -> testContext.failNow(error));

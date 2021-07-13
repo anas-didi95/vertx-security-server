@@ -5,11 +5,13 @@ import com.anasdidi.security.common.ApplicationConstants.EventMongo;
 import com.anasdidi.security.common.BaseVerticle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.mongo.MongoClient;
 import io.vertx.rxjava3.ext.web.Router;
+import io.vertx.rxjava3.ext.web.RoutingContext;
 import io.vertx.rxjava3.ext.web.handler.JWTAuthHandler;
 
 public class MongoVerticle extends BaseVerticle {
@@ -38,7 +40,13 @@ public class MongoVerticle extends BaseVerticle {
   }
 
   @Override
-  protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler) {
+  protected String getPermission() {
+    return null;
+  }
+
+  @Override
+  protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler,
+      Handler<RoutingContext> jwtAuthzHandler) {
     eventBus.consumer(EventMongo.MONGO_CREATE.toString(), mongoHandler::create);
     eventBus.consumer(EventMongo.MONGO_UPDATE.toString(), mongoHandler::update);
     eventBus.consumer(EventMongo.MONGO_DELETE.toString(), mongoHandler::delete);

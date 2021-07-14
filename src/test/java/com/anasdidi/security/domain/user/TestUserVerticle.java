@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mindrot.jbcrypt.BCrypt;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
@@ -88,6 +89,8 @@ public class TestUserVerticle {
                       result.getString("email"));
                   Assertions.assertEquals(requestBody.getString("telegramId"),
                       result.getString("telegramId"));
+                  Assertions.assertTrue(requestBody.getJsonArray("permissions").encode()
+                      .equals(result.getJsonArray("permissions").encode()));
                   Assertions.assertEquals(0, result.getLong("version"));
                   Assertions
                       .assertNotNull(ApplicationUtils.getRecordDate(result, "lastModifiedDate"));
@@ -223,6 +226,8 @@ public class TestUserVerticle {
       requestBody.put("fullName", "testUserUpdateSuccess1");
       requestBody.put("email", "testUserUpdateSuccess2");
       requestBody.put("telegramId", "testUserUpdateSuccess3");
+      requestBody.put("permissions",
+          new JsonArray().add("updatePermission1").add("updatePermission2"));
 
       return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
           .rxSendJsonObject(requestBody);
@@ -254,6 +259,8 @@ public class TestUserVerticle {
               Assertions.assertEquals(requestBody.getString("email"), result.getString("email"));
               Assertions.assertEquals(requestBody.getString("telegramId"),
                   result.getString("telegramId"));
+              Assertions.assertTrue(requestBody.getJsonArray("permissions").encode()
+                  .equals(result.getJsonArray("permissions").encode()));
               Assertions.assertEquals(requestBody.getLong("version") + 1,
                   result.getLong("version"));
               Assertions.assertNotNull(ApplicationUtils.getRecordDate(result, "lastModifiedDate"));

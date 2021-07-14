@@ -37,7 +37,7 @@ class UserService extends BaseService {
   Single<String> update(UserVO vo) {
     JsonObject query = new JsonObject().put("_id", vo.id);
     JsonObject document = new JsonObject().put("fullName", vo.fullName).put("email", vo.email)
-        .put("telegramId", vo.telegramId);
+        .put("telegramId", vo.telegramId).put("permissions", vo.permissions);
 
     if (logger.isDebugEnabled()) {
       logger.debug("[update:{}] query{}", vo.traceId, query.encode());

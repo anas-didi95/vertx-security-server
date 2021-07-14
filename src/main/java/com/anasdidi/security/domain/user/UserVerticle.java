@@ -3,9 +3,11 @@ package com.anasdidi.security.domain.user;
 import com.anasdidi.security.common.BaseVerticle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.web.Router;
+import io.vertx.rxjava3.ext.web.RoutingContext;
 import io.vertx.rxjava3.ext.web.handler.JWTAuthHandler;
 
 public class UserVerticle extends BaseVerticle {
@@ -36,7 +38,15 @@ public class UserVerticle extends BaseVerticle {
   }
 
   @Override
-  protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler) {
+  protected String getPermission() {
+    return "user:write";
+  }
+
+  @Override
+  protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler,
+      Handler<RoutingContext> jwtAuthzHandler) {
+    router.route().handler(jwtAuthHandler).failureHandler(userHandler::sendResponseFailure);
+    router.route().handler(jwtAuthzHandler).failureHandler(userHandler::sendResponseFailure);
     router.post("/").handler(userHandler::create);
     router.put("/:userId").handler(userHandler::update);
     router.delete("/:userId").handler(userHandler::delete);

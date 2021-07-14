@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mindrot.jbcrypt.BCrypt;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
@@ -22,6 +23,13 @@ import io.vertx.rxjava3.ext.mongo.MongoClient;
 public class TestUserVerticle {
 
   private final String baseURI = ApplicationConstants.CONTEXT_PATH + UserConstants.CONTEXT_PATH;
+  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"] } = secret
+  private final String accessToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdfQ.GxIlBwCt3dRWrNWg3xhLSmqHJtcVEHHTKu2A9D9_wug";
+  private final String accessTokenNoPermission =
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.r4TEqMUl0oju_QiAtm5Y6DZbcSRQQGyQFLTzJBeyPuE";
+  private final String invalidAccessToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.hxbVCLgVWkOTtGMj1OnfzGcDA_6pvaPczBQFebn2PPI";
 
   @BeforeEach
   void deployVerticle(Vertx vertx, VertxTestContext testContext) {
@@ -51,8 +59,8 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI)).rxSendJsonObject(requestBody)
-        .subscribe(response -> {
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 201);
             checkpoint.flag();
@@ -81,6 +89,8 @@ public class TestUserVerticle {
                       result.getString("email"));
                   Assertions.assertEquals(requestBody.getString("telegramId"),
                       result.getString("telegramId"));
+                  Assertions.assertTrue(requestBody.getJsonArray("permissions").encode()
+                      .equals(result.getJsonArray("permissions").encode()));
                   Assertions.assertEquals(0, result.getLong("version"));
                   Assertions
                       .assertNotNull(ApplicationUtils.getRecordDate(result, "lastModifiedDate"));
@@ -94,7 +104,7 @@ public class TestUserVerticle {
   void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI)).rxSend()
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken).rxSend()
         .subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -120,8 +130,8 @@ public class TestUserVerticle {
     Checkpoint checkpoint = testContext.checkpoint(2);
     JsonObject requestBody = new JsonObject().put("a", "a");
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI)).rxSendJsonObject(requestBody)
-        .subscribe(response -> {
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
             checkpoint.flag();
@@ -140,20 +150,70 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
 
-    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
-      TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI)).rxSendJsonObject(requestBody)
-          .subscribe(response -> {
-            testContext.verify(() -> {
-              TestUtils.testResponseHeader(response, 400);
-              checkpoint.flag();
-            });
+    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).flatMapSingle(id -> {
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken)
+          .rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              TestUtils.testResponseBodyError(response, "E101", "Create user failed!");
-              checkpoint.flag();
-            });
-          });
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E101", "Create user failed!");
+        checkpoint.flag();
+      });
     }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserCreateAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    JsonObject requestBody = TestUtils.generateUserJson();
+
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), invalidAccessToken)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 401);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserCreateAuthorizationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    JsonObject requestBody = TestUtils.generateUserJson();
+
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessTokenNoPermission)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 403);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E004", "Forbidden!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Insufficient permissions for resource", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
   }
 
   @Test
@@ -162,47 +222,50 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
 
-    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
+    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).flatMapSingle(id -> {
       requestBody.put("fullName", "testUserUpdateSuccess1");
       requestBody.put("email", "testUserUpdateSuccess2");
       requestBody.put("telegramId", "testUserUpdateSuccess3");
+      requestBody.put("permissions",
+          new JsonArray().add("updatePermission1").add("updatePermission2"));
 
-      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id))
-          .rxSendJsonObject(requestBody).subscribe(response -> {
+      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+          .rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 200);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        JsonObject responseBody = response.bodyAsJsonObject();
+        Assertions.assertNotNull(responseBody);
+        Assertions.assertNotNull(responseBody.getString("id"));
+        checkpoint.flag();
+      });
+
+      String userId = response.bodyAsJsonObject().getString("id");
+      JsonObject query = new JsonObject().put("_id", userId);
+      JsonObject fields = new JsonObject();
+      mongoClient.rxFindOne(CollectionRecord.USER.name, query, fields).toSingle()
+          .subscribe(result -> {
             testContext.verify(() -> {
-              TestUtils.testResponseHeader(response, 200);
+              Assertions.assertEquals(requestBody.getString("username"),
+                  result.getString("username"));
+              Assertions.assertEquals(requestBody.getString("password"),
+                  result.getString("password"));
+              Assertions.assertEquals(requestBody.getString("fullName"),
+                  result.getString("fullName"));
+              Assertions.assertEquals(requestBody.getString("email"), result.getString("email"));
+              Assertions.assertEquals(requestBody.getString("telegramId"),
+                  result.getString("telegramId"));
+              Assertions.assertTrue(requestBody.getJsonArray("permissions").encode()
+                  .equals(result.getJsonArray("permissions").encode()));
+              Assertions.assertEquals(requestBody.getLong("version") + 1,
+                  result.getLong("version"));
+              Assertions.assertNotNull(ApplicationUtils.getRecordDate(result, "lastModifiedDate"));
               checkpoint.flag();
             });
-
-            testContext.verify(() -> {
-              JsonObject responseBody = response.bodyAsJsonObject();
-              Assertions.assertNotNull(responseBody);
-              Assertions.assertEquals(id, responseBody.getString("id"));
-              checkpoint.flag();
-            });
-
-            JsonObject query = new JsonObject().put("_id", id);
-            JsonObject fields = new JsonObject();
-            mongoClient.rxFindOne(CollectionRecord.USER.name, query, fields).toSingle()
-                .subscribe(result -> {
-                  testContext.verify(() -> {
-                    Assertions.assertEquals(requestBody.getString("username"),
-                        result.getString("username"));
-                    Assertions.assertEquals(requestBody.getString("password"),
-                        result.getString("password"));
-                    Assertions.assertEquals(requestBody.getString("fullName"),
-                        result.getString("fullName"));
-                    Assertions.assertEquals(requestBody.getString("email"),
-                        result.getString("email"));
-                    Assertions.assertEquals(requestBody.getString("telegramId"),
-                        result.getString("telegramId"));
-                    Assertions.assertEquals(requestBody.getLong("version") + 1,
-                        result.getLong("version"));
-                    Assertions
-                        .assertNotNull(ApplicationUtils.getRecordDate(result, "lastModifiedDate"));
-                    checkpoint.flag();
-                  });
-                }, error -> testContext.failNow(error));
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
   }
@@ -213,25 +276,25 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
 
-    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
-      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id)).rxSend()
-          .subscribe(response -> {
-            testContext.verify(() -> {
-              TestUtils.testResponseHeader(response, 400);
-              checkpoint.flag();
-            });
+    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).flatMapSingle(id -> {
+      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+          .rxSend();
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
-              checkpoint.flag();
-            });
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
-              Assertions.assertEquals("Required keys: fullName,email,telegramId,version", error);
-              checkpoint.flag();
-            });
-          }, error -> testContext.failNow(error));
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Required keys: fullName,email,telegramId,version", error);
+        checkpoint.flag();
+      });
     }, error -> testContext.failNow(error));
   }
 
@@ -241,21 +304,21 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
 
-    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
+    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).flatMapSingle(id -> {
       requestBody.clear().put("a", "a");
 
-      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id))
-          .rxSendJsonObject(requestBody).subscribe(response -> {
-            testContext.verify(() -> {
-              TestUtils.testResponseHeader(response, 400);
-              checkpoint.flag();
-            });
+      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+          .rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              TestUtils.testResponseBodyError(response, "E002", "Validation error!");
-              checkpoint.flag();
-            });
-          }, error -> testContext.failNow(error));
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E002", "Validation error!");
+        checkpoint.flag();
+      });
     }, error -> testContext.failNow(error));
   }
 
@@ -265,7 +328,7 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson().put("version", 0);
     String userId = "" + System.currentTimeMillis();
 
-    TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, userId))
+    TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, userId), accessToken)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -291,33 +354,90 @@ public class TestUserVerticle {
     Checkpoint checkpoint = testContext.checkpoint(3);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
+    long version = -1;
 
-    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).subscribe(id -> {
-      long version = -1;
+    mongoClient.rxSave(CollectionRecord.USER.name, requestBody).flatMapSingle(id -> {
       requestBody.put("fullName", "testUserUpdateVersionMismatch1");
       requestBody.put("email", "testUserUpdateVersionMismatch2");
       requestBody.put("telegramId", "testUserUpdateVersionMismatch3");
       requestBody.put("version", version);
 
-      TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id))
-          .rxSendJsonObject(requestBody).subscribe(response -> {
-            testContext.verify(() -> {
-              TestUtils.testResponseHeader(response, 400);
-              checkpoint.flag();
-            });
+      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+          .rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              TestUtils.testResponseBodyError(response, "E102", "Update user failed!");
-              checkpoint.flag();
-            });
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E102", "Update user failed!");
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
-              Assertions.assertEquals(
-                  "Current record has version mismatch with requested value: " + version, error);
-              checkpoint.flag();
-            });
-          }, error -> testContext.failNow(error));
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals(
+            "Current record has version mismatch with requested value: " + version, error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserUpdateAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint();
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson("password");
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), invalidAccessToken)
+          .rxSendJsonObject(user);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 401);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserUpdateAuthorzationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint();
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson("password");
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      return TestUtils
+          .doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessTokenNoPermission)
+          .rxSendJsonObject(user);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 403);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E004", "Forbidden!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Insufficient permissions for resource", error);
+        checkpoint.flag();
+      });
     }, error -> testContext.failNow(error));
   }
 
@@ -327,29 +447,30 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject userJson = TestUtils.generateUserJson();
 
-    mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
+    mongoClient.rxSave(CollectionRecord.USER.name, userJson).flatMapSingle(id -> {
       JsonObject requestBody = new JsonObject().put("version", userJson.getLong("version"));
 
-      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id))
-          .rxSendJsonObject(requestBody).subscribe(response -> {
-            testContext.verify(() -> {
-              TestUtils.testResponseHeader(response, 200);
-              checkpoint.flag();
-            });
+      return TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+          .rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 200);
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              JsonObject responseBody = response.bodyAsJsonObject();
-              Assertions.assertNotNull(responseBody);
-              Assertions.assertEquals(id, responseBody.getString("id"));
-              checkpoint.flag();
-            });
+      testContext.verify(() -> {
+        JsonObject responseBody = response.bodyAsJsonObject();
+        Assertions.assertNotNull(responseBody);
+        Assertions.assertNotNull(responseBody.getString("id"));
+        checkpoint.flag();
+      });
 
-            JsonObject query = new JsonObject().put("_id", id);
-            JsonObject fields = new JsonObject();
-            mongoClient.rxFindOne(CollectionRecord.USER.name, query, fields).subscribe(
-                result -> testContext.failNow("Record not deleted!"),
-                error -> testContext.failNow(error), () -> checkpoint.flag());
-          }, error -> testContext.failNow(error));
+      String userId = response.bodyAsJsonObject().getString("id");
+      JsonObject query = new JsonObject().put("_id", userId);
+      JsonObject fields = new JsonObject();
+      mongoClient.rxFindOne(CollectionRecord.USER.name, query, fields).subscribe(
+          result -> testContext.failNow("Record not deleted!"), error -> testContext.failNow(error),
+          () -> checkpoint.flag());
     }, error -> testContext.failNow(error));
   }
 
@@ -360,25 +481,25 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject userJson = TestUtils.generateUserJson();
 
-    mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
-      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id)).rxSend()
-          .subscribe(response -> {
-            testContext.verify(() -> {
-              TestUtils.testResponseHeader(response, 400);
-              checkpoint.flag();
-            });
+    mongoClient.rxSave(CollectionRecord.USER.name, userJson).flatMapSingle(id -> {
+      return TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+          .rxSend();
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
-              checkpoint.flag();
-            });
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
-              Assertions.assertEquals("Required keys: version", error);
-              checkpoint.flag();
-            });
-          }, error -> testContext.failNow(error));
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Required keys: version", error);
+        checkpoint.flag();
+      });
     }, error -> testContext.failNow(error));
   }
 
@@ -388,21 +509,21 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject userJson = TestUtils.generateUserJson();
 
-    mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
+    mongoClient.rxSave(CollectionRecord.USER.name, userJson).flatMapSingle(id -> {
       JsonObject requestBody = new JsonObject().put("key", "value");
 
-      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id))
-          .rxSendJsonObject(requestBody).subscribe(response -> {
-            testContext.verify(() -> {
-              TestUtils.testResponseHeader(response, 400);
-              checkpoint.flag();
-            });
+      return TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+          .rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              TestUtils.testResponseBodyError(response, "E002", "Validation error!");
-              checkpoint.flag();
-            });
-          }, error -> testContext.failNow(error));
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E002", "Validation error!");
+        checkpoint.flag();
+      });
     }, error -> testContext.failNow(error));
   }
 
@@ -412,7 +533,7 @@ public class TestUserVerticle {
     String userId = "" + System.currentTimeMillis();
     JsonObject requestBody = new JsonObject().put("version", 0);
 
-    TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, userId))
+    TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, userId), accessToken)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -438,30 +559,88 @@ public class TestUserVerticle {
     Checkpoint checkpoint = testContext.checkpoint(3);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject userJson = TestUtils.generateUserJson();
+    long version = -1;
 
-    mongoClient.rxSave(CollectionRecord.USER.name, userJson).subscribe(id -> {
-      long version = -1;
+    mongoClient.rxSave(CollectionRecord.USER.name, userJson).flatMapSingle(id -> {
       JsonObject requestBody = new JsonObject().put("version", version);
 
-      TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id))
-          .rxSendJsonObject(requestBody).subscribe(response -> {
-            testContext.verify(() -> {
-              TestUtils.testResponseHeader(response, 400);
-              checkpoint.flag();
-            });
+      return TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+          .rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              TestUtils.testResponseBodyError(response, "E103", "Delete user failed!");
-              checkpoint.flag();
-            });
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E103", "Delete user failed!");
+        checkpoint.flag();
+      });
 
-            testContext.verify(() -> {
-              String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
-              Assertions.assertEquals(
-                  "Current record has version mismatch with requested value: " + version, error);
-              checkpoint.flag();
-            });
-          }, error -> testContext.failNow(error));
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals(
+            "Current record has version mismatch with requested value: " + version, error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserDeleteAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson("password");
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      return TestUtils
+          .doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), invalidAccessToken)
+          .rxSendJsonObject(user);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 401);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserDeleteAuthorizationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson("password");
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      return TestUtils
+          .doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessTokenNoPermission)
+          .rxSendJsonObject(user);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 403);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E004", "Forbidden!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Insufficient permissions for resource", error);
+        checkpoint.flag();
+      });
     }, error -> testContext.failNow(error));
   }
 }

@@ -43,6 +43,7 @@ public class ApplicationConfig {
     JsonObject copy = json.copy();
     copy.put(KEY_MONGO_CONNECTION_STRING, ApplicationUtils.hideValue(getMongoConnectionString()));
     copy.put(KEY_JWT_SECRET, ApplicationUtils.hideValue(getJwtSecret()));
+    copy.put(KEY_JWT_ISSUER, ApplicationUtils.hideValue(getJwtIssuer()));
     return this.getClass().getSimpleName() + copy.encode();
   }
 

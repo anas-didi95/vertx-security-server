@@ -5,6 +5,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.mindrot.jbcrypt.BCrypt;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.MultiMap;
 import io.vertx.rxjava3.core.Vertx;
@@ -62,29 +63,40 @@ public class TestUtils {
 
     return new JsonObject().put("username", "username" + suffix).put("password", password)
         .put("fullName", "fullName" + suffix).put("email", "email" + suffix)
-        .put("telegramId", "telegramId" + suffix).put("version", 0);
+        .put("telegramId", "telegramId" + suffix).put("version", 0)
+        .put("permissions", new JsonArray().add("permission1").add("permission2"));
   }
 
   public static HttpRequest<Buffer> doPostRequest(Vertx vertx, String requestURI) {
-    return sendRequest(vertx, HttpMethod.POST, requestURI);
+    return doPostRequest(vertx, requestURI, null);
+  }
+
+  public static HttpRequest<Buffer> doPostRequest(Vertx vertx, String requestURI,
+      String accessToken) {
+    return sendRequest(vertx, HttpMethod.POST, requestURI, accessToken);
   }
 
   public static HttpRequest<Buffer> doPutRequest(Vertx vertx, String requestURI) {
-    return sendRequest(vertx, HttpMethod.PUT, requestURI);
+    return doPutRequest(vertx, requestURI, null);
+  }
+
+  public static HttpRequest<Buffer> doPutRequest(Vertx vertx, String requestURI,
+      String accessToken) {
+    return sendRequest(vertx, HttpMethod.PUT, requestURI, accessToken);
   }
 
   public static HttpRequest<Buffer> doDeleteRequest(Vertx vertx, String requestURI) {
-    return sendRequest(vertx, HttpMethod.DELETE, requestURI);
+    return doDeleteRequest(vertx, requestURI, null);
+  }
+
+  public static HttpRequest<Buffer> doDeleteRequest(Vertx vertx, String requestURI,
+      String accessToken) {
+    return sendRequest(vertx, HttpMethod.DELETE, requestURI, accessToken);
   }
 
   public static HttpRequest<Buffer> doGetRequest(Vertx vertx, String requestURI,
       String accessToken) {
     return sendRequest(vertx, HttpMethod.GET, requestURI, accessToken);
-  }
-
-  private static HttpRequest<Buffer> sendRequest(Vertx vertx, HttpMethod method,
-      String requestURI) {
-    return sendRequest(vertx, method, requestURI, null);
   }
 
   private static HttpRequest<Buffer> sendRequest(Vertx vertx, HttpMethod method, String requestURI,

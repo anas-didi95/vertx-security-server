@@ -16,10 +16,13 @@ public abstract class BaseHandler {
   private static final Logger logger = LogManager.getLogger(BaseHandler.class);
 
   private void logResponse(RoutingContext routingContext, HttpStatus httpStatus) {
+    logResponse(routingContext, httpStatus.code);
+  }
+
+  private void logResponse(RoutingContext routingContext, int statusCode) {
     String traceId = routingContext.get("traceId");
     HttpMethod method = routingContext.request().method();
     String path = routingContext.request().path();
-    int statusCode = httpStatus.code;
     long timeTaken = System.currentTimeMillis() - (Long) routingContext.get("startTime");
 
     logger.info("[logResponse:{}] method={}, path={}, statusCode={}, timeTaken={}ms", traceId,
@@ -28,7 +31,11 @@ public abstract class BaseHandler {
 
   private void sendResponse(RoutingContext routingContext, String responseBody,
       HttpStatus httpStatus) {
-    routingContext.response().setStatusCode(httpStatus.code).headers()
+    sendResponse(routingContext, responseBody, httpStatus.code);
+  }
+
+  private void sendResponse(RoutingContext routingContext, String responseBody, int statusCode) {
+    routingContext.response().setStatusCode(statusCode).headers()
         .addAll(ApplicationConstants.HEADERS);
     routingContext.response().end(responseBody);
   }
@@ -67,6 +74,29 @@ public abstract class BaseHandler {
       logResponse(routingContext, HttpStatus.BAD_REQUEST);
       sendResponse(routingContext, responseBody, HttpStatus.BAD_REQUEST);
     });
+  }
+
+  public final void sendResponseFailure(RoutingContext routingContext) {
+    String traceId = routingContext.get("traceId");
+    int statusCode = routingContext.statusCode();
+
+    try {
+      switch (statusCode) {
+        case 401:
+          throw new ApplicationException(ErrorValue.AUTHENTICATION, traceId,
+              "Lacks valid authentication credentials for resource");
+        case 403:
+          throw new ApplicationException(ErrorValue.AUTHORIZATION, traceId,
+              "Insufficient permissions for resource");
+        default:
+          throw new ApplicationException(ErrorValue.ERROR, traceId,
+              "System error with status code: " + statusCode);
+      }
+    } catch (ApplicationException error) {
+      logger.error("[sendResponseFailure:{}] responseBody{}", traceId, error.getMessage());
+      logResponse(routingContext, statusCode);
+      sendResponse(routingContext, error.getMessage(), statusCode);
+    }
   }
 
   protected final Single<JsonObject> getRequestBody(RoutingContext routingContext,

@@ -3,9 +3,11 @@ package com.anasdidi.security.domain.auth;
 import com.anasdidi.security.common.BaseVerticle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.web.Router;
+import io.vertx.rxjava3.ext.web.RoutingContext;
 import io.vertx.rxjava3.ext.web.handler.JWTAuthHandler;
 
 public class AuthVerticle extends BaseVerticle {
@@ -24,7 +26,7 @@ public class AuthVerticle extends BaseVerticle {
   @Override
   public void start(Promise<Void> startFuture) throws Exception {
     super.start(startFuture);
-    authService.setJwtAuth(getAuthProvider());
+    authService.setJwtAuth(getJwtAuthProvider());
     authService.setEventBus(vertx.eventBus());
 
     logger.info("[start] Verticle started");
@@ -37,7 +39,13 @@ public class AuthVerticle extends BaseVerticle {
   }
 
   @Override
-  protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler) {
+  protected String getPermission() {
+    return null;
+  }
+
+  @Override
+  protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler,
+      Handler<RoutingContext> jwtAuthzHandler) {
     router.post("/login").handler(authHandler::login);
 
     router.route().handler(jwtAuthHandler);

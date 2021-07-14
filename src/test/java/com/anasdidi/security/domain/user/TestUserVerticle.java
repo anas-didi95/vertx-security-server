@@ -22,9 +22,9 @@ import io.vertx.rxjava3.ext.mongo.MongoClient;
 public class TestUserVerticle {
 
   private final String baseURI = ApplicationConstants.CONTEXT_PATH + UserConstants.CONTEXT_PATH;
-  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"] }
+  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"] } = secret
   private final String accessToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJyb290Q2xhaW0iOlsidXNlcjp3cml0ZSJdfQ.2SMap5PwkaRAdRUBfsXXxo8WDYbYo0QyTnJoRbeuUbU";
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdfQ.GxIlBwCt3dRWrNWg3xhLSmqHJtcVEHHTKu2A9D9_wug";
   private final String accessTokenNoPermission =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.r4TEqMUl0oju_QiAtm5Y6DZbcSRQQGyQFLTzJBeyPuE";
   private final String invalidAccessToken =

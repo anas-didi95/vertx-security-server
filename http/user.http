@@ -15,13 +15,12 @@ Authorization: Bearer {{accessToken}}
   "email": "anas.didi95@gmail.com",
   "telegramId": "{{$guid}}",
   "permissions": [
-    "user:write",
-    "user:create"
+    "permission1",
+    "permission2"
   ]
 }
 
 ###
-
 
 // @name update
 PUT {{baseUrl}}/{{userId}}

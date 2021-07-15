@@ -1,4 +1,6 @@
 @baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security/auth
+@accessToken = {{login.response.body.$.accessToken}}
+@refreshToken = {{login.response.body.$.refreshToken}}
 
 // @name login
 POST {{baseUrl}}/login
@@ -12,8 +14,13 @@ Content-Type: application/json
 
 ###
 
-@accessToken = {{login.response.body.$.data.accessToken}}
-@refreshToken = {{login.response.body.$.data.refreshToken}}
+// @name check
+GET {{baseUrl}}/check
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
 
 // @name refresh
 POST {{baseUrl}}/refresh
@@ -26,17 +33,6 @@ Authorization: Bearer {{accessToken}}
 }
 
 ###
-
-@accessToken = {{login.response.body.$.data.accessToken}}
-
-GET {{baseUrl}}/check
-Accept: application/json
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-###
-
-@accessToken = {{login.response.body.$.data.accessToken}}
 
 GET {{baseUrl}}/logout
 Accept: application/json

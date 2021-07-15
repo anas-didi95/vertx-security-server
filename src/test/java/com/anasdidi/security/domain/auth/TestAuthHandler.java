@@ -4,6 +4,7 @@ import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import com.anasdidi.security.common.TestUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,18 @@ public class TestAuthHandler {
         testContext.completeNow();
       });
     }, error -> testContext.failNow(error));
+  }
+
+  @AfterAll
+  static void postTesting(Vertx vertx, VertxTestContext testContext) throws Exception {
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+
+    mongoClient.rxRemoveDocuments(CollectionRecord.USER.name, new JsonObject())
+        .subscribe(result -> {
+          testContext.verify(() -> {
+            testContext.completeNow();
+          });
+        }, e -> testContext.failNow(e));
   }
 
   @Test

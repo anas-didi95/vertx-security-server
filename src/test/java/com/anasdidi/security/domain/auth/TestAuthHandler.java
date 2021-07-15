@@ -19,6 +19,8 @@ import io.vertx.rxjava3.ext.mongo.MongoClient;
 public class TestAuthHandler {
 
   private final String baseURI = ApplicationConstants.CONTEXT_PATH + AuthConstants.CONTEXT_PATH;
+  private final String invalidAccessToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.hxbVCLgVWkOTtGMj1OnfzGcDA_6pvaPczBQFebn2PPI";
 
   @BeforeEach
   void deployVerticle(Vertx vertx, VertxTestContext testContext) {
@@ -202,5 +204,29 @@ public class TestAuthHandler {
         checkpoint.flag();
       });
     }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testAuthCheckAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), invalidAccessToken)
+        .rxSend().subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 401);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
   }
 }

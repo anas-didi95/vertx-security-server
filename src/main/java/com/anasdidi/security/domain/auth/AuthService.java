@@ -63,12 +63,20 @@ class AuthService extends BaseService {
         .doOnError(error -> {
           logger.error("[check:{}] query{}", vo.traceId, query.encode());
           logger.error("[check:{}] {}]", vo.traceId, error.getMessage());
-        }).map(response -> {
+          error.addSuppressed(
+              new ApplicationException(ErrorValue.AUTH_CHECK, vo.traceId, error.getMessage()));
+        }).flatMap(response -> {
           JsonObject responseBody = (JsonObject) response.body();
-          return new JsonObject().put("userId", responseBody.getString("_id"))
+
+          if (responseBody.isEmpty()) {
+            return Single.error(new ApplicationException(ErrorValue.AUTH_CHECK, vo.traceId,
+                "Record not found with id: " + vo.userId));
+          }
+
+          return Single.just(new JsonObject().put("userId", responseBody.getString("_id"))
               .put("username", responseBody.getString("username"))
               .put("fullName", responseBody.getString("fullName"))
-              .put("permissions", responseBody.getJsonArray("permissions"));
+              .put("permissions", responseBody.getJsonArray("permissions")));
         });
   }
 

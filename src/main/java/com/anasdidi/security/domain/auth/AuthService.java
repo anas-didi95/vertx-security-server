@@ -52,10 +52,30 @@ class AuthService extends BaseService {
         });
   }
 
+  public Single<JsonObject> check(AuthVO vo) {
+    JsonObject query = new JsonObject().put("_id", vo.userId);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[check:{}] query{}", vo.traceId, query.encode());
+    }
+
+    return sendRequest(EventMongo.MONGO_READ, CollectionRecord.USER, query, null, null)
+        .doOnError(error -> {
+          logger.error("[check:{}] query{}", vo.traceId, query.encode());
+          logger.error("[check:{}] {}]", vo.traceId, error.getMessage());
+        }).map(response -> {
+          JsonObject responseBody = (JsonObject) response.body();
+          return new JsonObject().put("userId", responseBody.getString("_id"))
+              .put("username", responseBody.getString("username"))
+              .put("fullName", responseBody.getString("fullName"))
+              .put("permissions", responseBody.getJsonArray("permissions"));
+        });
+  }
+
   private String getAccessToken(JsonObject user) {
     ApplicationConfig config = ApplicationConfig.instance();
     return jwtAuth.generateToken(new JsonObject().put("typ", "accessToken"),
-        new JWTOptions().setSubject(user.getString("username")).setIssuer(config.getJwtIssuer())
+        new JWTOptions().setSubject(user.getString("_id")).setIssuer(config.getJwtIssuer())
             .setExpiresInMinutes(config.getJwtExpireInMinutes()));
   }
 }

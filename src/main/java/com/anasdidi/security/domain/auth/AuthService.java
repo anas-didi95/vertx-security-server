@@ -82,7 +82,9 @@ class AuthService extends BaseService {
 
   private String getAccessToken(JsonObject user) {
     ApplicationConfig config = ApplicationConfig.instance();
-    return jwtAuth.generateToken(new JsonObject().put("typ", "accessToken"),
+    return jwtAuth.generateToken(
+        new JsonObject().put("typ", "accessToken").put(config.getJwtPermissionKey(),
+            user.getJsonArray("permissions")),
         new JWTOptions().setSubject(user.getString("_id")).setIssuer(config.getJwtIssuer())
             .setExpiresInMinutes(config.getJwtExpireInMinutes()));
   }

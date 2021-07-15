@@ -31,7 +31,7 @@ class AuthVO extends BaseVO {
     String username = json.getString("username");
     String password = json.getString("password");
     String userId = user.principal().getString("sub");
-    Boolean hasPermissionsKey = user.principal().containsKey(config.getJwtPermissionKey());
+    Boolean hasPermissionsKey = user.principal().containsKey(config.getJwtPermissionsKey());
 
     return new AuthVO(traceId, username, password, userId, hasPermissionsKey);
   }

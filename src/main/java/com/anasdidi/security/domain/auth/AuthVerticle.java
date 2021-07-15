@@ -48,7 +48,7 @@ public class AuthVerticle extends BaseVerticle {
       Handler<RoutingContext> jwtAuthzHandler) {
     router.post("/login").handler(authHandler::login);
 
-    router.route().handler(jwtAuthHandler);
+    router.route().handler(jwtAuthHandler).failureHandler(authHandler::sendResponseFailure);
     router.get("/check").handler(authHandler::check);
   }
 }

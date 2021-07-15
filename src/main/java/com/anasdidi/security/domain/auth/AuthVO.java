@@ -1,20 +1,24 @@
 package com.anasdidi.security.domain.auth;
 
+import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.BaseVO;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.auth.User;
 
 class AuthVO extends BaseVO {
 
-  final String userId;
   final String username;
   final String password;
+  final String userId;
+  final Boolean hasPermissionsKey;
 
-  private AuthVO(String traceId, String userId, String username, String password) {
+  private AuthVO(String traceId, String username, String password, String userId,
+      boolean hasPermissionsKey) {
     super(traceId);
-    this.userId = userId;
     this.username = username;
     this.password = password;
+    this.userId = userId;
+    this.hasPermissionsKey = hasPermissionsKey;
   }
 
   static final AuthVO fromJson(JsonObject json) {
@@ -22,16 +26,19 @@ class AuthVO extends BaseVO {
   }
 
   static final AuthVO fromJson(JsonObject json, User user) {
+    ApplicationConfig config = ApplicationConfig.instance();
     String traceId = json.getString("traceId");
-    String userId = user.principal().getString("sub");
     String username = json.getString("username");
     String password = json.getString("password");
+    String userId = user.principal().getString("sub");
+    Boolean hasPermissionsKey = user.principal().containsKey(config.getJwtPermissionKey());
 
-    return new AuthVO(traceId, userId, username, password);
+    return new AuthVO(traceId, userId, username, password, hasPermissionsKey);
   }
 
   final JsonObject toJson() {
-    return new JsonObject().put("username", username).put("password", password);
+    return new JsonObject().put("username", username).put("password", password)
+        .put("userId", userId).put("hasPermissionsKey", hasPermissionsKey);
   }
 
   @Override

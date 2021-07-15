@@ -11,7 +11,7 @@ public abstract class BaseValidator<T extends BaseVO> {
   private static Logger logger = LogManager.getLogger(BaseValidator.class);
 
   public enum ValidateAction {
-    CREATE, UPDATE, DELETE, LOGIN
+    CREATE, UPDATE, DELETE, LOGIN, CHECK
   }
 
   protected List<String> validateCreate(T vo) {
@@ -27,6 +27,10 @@ public abstract class BaseValidator<T extends BaseVO> {
   }
 
   protected List<String> validateLogin(T vo) {
+    return null;
+  }
+
+  protected List<String> validateCheck(T vo) {
     return null;
   }
 
@@ -46,6 +50,9 @@ public abstract class BaseValidator<T extends BaseVO> {
       case LOGIN:
         errorList = validateLogin(vo);
         break;
+      case CHECK:
+        errorList = validateCheck(vo);
+        break;
     }
 
     return validate(errorList, vo, action);
@@ -64,15 +71,26 @@ public abstract class BaseValidator<T extends BaseVO> {
   }
 
   protected final void isMandatory(List<String> errorList, Object value, String fieldName) {
+    isMandatory(errorList, value, fieldName, "%s is mandatory field!");
+  }
+
+  @SuppressWarnings({"rawtypes"})
+  protected final void isMandatory(List<String> errorList, Object value, String fieldName,
+      String template) {
     boolean isFailed = false;
+
     if (value instanceof String) {
       isFailed = (value == null || ((String) value).isBlank());
+    } else if (value instanceof List) {
+      isFailed = (value == null || ((List) value).isEmpty());
+    } else if (value instanceof Boolean) {
+      isFailed = (value == null || !((Boolean) value));
     } else {
       isFailed = (value == null);
     }
 
     if (isFailed) {
-      errorList.add(String.format("%s is mandatory field!", fieldName));
+      errorList.add(String.format(template, fieldName));
     }
   }
 }

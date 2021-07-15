@@ -24,12 +24,16 @@ public class ApplicationConstants {
   }
 
   public enum ErrorValue {
-    ERROR("E000", "Error!"), REQUEST_BODY_EMPTY("E001", "Request body is empty!"), //
-    VALIDATION("E002", "Validation error!"), AUTHENTICATION("E003", "Unauthorized!"), //
+    ERROR("E000", "Error!"), //
+    REQUEST_BODY_EMPTY("E001", "Request body is empty!"), //
+    VALIDATION("E002", "Validation error!"), //
+    AUTHENTICATION("E003", "Unauthorized!"), //
     AUTHORIZATION("E004", "Forbidden!"), //
     USER_CREATE("E101", "Create user failed!"), //
     USER_UPDATE("E102", "Update user failed!"), //
-    USER_DELETE("E103", "Delete user failed!"), AUTH_LOGIN("E201", "Invalid credentials!");
+    USER_DELETE("E103", "Delete user failed!"), //
+    AUTH_LOGIN("E201", "Invalid credentials!"), //
+    AUTH_CHECK("E202", "Incorrect credentials data!");
 
     public final String code;
     public final String message;

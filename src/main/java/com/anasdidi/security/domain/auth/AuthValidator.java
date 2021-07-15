@@ -15,4 +15,14 @@ class AuthValidator extends BaseValidator<AuthVO> {
 
     return errorList;
   }
+
+  @Override
+  protected List<String> validateCheck(AuthVO vo) {
+    List<String> errorList = new ArrayList<>();
+
+    isMandatory(errorList, vo.userId, "User Id", "%s not defined in token!");
+    isMandatory(errorList, vo.hasPermissionsKey, "Permissions", "%s not defined in token!");
+
+    return errorList;
+  }
 }

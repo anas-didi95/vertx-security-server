@@ -52,10 +52,40 @@ class AuthService extends BaseService {
         });
   }
 
+  public Single<JsonObject> check(AuthVO vo) {
+    JsonObject query = new JsonObject().put("_id", vo.userId);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[check:{}] query{}", vo.traceId, query.encode());
+    }
+
+    return sendRequest(EventMongo.MONGO_READ, CollectionRecord.USER, query, null, null)
+        .doOnError(error -> {
+          logger.error("[check:{}] query{}", vo.traceId, query.encode());
+          logger.error("[check:{}] {}]", vo.traceId, error.getMessage());
+          error.addSuppressed(
+              new ApplicationException(ErrorValue.AUTH_CHECK, vo.traceId, error.getMessage()));
+        }).flatMap(response -> {
+          JsonObject responseBody = (JsonObject) response.body();
+
+          if (responseBody.isEmpty()) {
+            return Single.error(new ApplicationException(ErrorValue.AUTH_CHECK, vo.traceId,
+                "Record not found with id: " + vo.userId));
+          }
+
+          return Single.just(new JsonObject().put("userId", responseBody.getString("_id"))
+              .put("username", responseBody.getString("username"))
+              .put("fullName", responseBody.getString("fullName"))
+              .put("permissions", responseBody.getJsonArray("permissions")));
+        });
+  }
+
   private String getAccessToken(JsonObject user) {
     ApplicationConfig config = ApplicationConfig.instance();
-    return jwtAuth.generateToken(new JsonObject().put("typ", "accessToken"),
-        new JWTOptions().setSubject(user.getString("username")).setIssuer(config.getJwtIssuer())
+    return jwtAuth.generateToken(
+        new JsonObject().put("typ", "accessToken").put(config.getJwtPermissionsKey(),
+            user.getJsonArray("permissions")),
+        new JWTOptions().setSubject(user.getString("_id")).setIssuer(config.getJwtIssuer())
             .setExpiresInMinutes(config.getJwtExpireInMinutes()));
   }
 }

@@ -53,7 +53,7 @@ public abstract class BaseVerticle extends AbstractVerticle {
 
   private JWTAuthorization getJwtAuthzProvider() {
     ApplicationConfig config = ApplicationConfig.instance();
-    return JWTAuthorization.create(config.getJwtPermissionKey());
+    return JWTAuthorization.create(config.getJwtPermissionsKey());
   }
 
   private Handler<RoutingContext> getJwtAuthzHandler() {

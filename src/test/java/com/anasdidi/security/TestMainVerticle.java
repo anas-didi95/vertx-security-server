@@ -52,7 +52,7 @@ public class TestMainVerticle {
     Assertions.assertNotNull(config.getJwtSecret());
     Assertions.assertNotNull(config.getJwtIssuer());
     Assertions.assertNotNull(config.getJwtExpireInMinutes());
-    Assertions.assertNotNull(config.getJwtPermissionKey());
+    Assertions.assertNotNull(config.getJwtPermissionsKey());
     testContext.completeNow();
   }
 }

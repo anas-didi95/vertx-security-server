@@ -23,6 +23,8 @@ public class TestAuthHandler {
   // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"] } = secret
   private final String accessToken =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdfQ.GxIlBwCt3dRWrNWg3xhLSmqHJtcVEHHTKu2A9D9_wug";
+  private final String accessTokenNoClaims =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYifQ.F5jwo_F1RkC5cSLKyKFTX2taKqRpCasfSQDMf13o5PA";
   private final String invalidAccessToken =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.hxbVCLgVWkOTtGMj1OnfzGcDA_6pvaPczBQFebn2PPI";
 
@@ -110,7 +112,7 @@ public class TestAuthHandler {
   }
 
   @Test
-  void testAuthLoginValidatorError(Vertx vertx, VertxTestContext testContext) {
+  void testAuthLoginValidationError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
     JsonObject requestBody = new JsonObject().put("key", "value");
 
@@ -241,6 +243,24 @@ public class TestAuthHandler {
           testContext.verify(() -> {
             String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
             Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testAuthCheckValidationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), accessTokenNoClaims)
+        .rxSend().subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E002", "Validation error!");
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));

@@ -15,4 +15,9 @@ class AuthValidator extends BaseValidator<AuthVO> {
 
     return errorList;
   }
+
+  @Override
+  protected List<String> validateCheck(AuthVO vo) {
+    return super.validateCheck(vo);
+  }
 }

@@ -39,4 +39,19 @@ public class TestAuthValidator {
       testContext.completeNow();
     });
   }
+
+  @Test
+  void testValidateCheck(Vertx vertx, VertxTestContext testContext) {
+    List<String> actualList = new AuthValidator().validateCheck(AuthVO.fromJson(new JsonObject()));
+    List<String> expectedList =
+        Arrays.asList("User Id not defined in token!", "Permissions not defined in token!");
+
+    testContext.verify(() -> {
+      Assertions.assertEquals(expectedList.size(), actualList.size());
+      expectedList.stream().forEach(error -> {
+        Assertions.assertTrue(actualList.contains(error), "Expected error not found! " + error);
+      });
+      testContext.completeNow();
+    });
+  }
 }

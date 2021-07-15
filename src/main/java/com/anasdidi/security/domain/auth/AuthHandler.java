@@ -30,6 +30,7 @@ class AuthHandler extends BaseHandler {
   void check(RoutingContext routingContext) {
     Single<JsonObject> subscriber =
         getRequestBody(routingContext).map(json -> AuthVO.fromJson(json, routingContext.user()))
+            .flatMap(vo -> authValidator.validate(vo, ValidateAction.CHECK))
             .flatMap(vo -> authService.check(vo));
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);

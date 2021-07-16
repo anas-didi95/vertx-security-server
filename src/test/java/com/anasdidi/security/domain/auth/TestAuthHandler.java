@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
@@ -41,13 +42,14 @@ public class TestAuthHandler {
   @AfterAll
   static void postTesting(Vertx vertx, VertxTestContext testContext) throws Exception {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    var removeUsers = mongoClient.rxRemoveDocuments(CollectionRecord.USER.name, new JsonObject());
+    var removeTokens = mongoClient.rxRemoveDocuments(CollectionRecord.TOKEN.name, new JsonObject());
 
-    mongoClient.rxRemoveDocuments(CollectionRecord.USER.name, new JsonObject())
-        .subscribe(result -> {
-          testContext.verify(() -> {
-            testContext.completeNow();
-          });
-        }, e -> testContext.failNow(e));
+    Maybe.merge(removeUsers, removeTokens).subscribe((result) -> {
+      testContext.verify(() -> {
+        testContext.completeNow();
+      });
+    }, error -> testContext.failNow(error));
   }
 
   @Test

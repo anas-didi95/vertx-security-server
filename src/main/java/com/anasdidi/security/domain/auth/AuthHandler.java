@@ -21,8 +21,8 @@ class AuthHandler extends BaseHandler {
     Single<JsonObject> subscriber =
         getRequestBody(routingContext, "username", "password").map(json -> AuthVO.fromJson(json))
             .flatMap(vo -> authValidator.validate(vo, ValidateAction.LOGIN))
-            .flatMap(vo -> authService.login(vo))
-            .map(accessToken -> new JsonObject().put("accessToken", accessToken));
+            .flatMap(vo -> authService.login(vo)).map(vo -> new JsonObject()
+                .put("accessToken", vo.accessToken).put("refreshToken", vo.refreshToken));
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);
   }
@@ -32,6 +32,15 @@ class AuthHandler extends BaseHandler {
         getRequestBody(routingContext).map(json -> AuthVO.fromJson(json, routingContext.user()))
             .flatMap(vo -> authValidator.validate(vo, ValidateAction.CHECK))
             .flatMap(vo -> authService.check(vo));
+
+    sendResponse(subscriber, routingContext, HttpStatus.OK);
+  }
+
+  void refresh(RoutingContext routingContext) {
+    Single<JsonObject> subscriber =
+        getRequestBody(routingContext).map(json -> AuthVO.fromJson(json, routingContext.user()))
+            .flatMap(vo -> authService.refresh(vo)).map(vo -> new JsonObject()
+                .put("accessToken", vo.accessToken).put("refreshToken", vo.refreshToken));
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);
   }

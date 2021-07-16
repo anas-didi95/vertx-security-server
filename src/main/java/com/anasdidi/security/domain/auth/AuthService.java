@@ -23,7 +23,7 @@ class AuthService extends BaseService {
     this.jwtAuth = jwtAuth;
   }
 
-  Single<String> login(AuthVO vo) {
+  Single<AuthVO> login(AuthVO vo) {
     JsonObject query = new JsonObject().put("username", vo.username);
 
     if (logger.isDebugEnabled()) {
@@ -47,13 +47,15 @@ class AuthService extends BaseService {
                 "Wrong password for username: " + vo.username));
           }
 
-          String accessToken = getAccessToken(user);
-          return Single.just(accessToken);
+          String userId = user.getString("_id");
+          return Single.zip(getAccessToken(user), getRefreshToken(userId),
+              (accessToken, refreshToken) -> AuthVO.fromJson(new JsonObject()
+                  .put("accessToken", accessToken).put("refreshToken", refreshToken)));
         });
   }
 
-  public Single<JsonObject> check(AuthVO vo) {
-    JsonObject query = new JsonObject().put("_id", vo.userId);
+  Single<JsonObject> check(AuthVO vo) {
+    JsonObject query = new JsonObject().put("_id", vo.subject);
 
     if (logger.isDebugEnabled()) {
       logger.debug("[check:{}] query{}", vo.traceId, query.encode());
@@ -70,7 +72,7 @@ class AuthService extends BaseService {
 
           if (responseBody.isEmpty()) {
             return Single.error(new ApplicationException(ErrorValue.AUTH_CHECK, vo.traceId,
-                "Record not found with id: " + vo.userId));
+                "Record not found with id: " + vo.subject));
           }
 
           return Single.just(new JsonObject().put("userId", responseBody.getString("_id"))
@@ -80,12 +82,32 @@ class AuthService extends BaseService {
         });
   }
 
-  private String getAccessToken(JsonObject user) {
-    ApplicationConfig config = ApplicationConfig.instance();
-    return jwtAuth.generateToken(
-        new JsonObject().put("typ", "accessToken").put(config.getJwtPermissionsKey(),
-            user.getJsonArray("permissions")),
-        new JWTOptions().setSubject(user.getString("_id")).setIssuer(config.getJwtIssuer())
-            .setExpiresInMinutes(config.getJwtExpireInMinutes()));
+  Single<AuthVO> refresh(AuthVO vo) {
+    logger.debug("[refresh:{}] {}", vo.traceId, vo);
+    return Single.just(vo);
+  }
+
+  private Single<String> getAccessToken(JsonObject user) {
+    return Single.fromCallable(() -> {
+      ApplicationConfig config = ApplicationConfig.instance();
+      return jwtAuth.generateToken(
+          new JsonObject().put("typ", "accessToken").put(config.getJwtPermissionsKey(),
+              user.getJsonArray("permissions")),
+          new JWTOptions().setSubject(user.getString("_id")).setIssuer(config.getJwtIssuer())
+              .setExpiresInMinutes(config.getJwtExpireInMinutes()));
+    });
+  }
+
+  private Single<String> getRefreshToken(String userId) {
+    JsonObject document = new JsonObject().put("userId", userId);
+    return sendRequest(EventMongo.MONGO_CREATE, CollectionRecord.TOKEN, null, document, null)
+        .map(response -> {
+          JsonObject responseBody = (JsonObject) response.body();
+          ApplicationConfig config = ApplicationConfig.instance();
+          return jwtAuth.generateToken(new JsonObject().put("typ", "refreshToken"),
+              new JWTOptions().setSubject(responseBody.getString("id"))
+                  .setIssuer(config.getJwtIssuer())
+                  .setExpiresInMinutes(config.getJwtExpireInMinutes()));
+        });
   }
 }

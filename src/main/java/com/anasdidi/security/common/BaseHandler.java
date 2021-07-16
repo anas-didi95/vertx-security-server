@@ -47,7 +47,7 @@ public abstract class BaseHandler {
     subscriber.subscribe(responseBody -> {
       if (logger.isDebugEnabled()) {
         JsonObject copy = responseBody.copy();
-        Arrays.asList("accessToken").stream().forEach(key -> {
+        Arrays.asList("accessToken", "refreshToken").stream().forEach(key -> {
           if (copy.containsKey(key)) {
             copy.put(key, ApplicationUtils.hideValue(copy.getString(key)));
           }

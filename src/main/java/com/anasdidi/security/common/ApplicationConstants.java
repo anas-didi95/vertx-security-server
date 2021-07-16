@@ -45,7 +45,7 @@ public class ApplicationConstants {
   }
 
   public enum CollectionRecord {
-    USER("users");
+    USER("users"), TOKEN("tokens");
 
     public final String name;
 

@@ -72,6 +72,7 @@ public class TestAuthHandler {
               JsonObject responseBody = response.bodyAsJsonObject();
               Assertions.assertNotNull(responseBody);
               Assertions.assertNotNull(responseBody.getString("accessToken"));
+              Assertions.assertNotNull(responseBody.getString("refreshToken"));
               checkpoint.flag();
             });
 
@@ -288,5 +289,46 @@ public class TestAuthHandler {
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testAuthRefreshSuccess(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String password = "testAuthRefreshSuccess:password";
+    JsonObject user = TestUtils.generateUserJson(password);
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody =
+          new JsonObject().put("username", user.getString("username")).put("password", password);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
+          .rxSendJsonObject(requestBody);
+    }).flatMapSingle(response -> {
+      String refreshToken = response.bodyAsJsonObject().getString("refreshToken");
+      return TestUtils
+          .doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), refreshToken).rxSend();
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 200);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        JsonObject responseBody = response.bodyAsJsonObject();
+        Assertions.assertNotNull(responseBody);
+        Assertions.assertNotNull(responseBody.getString("accessToken"));
+        Assertions.assertNotNull(responseBody.getString("refreshToken"));
+        checkpoint.flag();
+      });
+
+      String accessToken = response.bodyAsJsonObject().getString("accessToken");
+      TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), accessToken).rxSend()
+          .subscribe(response1 -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response1, 200);
+              checkpoint.flag();
+            });
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
   }
 }

@@ -83,8 +83,33 @@ class AuthService extends BaseService {
   }
 
   Single<AuthVO> refresh(AuthVO vo) {
-    logger.debug("[refresh:{}] {}", vo.traceId, vo);
-    return Single.just(vo);
+    JsonObject query = new JsonObject().put("_id", vo.subject);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[refresh:{}] query{}", vo.traceId, query.encode());
+    }
+
+    Single<String> userId =
+        sendRequest(EventMongo.MONGO_READ, CollectionRecord.TOKEN, query, null, null)
+            .map(response -> {
+              JsonObject responseBody = (JsonObject) response.body();
+              return responseBody.getString("userId");
+            });
+    Single<String> getAccessToken = userId.flatMap(this::getAccessToken);
+    Single<String> getRefreshToken = userId.flatMap(this::getRefreshToken);
+
+    return Single.zip(getAccessToken, getRefreshToken,
+        (accessToken, refreshToken) -> AuthVO.fromJson(
+            new JsonObject().put("accessToken", accessToken).put("refreshToken", refreshToken)));
+  }
+
+  private Single<String> getAccessToken(String userId) {
+    JsonObject query = new JsonObject().put("_id", userId);
+    return sendRequest(EventMongo.MONGO_READ, CollectionRecord.USER, query, null, null)
+        .flatMap(response -> {
+          JsonObject responseBody = (JsonObject) response.body();
+          return getAccessToken(responseBody);
+        });
   }
 
   private Single<String> getAccessToken(JsonObject user) {

@@ -295,10 +295,12 @@ public class TestAuthHandler {
 
   @Test
   void testAuthRefreshSuccess(Vertx vertx, VertxTestContext testContext) {
-    Checkpoint checkpoint = testContext.checkpoint(3);
+    Checkpoint checkpoint = testContext.checkpoint(4);
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     String password = "testAuthRefreshSuccess:password";
     JsonObject user = TestUtils.generateUserJson(password);
+    long beforeCount =
+        mongoClient.rxCount(CollectionRecord.TOKEN.name, new JsonObject()).blockingGet();
 
     mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
       JsonObject requestBody =
@@ -330,6 +332,14 @@ public class TestAuthHandler {
               TestUtils.testResponseHeader(response1, 200);
               checkpoint.flag();
             });
+
+            mongoClient.rxCount(CollectionRecord.TOKEN.name, new JsonObject())
+                .subscribe(afterCount -> {
+                  testContext.verify(() -> {
+                    Assertions.assertEquals(beforeCount + 1, afterCount);
+                    checkpoint.flag();
+                  });
+                });
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
   }

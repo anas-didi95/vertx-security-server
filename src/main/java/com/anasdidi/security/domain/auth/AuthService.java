@@ -89,7 +89,7 @@ class AuthService extends BaseService {
       logger.debug("[refresh:{}] query{}", vo.traceId, query.encode());
     }
 
-    Single<String> userId =
+    Single<JsonObject> token =
         sendRequest(EventMongo.MONGO_READ, CollectionRecord.TOKEN, query, null, null)
             .flatMap(response -> {
               JsonObject responseBody = (JsonObject) response.body();
@@ -99,13 +99,16 @@ class AuthService extends BaseService {
                     "Record not found with id: " + vo.subject));
               }
 
-              return Single.just(responseBody.getString("userId"));
+              return Single.just(responseBody);
             });
-    Single<String> getAccessToken = userId.flatMap(this::getAccessToken);
-    Single<String> getRefreshToken = userId.flatMap(this::getRefreshToken);
+    Single<String> revokeToken =
+        token.flatMap(json -> revokeRefreshToken(json.getString("_id"), json.getLong("version")));
+    Single<String> getAccessToken = token.flatMap(json -> getAccessToken(json.getString("userId")));
+    Single<String> getRefreshToken =
+        token.flatMap(json -> getRefreshToken(json.getString("userId")));
 
-    return Single.zip(getAccessToken, getRefreshToken,
-        (accessToken, refreshToken) -> AuthVO.fromJson(
+    return Single.zip(revokeToken, getAccessToken, getRefreshToken,
+        (revokeTokenId, accessToken, refreshToken) -> AuthVO.fromJson(
             new JsonObject().put("accessToken", accessToken).put("refreshToken", refreshToken)));
   }
 
@@ -139,6 +142,15 @@ class AuthService extends BaseService {
               new JWTOptions().setSubject(responseBody.getString("id"))
                   .setIssuer(config.getJwtIssuer())
                   .setExpiresInMinutes(config.getJwtExpireInMinutes()));
+        });
+  }
+
+  private Single<String> revokeRefreshToken(String id, Long version) {
+    JsonObject query = new JsonObject().put("_id", id);
+    return sendRequest(EventMongo.MONGO_DELETE, CollectionRecord.TOKEN, query, null, version)
+        .map(response -> {
+          JsonObject responseBody = (JsonObject) response.body();
+          return responseBody.getString("id");
         });
   }
 }

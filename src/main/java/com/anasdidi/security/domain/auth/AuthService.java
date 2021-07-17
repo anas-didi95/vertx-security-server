@@ -91,9 +91,15 @@ class AuthService extends BaseService {
 
     Single<String> userId =
         sendRequest(EventMongo.MONGO_READ, CollectionRecord.TOKEN, query, null, null)
-            .map(response -> {
+            .flatMap(response -> {
               JsonObject responseBody = (JsonObject) response.body();
-              return responseBody.getString("userId");
+
+              if (responseBody.isEmpty()) {
+                return Single.error(new ApplicationException(ErrorValue.AUTH_REFRESH, vo.traceId,
+                    "Record not found with id: " + vo.subject));
+              }
+
+              return Single.just(responseBody.getString("userId"));
             });
     Single<String> getAccessToken = userId.flatMap(this::getAccessToken);
     Single<String> getRefreshToken = userId.flatMap(this::getRefreshToken);

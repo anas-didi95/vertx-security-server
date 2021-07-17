@@ -28,6 +28,10 @@ class AuthValidator extends BaseValidator<AuthVO> {
 
   @Override
   protected List<String> validateRefresh(AuthVO vo) {
-    return super.validateRefresh(vo);
+    List<String> errorList = new ArrayList<>();
+
+    isMandatory(errorList, vo.subject, "Token Id", "%s not defined in token!");
+
+    return errorList;
   }
 }

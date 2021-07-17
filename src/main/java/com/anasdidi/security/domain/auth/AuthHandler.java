@@ -39,6 +39,7 @@ class AuthHandler extends BaseHandler {
   void refresh(RoutingContext routingContext) {
     Single<JsonObject> subscriber =
         getRequestBody(routingContext).map(json -> AuthVO.fromJson(json, routingContext.user()))
+            .flatMap(vo -> authValidator.validate(vo, ValidateAction.REFRESH))
             .flatMap(vo -> authService.refresh(vo)).map(vo -> new JsonObject()
                 .put("accessToken", vo.accessToken).put("refreshToken", vo.refreshToken));
 

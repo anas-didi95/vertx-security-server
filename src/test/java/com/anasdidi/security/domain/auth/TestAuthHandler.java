@@ -375,4 +375,28 @@ public class TestAuthHandler {
           });
         }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testAuthRefreshRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), accessToken).rxSend()
+        .subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E203", "Refresh token failed!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Record not found with id: SYSTEM", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
 }

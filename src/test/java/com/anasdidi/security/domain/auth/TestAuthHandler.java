@@ -333,4 +333,28 @@ public class TestAuthHandler {
           }, error -> testContext.failNow(error));
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testAuthRefreshAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), invalidAccessToken)
+        .rxSend().subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 401);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
 }

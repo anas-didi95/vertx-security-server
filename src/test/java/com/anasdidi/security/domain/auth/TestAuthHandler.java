@@ -357,4 +357,22 @@ public class TestAuthHandler {
           });
         }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testAuthRefreshValidationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), accessTokenNoClaims)
+        .rxSend().subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E002", "Validation error!");
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
 }

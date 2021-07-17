@@ -25,4 +25,9 @@ class AuthValidator extends BaseValidator<AuthVO> {
 
     return errorList;
   }
+
+  @Override
+  protected List<String> validateRefresh(AuthVO vo) {
+    return super.validateRefresh(vo);
+  }
 }

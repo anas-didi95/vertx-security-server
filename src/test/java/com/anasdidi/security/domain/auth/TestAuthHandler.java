@@ -299,10 +299,9 @@ public class TestAuthHandler {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     String password = "testAuthRefreshSuccess:password";
     JsonObject user = TestUtils.generateUserJson(password);
-    long beforeCount =
-        mongoClient.rxCount(CollectionRecord.TOKEN.name, new JsonObject()).blockingGet();
 
     mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      user.put("id", id);
       JsonObject requestBody =
           new JsonObject().put("username", user.getString("username")).put("password", password);
       return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
@@ -312,6 +311,14 @@ public class TestAuthHandler {
       return TestUtils
           .doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), refreshToken).rxSend();
     }).subscribe(response -> {
+      mongoClient.rxCount(CollectionRecord.TOKEN.name,
+          new JsonObject().put("userId", user.getString("id"))).subscribe(count -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(1, count);
+              checkpoint.flag();
+            });
+          });
+
       testContext.verify(() -> {
         TestUtils.testResponseHeader(response, 200);
         checkpoint.flag();
@@ -333,14 +340,8 @@ public class TestAuthHandler {
               checkpoint.flag();
             });
 
-            mongoClient.rxCount(CollectionRecord.TOKEN.name, new JsonObject())
-                .subscribe(afterCount -> {
-                  testContext.verify(() -> {
-                    Assertions.assertEquals(beforeCount + 1, afterCount);
-                    checkpoint.flag();
-                  });
-                });
           }, error -> testContext.failNow(error));
+
     }, error -> testContext.failNow(error));
   }
 

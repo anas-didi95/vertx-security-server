@@ -3,6 +3,7 @@ package com.anasdidi.security.domain.auth;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
+import com.anasdidi.security.common.ApplicationUtils;
 import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -311,10 +312,13 @@ public class TestAuthHandler {
       return TestUtils
           .doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), refreshToken).rxSend();
     }).subscribe(response -> {
-      mongoClient.rxCount(CollectionRecord.TOKEN.name,
-          new JsonObject().put("userId", user.getString("id"))).subscribe(count -> {
+      mongoClient
+          .rxFindOne(CollectionRecord.TOKEN.name,
+              new JsonObject().put("userId", user.getString("id")), new JsonObject())
+          .subscribe(result -> {
             testContext.verify(() -> {
-              Assertions.assertEquals(1, count);
+              Assertions.assertNotNull(result.getString("userId"));
+              Assertions.assertNotNull(ApplicationUtils.getRecordDate(result, "issuedDate"));
               checkpoint.flag();
             });
           });
@@ -339,9 +343,7 @@ public class TestAuthHandler {
               TestUtils.testResponseHeader(response1, 200);
               checkpoint.flag();
             });
-
           }, error -> testContext.failNow(error));
-
     }, error -> testContext.failNow(error));
   }
 

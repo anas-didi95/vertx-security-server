@@ -5,6 +5,7 @@ import com.anasdidi.security.common.ApplicationConstants.ErrorValue;
 import com.anasdidi.security.common.ApplicationConstants.EventMongo;
 import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationException;
+import com.anasdidi.security.common.ApplicationUtils;
 import com.anasdidi.security.common.BaseService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -133,7 +134,8 @@ class AuthService extends BaseService {
   }
 
   private Single<String> getRefreshToken(String userId) {
-    JsonObject document = new JsonObject().put("userId", userId);
+    JsonObject document =
+        new JsonObject().put("userId", userId).put("issuedDate", ApplicationUtils.setRecordDate());
     return sendRequest(EventMongo.MONGO_CREATE, CollectionRecord.TOKEN, null, document, null)
         .map(response -> {
           JsonObject responseBody = (JsonObject) response.body();

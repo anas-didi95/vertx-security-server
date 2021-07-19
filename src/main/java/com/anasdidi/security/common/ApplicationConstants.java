@@ -33,7 +33,8 @@ public class ApplicationConstants {
     USER_UPDATE("E102", "Update user failed!"), //
     USER_DELETE("E103", "Delete user failed!"), //
     AUTH_LOGIN("E201", "Invalid credentials!"), //
-    AUTH_CHECK("E202", "Incorrect credentials data!");
+    AUTH_CHECK("E202", "Incorrect credentials data!"), //
+    AUTH_REFRESH("E203", "Refresh token failed!");
 
     public final String code;
     public final String message;
@@ -45,7 +46,7 @@ public class ApplicationConstants {
   }
 
   public enum CollectionRecord {
-    USER("users");
+    USER("users"), TOKEN("tokens");
 
     public final String name;
 

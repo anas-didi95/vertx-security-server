@@ -43,12 +43,12 @@ Following table is a **mandatory** environment variables used in this project.
 | APP_PORT | Number | Server port |
 | JWT_SECRET | String | JWT secret key for signature of token |
 | JWT_ISSUER | String | JWT issuer for token validation |
-| JWT_EXPIRE_IN_MINUTES | Number | JWT token expiration period (in minutes) |
 | JWT_PERMISSIONS_KEY | String | JWT permissions claim key |
+| JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTES | Number | JWT access token expiration period (in minutes) |
+| JWT_REFRESH_TOKEN_EXPIRE_IN_MINUTES | Number | JWT refresh token expiration period (in minutes) |
 | MONGO_CONNECTION_STRING | String | Mongo connection string (refer [doc](https://docs.mongodb.com/manual/reference/connection-string/) for example) |
 | LOG_LEVEL | String | Log level |
 | GRAPHIQL_IS_ENABLE | Boolean | Flag to enable `/graphiql` path |
-| REFRESH_TOKEN_EXPIRE_IN_MINUTES | Number | Refresh token expiration period (in minutes) |
 
 ---
 

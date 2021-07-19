@@ -11,8 +11,11 @@ public class ApplicationConfig {
   private static String KEY_MONGO_CONNECTION_STRING = "MONGO_CONNECTION_STRING";
   private static String KEY_JWT_SECRET = "JWT_SECRET";
   private static String KEY_JWT_ISSUER = "JWT_ISSUER";
-  private static String KEY_JWT_EXPIRE_IN_MINUTES = "JWT_EXPIRE_IN_MINUTES";
   private static String KEY_JWT_PERMISSIONS_KEY = "JWT_PERMISSIONS_KEY";
+  private static String KEY_JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTES =
+      "JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTES";
+  private static String KEY_JWT_REFRESH_TOKEN_EXPIRE_IN_MINUTES =
+      "JWT_REFRESH_TOKEN_EXPIRE_IN_MINUTES";
 
   private final JsonObject json;
 
@@ -34,8 +37,8 @@ public class ApplicationConfig {
 
   public static JsonArray getKeyList() {
     return new JsonArray().add(KEY_APP_HOST).add(KEY_APP_PORT).add(KEY_MONGO_CONNECTION_STRING)
-        .add(KEY_JWT_SECRET).add(KEY_JWT_ISSUER).add(KEY_JWT_EXPIRE_IN_MINUTES)
-        .add(KEY_JWT_PERMISSIONS_KEY);
+        .add(KEY_JWT_SECRET).add(KEY_JWT_ISSUER).add(KEY_JWT_PERMISSIONS_KEY)
+        .add(KEY_JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTES).add(KEY_JWT_REFRESH_TOKEN_EXPIRE_IN_MINUTES);
   }
 
   @Override
@@ -67,11 +70,15 @@ public class ApplicationConfig {
     return json.getString(KEY_JWT_ISSUER);
   }
 
-  public Integer getJwtExpireInMinutes() {
-    return json.getInteger(KEY_JWT_EXPIRE_IN_MINUTES);
-  }
-
   public String getJwtPermissionsKey() {
     return json.getString(KEY_JWT_PERMISSIONS_KEY);
+  }
+
+  public Integer getJwtAccessTokenExpireInMinutes() {
+    return json.getInteger(KEY_JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTES);
+  }
+
+  public Integer getJwtRefreshTokenExpireInMinutes() {
+    return json.getInteger(KEY_JWT_REFRESH_TOKEN_EXPIRE_IN_MINUTES);
   }
 }

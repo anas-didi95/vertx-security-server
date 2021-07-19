@@ -54,4 +54,19 @@ public class TestAuthValidator {
       testContext.completeNow();
     });
   }
+
+  @Test
+  void testValidateRefresh(Vertx vertx, VertxTestContext testContext) {
+    List<String> actualList =
+        new AuthValidator().validateRefresh(AuthVO.fromJson(new JsonObject()));
+    List<String> expectedList = Arrays.asList("Token Id not defined in token!");
+
+    testContext.verify(() -> {
+      Assertions.assertEquals(expectedList.size(), actualList.size());
+      expectedList.stream().forEach(error -> {
+        Assertions.assertTrue(actualList.contains(error), "Expected error not found! " + error);
+      });
+      testContext.completeNow();
+    });
+  }
 }

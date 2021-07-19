@@ -3,12 +3,14 @@ package com.anasdidi.security.domain.auth;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
+import com.anasdidi.security.common.ApplicationUtils;
 import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
@@ -41,13 +43,14 @@ public class TestAuthHandler {
   @AfterAll
   static void postTesting(Vertx vertx, VertxTestContext testContext) throws Exception {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    var removeUsers = mongoClient.rxRemoveDocuments(CollectionRecord.USER.name, new JsonObject());
+    var removeTokens = mongoClient.rxRemoveDocuments(CollectionRecord.TOKEN.name, new JsonObject());
 
-    mongoClient.rxRemoveDocuments(CollectionRecord.USER.name, new JsonObject())
-        .subscribe(result -> {
-          testContext.verify(() -> {
-            testContext.completeNow();
-          });
-        }, e -> testContext.failNow(e));
+    Maybe.merge(removeUsers, removeTokens).subscribe((result) -> {
+      testContext.verify(() -> {
+        testContext.completeNow();
+      });
+    }, error -> testContext.failNow(error));
   }
 
   @Test
@@ -72,6 +75,7 @@ public class TestAuthHandler {
               JsonObject responseBody = response.bodyAsJsonObject();
               Assertions.assertNotNull(responseBody);
               Assertions.assertNotNull(responseBody.getString("accessToken"));
+              Assertions.assertNotNull(responseBody.getString("refreshToken"));
               checkpoint.flag();
             });
 
@@ -279,6 +283,125 @@ public class TestAuthHandler {
 
           testContext.verify(() -> {
             TestUtils.testResponseBodyError(response, "E202", "Incorrect credentials data!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Record not found with id: SYSTEM", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testAuthRefreshSuccess(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(4);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String password = "testAuthRefreshSuccess:password";
+    JsonObject user = TestUtils.generateUserJson(password);
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      user.put("id", id);
+      JsonObject requestBody =
+          new JsonObject().put("username", user.getString("username")).put("password", password);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
+          .rxSendJsonObject(requestBody);
+    }).flatMapSingle(response -> {
+      String refreshToken = response.bodyAsJsonObject().getString("refreshToken");
+      return TestUtils
+          .doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), refreshToken).rxSend();
+    }).subscribe(response -> {
+      mongoClient
+          .rxFindOne(CollectionRecord.TOKEN.name,
+              new JsonObject().put("userId", user.getString("id")), new JsonObject())
+          .subscribe(result -> {
+            testContext.verify(() -> {
+              Assertions.assertNotNull(result.getString("userId"));
+              Assertions.assertNotNull(ApplicationUtils.getRecordDate(result, "issuedDate"));
+              checkpoint.flag();
+            });
+          });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 200);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        JsonObject responseBody = response.bodyAsJsonObject();
+        Assertions.assertNotNull(responseBody);
+        Assertions.assertNotNull(responseBody.getString("accessToken"));
+        Assertions.assertNotNull(responseBody.getString("refreshToken"));
+        checkpoint.flag();
+      });
+
+      String accessToken = response.bodyAsJsonObject().getString("accessToken");
+      TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), accessToken).rxSend()
+          .subscribe(response1 -> {
+            testContext.verify(() -> {
+              TestUtils.testResponseHeader(response1, 200);
+              checkpoint.flag();
+            });
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testAuthRefreshAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), invalidAccessToken)
+        .rxSend().subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 401);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testAuthRefreshValidationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), accessTokenNoClaims)
+        .rxSend().subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E002", "Validation error!");
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testAuthRefreshRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), accessToken).rxSend()
+        .subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E203", "Refresh token failed!");
             checkpoint.flag();
           });
 

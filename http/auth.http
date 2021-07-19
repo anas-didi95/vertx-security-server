@@ -23,14 +23,10 @@ Authorization: Bearer {{accessToken}}
 ###
 
 // @name refresh
-POST {{baseUrl}}/refresh
+GET {{baseUrl}}/refresh
 Accept: application/json
 Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-{
-  "refreshToken": "{{refreshToken}}"
-}
+Authorization: Bearer {{refreshToken}}
 
 ###
 

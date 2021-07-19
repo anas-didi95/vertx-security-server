@@ -412,4 +412,45 @@ public class TestAuthHandler {
           });
         }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testAuthLogoutSuccess(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String password = "testAuthLogoutSuccess:password";
+    JsonObject user = TestUtils.generateUserJson(password);
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      user.put("id", id);
+      JsonObject requestBody =
+          new JsonObject().put("username", user.getString("username")).put("password", password);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
+          .rxSendJsonObject(requestBody);
+    }).flatMapSingle(response -> {
+      String accessToken = response.bodyAsJsonObject().getString("accessToken");
+      return TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "logout"), accessToken)
+          .rxSend();
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 200);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        JsonObject responseBody = response.bodyAsJsonObject();
+        Assertions.assertNotNull(responseBody);
+        Assertions.assertEquals(user.getString("id"), responseBody.getString("userId"));
+        checkpoint.flag();
+      });
+
+      String userId = response.bodyAsJsonObject().getString("userId");
+      mongoClient.rxCount(CollectionRecord.TOKEN.name, new JsonObject().put("userId", userId))
+          .subscribe(count -> {
+            testContext.verify(() -> {
+              Assertions.assertEquals(0, count);
+              checkpoint.flag();
+            });
+          }, error -> testContext.failNow(error));
+    }, error -> testContext.failNow(error));
+  }
 }

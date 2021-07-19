@@ -71,10 +71,11 @@ To run your application:
 ---
 
 ## Features
-[x] Can create, update, delete user resource.
-[ ] Add JWT authentication for resource handler.
-[ ] Add JWT refresh token to get new access token.
-[ ] Add GraphQL to query resource.
+- [x] Can create, update, delete user resource.
+- [x] Add JWT authentication for resource handler.
+- [x] Add JWT refresh token to get new access token.
+- [ ] Add revoke token handler to log out user.
+- [ ] Add GraphQL handler to query resource.
 
 ---
 

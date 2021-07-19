@@ -129,7 +129,7 @@ class AuthService extends BaseService {
           new JsonObject().put("typ", "accessToken").put(config.getJwtPermissionsKey(),
               user.getJsonArray("permissions")),
           new JWTOptions().setSubject(user.getString("_id")).setIssuer(config.getJwtIssuer())
-              .setExpiresInMinutes(config.getJwtExpireInMinutes()));
+              .setExpiresInMinutes(config.getJwtAccessTokenExpireInMinutes()));
     });
   }
 
@@ -143,7 +143,7 @@ class AuthService extends BaseService {
           return jwtAuth.generateToken(new JsonObject().put("typ", "refreshToken"),
               new JWTOptions().setSubject(responseBody.getString("id"))
                   .setIssuer(config.getJwtIssuer())
-                  .setExpiresInMinutes(config.getJwtExpireInMinutes()));
+                  .setExpiresInMinutes(config.getJwtRefreshTokenExpireInMinutes()));
         });
   }
 

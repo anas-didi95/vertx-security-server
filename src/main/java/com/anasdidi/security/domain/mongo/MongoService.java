@@ -28,10 +28,15 @@ class MongoService {
         .map(result -> result.getString("_id")).toSingle();
   }
 
-  Single<String> delete(MongoVO vo) {
+  Single<String> deleteOne(MongoVO vo) {
     return checkRecordExist(vo).flatMap(record -> checkRecordVersion(record, vo.version))
         .flatMap(json -> mongoClient.rxFindOneAndDelete(vo.collection, vo.query))
         .map(result -> result.getString("_id")).toSingle();
+  }
+
+  Single<Long> deleteMany(MongoVO vo) {
+    return mongoClient.rxRemoveDocuments(vo.collection, vo.query).map(s -> s.getRemovedCount())
+        .toSingle();
   }
 
   Single<JsonObject> read(MongoVO vo) {

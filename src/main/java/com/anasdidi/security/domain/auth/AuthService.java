@@ -1,9 +1,9 @@
 package com.anasdidi.security.domain.auth;
 
+import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import com.anasdidi.security.common.ApplicationConstants.ErrorValue;
 import com.anasdidi.security.common.ApplicationConstants.EventMongo;
-import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.ApplicationUtils;
 import com.anasdidi.security.common.BaseService;
@@ -113,6 +113,17 @@ class AuthService extends BaseService {
             new JsonObject().put("accessToken", accessToken).put("refreshToken", refreshToken)));
   }
 
+  Single<String> logout(AuthVO vo) {
+    JsonObject query = new JsonObject().put("userId", vo.subject);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[logout:{}] query{}", vo.traceId, query.encode());
+    }
+
+    return sendRequest(EventMongo.MONGO_DELETE_MANY, CollectionRecord.TOKEN, query, null, null)
+        .map(response -> vo.subject);
+  }
+
   private Single<String> getAccessToken(String userId) {
     JsonObject query = new JsonObject().put("_id", userId);
     return sendRequest(EventMongo.MONGO_READ, CollectionRecord.USER, query, null, null)
@@ -149,7 +160,7 @@ class AuthService extends BaseService {
 
   private Single<String> revokeRefreshToken(String id, Long version) {
     JsonObject query = new JsonObject().put("_id", id);
-    return sendRequest(EventMongo.MONGO_DELETE, CollectionRecord.TOKEN, query, null, version)
+    return sendRequest(EventMongo.MONGO_DELETE_ONE, CollectionRecord.TOKEN, query, null, version)
         .map(response -> {
           JsonObject responseBody = (JsonObject) response.body();
           return responseBody.getString("id");

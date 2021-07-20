@@ -1,7 +1,7 @@
 package com.anasdidi.security.domain.auth;
 
-import com.anasdidi.security.common.BaseHandler;
 import com.anasdidi.security.common.ApplicationConstants.HttpStatus;
+import com.anasdidi.security.common.BaseHandler;
 import com.anasdidi.security.common.BaseValidator.ValidateAction;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -42,6 +42,15 @@ class AuthHandler extends BaseHandler {
             .flatMap(vo -> authValidator.validate(vo, ValidateAction.REFRESH))
             .flatMap(vo -> authService.refresh(vo)).map(vo -> new JsonObject()
                 .put("accessToken", vo.accessToken).put("refreshToken", vo.refreshToken));
+
+    sendResponse(subscriber, routingContext, HttpStatus.OK);
+  }
+
+  void logout(RoutingContext routingContext) {
+    Single<JsonObject> subscriber =
+        getRequestBody(routingContext).map(json -> AuthVO.fromJson(json, routingContext.user()))
+            .flatMap(vo -> authService.logout(vo))
+            .map(userId -> new JsonObject().put("userId", userId));
 
     sendResponse(subscriber, routingContext, HttpStatus.OK);
   }

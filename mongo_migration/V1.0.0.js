@@ -6,4 +6,4 @@ db.users.drop();
 db.users.createIndex({ username: 1 }, { name: "uq_username", unique: true });
 
 // DO NOT REMOVE! This line will keep track migration file.
-db.migration.updateOne({ database: "security" }, { "$set": { version: "1.0.0" } }, { upsert: true })
+db.migration.updateOne({ database: "security" }, { "$set": { version: "1.0.0" } }, { upsert: true });

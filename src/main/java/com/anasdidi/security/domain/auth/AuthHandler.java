@@ -49,6 +49,7 @@ class AuthHandler extends BaseHandler {
   void logout(RoutingContext routingContext) {
     Single<JsonObject> subscriber =
         getRequestBody(routingContext).map(json -> AuthVO.fromJson(json, routingContext.user()))
+            .flatMap(vo -> authValidator.validate(vo, ValidateAction.LOGOUT))
             .flatMap(vo -> authService.logout(vo))
             .map(userId -> new JsonObject().put("userId", userId));
 

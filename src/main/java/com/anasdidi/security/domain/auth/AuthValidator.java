@@ -34,4 +34,9 @@ class AuthValidator extends BaseValidator<AuthVO> {
 
     return errorList;
   }
+
+  @Override
+  protected List<String> validateLogout(AuthVO vo) {
+    return super.validateLogout(vo);
+  }
 }

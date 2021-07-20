@@ -37,6 +37,10 @@ class AuthValidator extends BaseValidator<AuthVO> {
 
   @Override
   protected List<String> validateLogout(AuthVO vo) {
-    return super.validateLogout(vo);
+    List<String> errorList = new ArrayList<>();
+
+    isMandatory(errorList, vo.subject, "User Id", "%s not defined in token!");
+
+    return errorList;
   }
 }

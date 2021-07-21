@@ -11,7 +11,7 @@ public abstract class BaseValidator<T extends BaseVO> {
   private static Logger logger = LogManager.getLogger(BaseValidator.class);
 
   public enum ValidateAction {
-    CREATE, UPDATE, DELETE, LOGIN, CHECK, REFRESH
+    CREATE, UPDATE, DELETE, LOGIN, CHECK, REFRESH, LOGOUT
   }
 
   protected List<String> validateCreate(T vo) {
@@ -38,6 +38,10 @@ public abstract class BaseValidator<T extends BaseVO> {
     return null;
   }
 
+  protected List<String> validateLogout(T vo) {
+    return null;
+  }
+
   public final Single<T> validate(T vo, ValidateAction action) throws ApplicationException {
     List<String> errorList = null;
 
@@ -59,6 +63,9 @@ public abstract class BaseValidator<T extends BaseVO> {
         break;
       case REFRESH:
         errorList = validateRefresh(vo);
+        break;
+      case LOGOUT:
+        errorList = validateLogout(vo);
         break;
     }
 

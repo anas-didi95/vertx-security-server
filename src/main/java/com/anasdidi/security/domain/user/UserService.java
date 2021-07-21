@@ -23,10 +23,10 @@ class UserService extends BaseService {
     }
 
     return sendRequest(EventMongo.MONGO_CREATE, CollectionRecord.USER, null, document, null)
-        .doOnError(error -> {
+        .onErrorResumeNext(error -> {
           logger.error("[create:{}] document{}", vo.traceId, document.encode());
           logger.error("[create:{}] {}", vo.traceId, error.getMessage());
-          error.addSuppressed(new ApplicationException(ErrorValue.USER_CREATE, vo.traceId,
+          return Single.error(new ApplicationException(ErrorValue.USER_CREATE, vo.traceId,
               "Unable to create user with username: " + vo.username));
         }).map(response -> {
           JsonObject responseBody = (JsonObject) response.body();
@@ -45,11 +45,11 @@ class UserService extends BaseService {
     }
 
     return sendRequest(EventMongo.MONGO_UPDATE, CollectionRecord.USER, query, document, vo.version)
-        .doOnError(error -> {
+        .onErrorResumeNext(error -> {
           logger.error("[update:{}] query{}", vo.traceId, query.encode());
           logger.error("[update:{}] document{}", vo.traceId, document.encode());
           logger.error("[update:{}] {}", vo.traceId, error.getMessage());
-          error.addSuppressed(
+          return Single.error(
               new ApplicationException(ErrorValue.USER_UPDATE, vo.traceId, error.getMessage()));
         }).map(response -> {
           JsonObject responseBody = (JsonObject) response.body();
@@ -64,11 +64,11 @@ class UserService extends BaseService {
       logger.debug("[delete:{}] query{}", vo.traceId, query.encode());
     }
 
-    return sendRequest(EventMongo.MONGO_DELETE, CollectionRecord.USER, query, null, vo.version)
-        .doOnError(error -> {
+    return sendRequest(EventMongo.MONGO_DELETE_ONE, CollectionRecord.USER, query, null, vo.version)
+        .onErrorResumeNext(error -> {
           logger.error("[delete:{}] query{}", vo.traceId, query.encode());
           logger.error("[delete:{}] {}", vo.traceId, error.getMessage());
-          error.addSuppressed(
+          return Single.error(
               new ApplicationException(ErrorValue.USER_DELETE, vo.traceId, error.getMessage()));
         }).map(response -> {
           JsonObject responseBody = (JsonObject) response.body();

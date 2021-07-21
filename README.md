@@ -74,7 +74,7 @@ To run your application:
 - [x] Can create, update, delete user resource.
 - [x] Add JWT authentication for resource handler.
 - [x] Add JWT refresh token to get new access token.
-- [ ] Add revoke token handler to log out user.
+- [x] Add revoke token handler to log out user.
 - [ ] Add GraphQL handler to query resource.
 
 ---

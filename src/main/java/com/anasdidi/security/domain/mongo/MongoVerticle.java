@@ -49,7 +49,8 @@ public class MongoVerticle extends BaseVerticle {
       Handler<RoutingContext> jwtAuthzHandler) {
     eventBus.consumer(EventMongo.MONGO_CREATE.toString(), mongoHandler::create);
     eventBus.consumer(EventMongo.MONGO_UPDATE.toString(), mongoHandler::update);
-    eventBus.consumer(EventMongo.MONGO_DELETE.toString(), mongoHandler::delete);
+    eventBus.consumer(EventMongo.MONGO_DELETE_ONE.toString(), mongoHandler::deleteOne);
+    eventBus.consumer(EventMongo.MONGO_DELETE_MANY.toString(), mongoHandler::deleteMany);
     eventBus.consumer(EventMongo.MONGO_READ.toString(), mongoHandler::read);
   }
 

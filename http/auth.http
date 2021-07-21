@@ -30,6 +30,7 @@ Authorization: Bearer {{refreshToken}}
 
 ###
 
+// @name logout
 GET {{baseUrl}}/logout
 Accept: application/json
 Content-Type: application/json

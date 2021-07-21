@@ -20,7 +20,7 @@ public class ApplicationConstants {
   }
 
   public enum EventMongo {
-    MONGO_CREATE, MONGO_UPDATE, MONGO_DELETE, MONGO_READ;
+    MONGO_CREATE, MONGO_UPDATE, MONGO_DELETE_ONE, MONGO_DELETE_MANY, MONGO_READ;
   }
 
   public enum ErrorValue {
@@ -34,7 +34,8 @@ public class ApplicationConstants {
     USER_DELETE("E103", "Delete user failed!"), //
     AUTH_LOGIN("E201", "Invalid credentials!"), //
     AUTH_CHECK("E202", "Incorrect credentials data!"), //
-    AUTH_REFRESH("E203", "Refresh token failed!");
+    AUTH_REFRESH("E203", "Refresh token failed!"), //
+    AUTH_LOGOUT("E204", "Logout failed!");
 
     public final String code;
     public final String message;

@@ -13,6 +13,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
+import io.vertx.ext.mongo.MongoClientDeleteResult;
 import io.vertx.rxjava3.ext.auth.jwt.JWTAuth;
 
 class AuthService extends BaseService {
@@ -121,7 +122,18 @@ class AuthService extends BaseService {
     }
 
     return sendRequest(EventMongo.MONGO_DELETE_MANY, CollectionRecord.TOKEN, query, null, null)
-        .map(response -> vo.subject);
+        .flatMap(response -> {
+          JsonObject responseBody = (JsonObject) response.body();
+          long removedCount = responseBody.getLong(MongoClientDeleteResult.REMOVED_COUNT);
+
+          if (removedCount <= 0) {
+            logger.error("[logout:{}] query{}", vo.traceId, query.encode());
+            return Single.error(new ApplicationException(ErrorValue.AUTH_LOGOUT, vo.traceId,
+                "Record not found with userId: " + vo.subject));
+          }
+
+          return Single.just(vo.subject);
+        });
   }
 
   private Single<String> getAccessToken(String userId) {

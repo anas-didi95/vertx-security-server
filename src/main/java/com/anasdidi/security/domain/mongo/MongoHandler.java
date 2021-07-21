@@ -2,6 +2,7 @@ package com.anasdidi.security.domain.mongo;
 
 import com.anasdidi.security.common.BaseHandler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.MongoClientDeleteResult;
 import io.vertx.rxjava3.core.eventbus.Message;
 
 class MongoHandler extends BaseHandler {
@@ -36,7 +37,8 @@ class MongoHandler extends BaseHandler {
   void deleteMany(Message<Object> request) {
     getRequestBody(request).map(json -> MongoVO.fromJson(json))
         .flatMap(vo -> mongoService.deleteMany(vo)).subscribe(
-            removedCount -> request.reply(new JsonObject().put("removedCount", removedCount)),
+            removedCount -> request
+                .reply(new JsonObject().put(MongoClientDeleteResult.REMOVED_COUNT, removedCount)),
             error -> request.fail(5, error.getMessage()));
   }
 

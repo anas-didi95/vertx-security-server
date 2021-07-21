@@ -471,4 +471,28 @@ public class TestAuthHandler {
           });
         }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testAuthLogoutRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "logout"), accessToken).rxSend()
+        .subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 400);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E204", "Logout failed!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Record not found with userId: SYSTEM", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
 }

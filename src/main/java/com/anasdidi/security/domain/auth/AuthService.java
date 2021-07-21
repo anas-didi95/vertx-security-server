@@ -33,18 +33,15 @@ class AuthService extends BaseService {
     }
 
     return sendRequest(EventMongo.MONGO_READ, CollectionRecord.USER, query, null, null)
-        .doOnError(error -> {
-          logger.error("[login:{}] query{}", vo.traceId, query.encode());
-          logger.error("[login:{}] {}", vo.traceId, error.getMessage());
-          error.addSuppressed(
-              new ApplicationException(ErrorValue.AUTH_LOGIN, vo.traceId, error.getMessage()));
-        }).flatMap(response -> {
+        .flatMap(response -> {
           JsonObject user = (JsonObject) response.body();
 
           if (user.isEmpty()) {
+            logger.error("[login:{}] query{}", vo.traceId, query.encode());
             return Single.error(new ApplicationException(ErrorValue.AUTH_LOGIN, vo.traceId,
                 "Record not found with username: " + vo.username));
           } else if (!BCrypt.checkpw(vo.password, user.getString("password"))) {
+            logger.error("[login:{}] query{}", vo.traceId, query.encode());
             return Single.error(new ApplicationException(ErrorValue.AUTH_LOGIN, vo.traceId,
                 "Wrong password for username: " + vo.username));
           }
@@ -64,15 +61,11 @@ class AuthService extends BaseService {
     }
 
     return sendRequest(EventMongo.MONGO_READ, CollectionRecord.USER, query, null, null)
-        .doOnError(error -> {
-          logger.error("[check:{}] query{}", vo.traceId, query.encode());
-          logger.error("[check:{}] {}]", vo.traceId, error.getMessage());
-          error.addSuppressed(
-              new ApplicationException(ErrorValue.AUTH_CHECK, vo.traceId, error.getMessage()));
-        }).flatMap(response -> {
+        .flatMap(response -> {
           JsonObject responseBody = (JsonObject) response.body();
 
           if (responseBody.isEmpty()) {
+            logger.error("[check:{}] query{}", vo.traceId, query.encode());
             return Single.error(new ApplicationException(ErrorValue.AUTH_CHECK, vo.traceId,
                 "Record not found with id: " + vo.subject));
           }
@@ -97,6 +90,7 @@ class AuthService extends BaseService {
               JsonObject responseBody = (JsonObject) response.body();
 
               if (responseBody.isEmpty()) {
+                logger.error("[refresh:{}] query{}", vo.traceId, query.encode());
                 return Single.error(new ApplicationException(ErrorValue.AUTH_REFRESH, vo.traceId,
                     "Record not found with id: " + vo.subject));
               }

@@ -1,0 +1,8 @@
+type Ping {
+  isSuccess: Boolean!
+  testValue: String!
+}
+
+type Query {
+  ping(value: String!): Ping!
+}

@@ -9,6 +9,7 @@ import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationUtils;
 import com.anasdidi.security.common.BaseVerticle;
 import com.anasdidi.security.domain.auth.AuthVerticle;
+import com.anasdidi.security.domain.graphql.GraphqlVerticle;
 import com.anasdidi.security.domain.mongo.MongoVerticle;
 import com.anasdidi.security.domain.user.UserVerticle;
 import org.apache.logging.log4j.LogManager;
@@ -40,8 +41,8 @@ public class MainVerticle extends AbstractVerticle {
       logger.info("[start] Load {}", config);
 
       Router router = getRouter();
-      List<Single<String>> deployer =
-          deployVerticles(router, new MongoVerticle(), new UserVerticle(), new AuthVerticle());
+      List<Single<String>> deployer = deployVerticles(router, new MongoVerticle(),
+          new UserVerticle(), new AuthVerticle(), new GraphqlVerticle());
 
       Single.mergeDelayError(deployer).toList().subscribe(verticleList -> {
         logger.info("[start] Total deployed verticle: {}", verticleList.size());

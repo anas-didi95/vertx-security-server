@@ -39,8 +39,11 @@ public class GraphiqlVerticle extends BaseVerticle {
   @Override
   protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler,
       Handler<RoutingContext> jwtAuthzHandler) {
-    router.post("/graphql").handler(GraphQLHandler.create(GraphqlUtils.createGraphQL(vertx)));
-    router.get("/*").handler(GraphiQLHandler.create(new GraphiQLHandlerOptions().setEnabled(true)
-        .setGraphQLUri(ApplicationConstants.CONTEXT_PATH + "/graphiql/graphql")));
+    router.post(GraphqlConstants.CONTEXT_PATH)
+        .handler(GraphQLHandler.create(GraphqlUtils.createGraphQL(vertx)));
+    router.get("/*")
+        .handler(GraphiQLHandler.create(new GraphiQLHandlerOptions().setEnabled(true)
+            .setGraphQLUri(ApplicationConstants.CONTEXT_PATH
+                + GraphqlConstants.CONTEXT_PATH_GRAPHIQL + GraphqlConstants.CONTEXT_PATH)));
   }
 }

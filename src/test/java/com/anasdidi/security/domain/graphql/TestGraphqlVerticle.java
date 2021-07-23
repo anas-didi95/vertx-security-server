@@ -17,6 +17,9 @@ import io.vertx.rxjava3.core.Vertx;
 public class TestGraphqlVerticle {
 
   private String requestURI = ApplicationConstants.CONTEXT_PATH + GraphqlConstants.CONTEXT_PATH;
+  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"] } = secret
+  private final String accessToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdfQ.GxIlBwCt3dRWrNWg3xhLSmqHJtcVEHHTKu2A9D9_wug";
 
   @BeforeEach
   void deployVerticle(Vertx vertx, VertxTestContext testContext) {
@@ -37,27 +40,28 @@ public class TestGraphqlVerticle {
         .put("variables", new JsonObject()//
             .put("value", testValue));
 
-    TestUtils.doPostRequest(vertx, requestURI).rxSendJsonObject(requestBody).subscribe(response -> {
-      testContext.verify(() -> {
-        Assertions.assertEquals(200, response.statusCode());
-        Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
-        checkpoint.flag();
-      });
+    TestUtils.doPostRequest(vertx, requestURI, accessToken).rxSendJsonObject(requestBody)
+        .subscribe(response -> {
+          testContext.verify(() -> {
+            Assertions.assertEquals(200, response.statusCode());
+            Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
+            checkpoint.flag();
+          });
 
-      testContext.verify(() -> {
-        JsonObject responseBody = response.bodyAsJsonObject();
-        Assertions.assertNotNull(responseBody);
+          testContext.verify(() -> {
+            JsonObject responseBody = response.bodyAsJsonObject();
+            Assertions.assertNotNull(responseBody);
 
-        JsonObject data = responseBody.getJsonObject("data");
-        Assertions.assertNotNull(data);
+            JsonObject data = responseBody.getJsonObject("data");
+            Assertions.assertNotNull(data);
 
-        JsonObject ping = data.getJsonObject("ping");
-        Assertions.assertNotNull(ping);
-        Assertions.assertEquals(true, ping.getBoolean("isSuccess"));
-        Assertions.assertEquals(testValue, ping.getString("testValue"));
+            JsonObject ping = data.getJsonObject("ping");
+            Assertions.assertNotNull(ping);
+            Assertions.assertEquals(true, ping.getBoolean("isSuccess"));
+            Assertions.assertEquals(testValue, ping.getString("testValue"));
 
-        checkpoint.flag();
-      });
-    }, error -> testContext.failNow(error));
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
   }
 }

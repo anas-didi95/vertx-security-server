@@ -14,6 +14,11 @@ import io.vertx.rxjava3.ext.web.handler.graphql.GraphQLHandler;
 public class GraphqlVerticle extends BaseVerticle {
 
   private static final Logger logger = LogManager.getLogger(GraphqlVerticle.class);
+  private final GraphqlHandler graphqlHandler;
+
+  public GraphqlVerticle() {
+    this.graphqlHandler = new GraphqlHandler();
+  }
 
   @Override
   public void start(Promise<Void> startFuture) throws Exception {
@@ -36,6 +41,7 @@ public class GraphqlVerticle extends BaseVerticle {
   @Override
   protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler,
       Handler<RoutingContext> jwtAuthzHandler) {
+    router.route().handler(jwtAuthHandler).failureHandler(graphqlHandler::sendResponseFailure);
     router.post("/").handler(GraphQLHandler.create(GraphqlUtils.createGraphQL(vertx)));
   }
 }

@@ -3,6 +3,19 @@ type Ping {
   testValue: String!
 }
 
+type User {
+  id: String
+  username: String
+  fullName: String
+  email: String
+  lastModifiedBy: User
+  lastModifiedDate(format: String): String
+  version: Int
+  telegramId: String
+  permissions: [String]
+}
+
 type Query {
   ping(value: String!): Ping!
+  getUserList: [User]!
 }

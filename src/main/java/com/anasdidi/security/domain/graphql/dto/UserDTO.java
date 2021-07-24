@@ -75,6 +75,10 @@ public class UserDTO {
     String format = env.getArgument("format");
 
     if (format != null) {
+      if (lastModifiedDate == null) {
+        return null;
+      }
+
       Date date = Date.from(lastModifiedDate);
       return new SimpleDateFormat(format).format(date);
     }

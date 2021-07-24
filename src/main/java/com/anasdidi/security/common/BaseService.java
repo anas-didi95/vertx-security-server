@@ -21,4 +21,9 @@ public abstract class BaseService {
         .put("document", document).put("version", version);
     return eventBus.rxRequest(event.toString(), requestBody);
   }
+
+  protected final JsonObject getResponseBody(Message<Object> response) {
+    JsonObject responseBody = (JsonObject) response.body();
+    return responseBody;
+  }
 }

@@ -29,7 +29,7 @@ class UserService extends BaseService {
           return Single.error(new ApplicationException(ErrorValue.USER_CREATE, vo.traceId,
               "Unable to create user with username: " + vo.username));
         }).map(response -> {
-          JsonObject responseBody = (JsonObject) response.body();
+          JsonObject responseBody = getResponseBody(response);
           return responseBody.getString("id");
         });
   }
@@ -52,7 +52,7 @@ class UserService extends BaseService {
           return Single.error(
               new ApplicationException(ErrorValue.USER_UPDATE, vo.traceId, error.getMessage()));
         }).map(response -> {
-          JsonObject responseBody = (JsonObject) response.body();
+          JsonObject responseBody = getResponseBody(response);
           return responseBody.getString("id");
         });
   }
@@ -71,7 +71,7 @@ class UserService extends BaseService {
           return Single.error(
               new ApplicationException(ErrorValue.USER_DELETE, vo.traceId, error.getMessage()));
         }).map(response -> {
-          JsonObject responseBody = (JsonObject) response.body();
+          JsonObject responseBody = getResponseBody(response);
           return responseBody.getString("id");
         });
   }

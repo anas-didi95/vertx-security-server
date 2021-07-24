@@ -1,8 +1,11 @@
 package com.anasdidi.security.domain.graphql.dto;
 
+import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.anasdidi.security.common.ApplicationUtils;
 import graphql.schema.DataFetchingEnvironment;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -33,12 +36,12 @@ public class UserDTO {
   }
 
   public final static UserDTO fromJson(JsonObject json) {
-    String id = json.getString("id");
+    String id = json.getString("id", json.getString("_id"));
     String username = json.getString("username");
     String fullName = json.getString("fullName");
     String email = json.getString("email");
     String lastModifiedBy = json.getString("lastModifiedBy");
-    Instant lastModifiedDate = json.getInstant("lastModifiedDate");
+    Instant lastModifiedDate = ApplicationUtils.getRecordDate(json, "lastModifiedDate");
     Long version = json.getLong("version");
     String telegramId = json.getString("telegramId");
     List<String> permissions = json.getJsonArray("permissions", new JsonArray()).stream()
@@ -72,9 +75,10 @@ public class UserDTO {
     String format = env.getArgument("format");
 
     if (format != null) {
-      return format;
+      Date date = Date.from(lastModifiedDate);
+      return new SimpleDateFormat(format).format(date);
     }
-    return lastModifiedDate != null ? lastModifiedDate.toString() : "TEST";
+    return lastModifiedDate.toString();
   }
 
   public Long getVersion() {

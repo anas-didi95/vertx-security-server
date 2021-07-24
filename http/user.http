@@ -9,7 +9,7 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "username": "superadmin",
+  "username": "superadmin2",
   "password": "password",
   "fullName": "superadmin",
   "email": "anas.didi95@gmail.com",

@@ -15,7 +15,7 @@ class GraphqlUtils {
     String schema = vertx.fileSystem().readFileBlocking("schema.graphql").toString();
     SchemaParser schemaParser = new SchemaParser();
     TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
-    GraphqlDataFetcher dataFetcher = new GraphqlDataFetcher();
+    GraphqlDataFetcher dataFetcher = new GraphqlDataFetcher(vertx.eventBus());
 
     RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
         .type("Query",

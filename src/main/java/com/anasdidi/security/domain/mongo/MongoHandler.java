@@ -42,8 +42,16 @@ class MongoHandler extends BaseHandler {
             error -> request.fail(5, error.getMessage()));
   }
 
-  void read(Message<Object> request) {
-    getRequestBody(request).map(json -> MongoVO.fromJson(json)).flatMap(vo -> mongoService.read(vo))
+  void readOne(Message<Object> request) {
+    getRequestBody(request).map(json -> MongoVO.fromJson(json))
+        .flatMap(vo -> mongoService.readOne(vo))
         .subscribe(json -> request.reply(json), error -> request.fail(4, error.getMessage()));
+  }
+
+  void readMany(Message<Object> request) {
+    getRequestBody(request).map(json -> MongoVO.fromJson(json))
+        .flatMap(vo -> mongoService.readMany(vo))
+        .subscribe(resultList -> request.reply(new JsonObject().put("resultList", resultList)),
+            error -> request.fail(4, error.getMessage()));
   }
 }

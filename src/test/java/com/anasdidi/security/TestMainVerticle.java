@@ -54,6 +54,7 @@ public class TestMainVerticle {
     Assertions.assertNotNull(config.getJwtPermissionsKey());
     Assertions.assertNotNull(config.getJwtAccessTokenExpireInMinutes());
     Assertions.assertNotNull(config.getJwtRefreshTokenExpireInMinutes());
+    Assertions.assertNotNull(config.getGraphiqlEnable());
     testContext.completeNow();
   }
 }

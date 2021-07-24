@@ -48,7 +48,7 @@ Following table is a **mandatory** environment variables used in this project.
 | JWT_REFRESH_TOKEN_EXPIRE_IN_MINUTES | Number | JWT refresh token expiration period (in minutes) |
 | MONGO_CONNECTION_STRING | String | Mongo connection string (refer [doc](https://docs.mongodb.com/manual/reference/connection-string/) for example) |
 | LOG_LEVEL | String | Log level |
-| GRAPHIQL_IS_ENABLE | Boolean | Flag to enable `/graphiql` path |
+| GRAPHIQL_ENABLE | Boolean | Flag to enable `/graphiql` path |
 
 ---
 

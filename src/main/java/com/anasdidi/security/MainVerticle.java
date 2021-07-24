@@ -43,7 +43,11 @@ public class MainVerticle extends AbstractVerticle {
 
       Router router = getRouter();
       List<Single<String>> deployer = deployVerticles(router, new MongoVerticle(),
-          new UserVerticle(), new AuthVerticle(), new GraphqlVerticle(), new GraphiqlVerticle());
+          new UserVerticle(), new AuthVerticle(), new GraphqlVerticle());
+
+      if (config.getGraphiqlEnable()) {
+        deployer.add(deployVerticle(router, new GraphiqlVerticle()));
+      }
 
       Single.mergeDelayError(deployer).toList().subscribe(verticleList -> {
         logger.info("[start] Total deployed verticle: {}", verticleList.size());

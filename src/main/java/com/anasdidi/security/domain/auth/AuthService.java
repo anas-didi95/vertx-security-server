@@ -32,9 +32,9 @@ class AuthService extends BaseService {
       logger.debug("[login:{}] query{}", vo.traceId, query.encode());
     }
 
-    return sendRequest(EventMongo.MONGO_READ, CollectionRecord.USER, query, null, null)
+    return sendRequest(EventMongo.MONGO_READ_ONE, CollectionRecord.USER, query, null, null)
         .flatMap(response -> {
-          JsonObject user = (JsonObject) response.body();
+          JsonObject user = getResponseBody(response);
 
           if (user.isEmpty()) {
             logger.error("[login:{}] query{}", vo.traceId, query.encode());
@@ -60,9 +60,9 @@ class AuthService extends BaseService {
       logger.debug("[check:{}] query{}", vo.traceId, query.encode());
     }
 
-    return sendRequest(EventMongo.MONGO_READ, CollectionRecord.USER, query, null, null)
+    return sendRequest(EventMongo.MONGO_READ_ONE, CollectionRecord.USER, query, null, null)
         .flatMap(response -> {
-          JsonObject responseBody = (JsonObject) response.body();
+          JsonObject responseBody = getResponseBody(response);
 
           if (responseBody.isEmpty()) {
             logger.error("[check:{}] query{}", vo.traceId, query.encode());
@@ -85,9 +85,9 @@ class AuthService extends BaseService {
     }
 
     Single<JsonObject> token =
-        sendRequest(EventMongo.MONGO_READ, CollectionRecord.TOKEN, query, null, null)
+        sendRequest(EventMongo.MONGO_READ_ONE, CollectionRecord.TOKEN, query, null, null)
             .flatMap(response -> {
-              JsonObject responseBody = (JsonObject) response.body();
+              JsonObject responseBody = getResponseBody(response);
 
               if (responseBody.isEmpty()) {
                 logger.error("[refresh:{}] query{}", vo.traceId, query.encode());
@@ -117,7 +117,7 @@ class AuthService extends BaseService {
 
     return sendRequest(EventMongo.MONGO_DELETE_MANY, CollectionRecord.TOKEN, query, null, null)
         .flatMap(response -> {
-          JsonObject responseBody = (JsonObject) response.body();
+          JsonObject responseBody = getResponseBody(response);
           long removedCount = responseBody.getLong(MongoClientDeleteResult.REMOVED_COUNT);
 
           if (removedCount <= 0) {
@@ -132,9 +132,9 @@ class AuthService extends BaseService {
 
   private Single<String> getAccessToken(String userId) {
     JsonObject query = new JsonObject().put("_id", userId);
-    return sendRequest(EventMongo.MONGO_READ, CollectionRecord.USER, query, null, null)
+    return sendRequest(EventMongo.MONGO_READ_ONE, CollectionRecord.USER, query, null, null)
         .flatMap(response -> {
-          JsonObject responseBody = (JsonObject) response.body();
+          JsonObject responseBody = getResponseBody(response);
           return getAccessToken(responseBody);
         });
   }
@@ -155,7 +155,7 @@ class AuthService extends BaseService {
         new JsonObject().put("userId", userId).put("issuedDate", ApplicationUtils.setRecordDate());
     return sendRequest(EventMongo.MONGO_CREATE, CollectionRecord.TOKEN, null, document, null)
         .map(response -> {
-          JsonObject responseBody = (JsonObject) response.body();
+          JsonObject responseBody = getResponseBody(response);
           ApplicationConfig config = ApplicationConfig.instance();
           return jwtAuth.generateToken(new JsonObject().put("typ", "refreshToken"),
               new JWTOptions().setSubject(responseBody.getString("id"))
@@ -168,7 +168,7 @@ class AuthService extends BaseService {
     JsonObject query = new JsonObject().put("_id", id);
     return sendRequest(EventMongo.MONGO_DELETE_ONE, CollectionRecord.TOKEN, query, null, version)
         .map(response -> {
-          JsonObject responseBody = (JsonObject) response.body();
+          JsonObject responseBody = getResponseBody(response);
           return responseBody.getString("id");
         });
   }

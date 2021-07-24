@@ -7,7 +7,11 @@ import io.vertx.core.json.JsonObject;
 public class ApplicationUtils {
 
   public static final String getFormattedUUID() {
-    return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
+    return getFormattedUUID(UUID.randomUUID().toString());
+  }
+
+  public static final String getFormattedUUID(String uuid) {
+    return uuid.replaceAll("-", "").toUpperCase();
   }
 
   public static final JsonObject setRecordDate() {

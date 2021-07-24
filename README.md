@@ -48,7 +48,7 @@ Following table is a **mandatory** environment variables used in this project.
 | JWT_REFRESH_TOKEN_EXPIRE_IN_MINUTES | Number | JWT refresh token expiration period (in minutes) |
 | MONGO_CONNECTION_STRING | String | Mongo connection string (refer [doc](https://docs.mongodb.com/manual/reference/connection-string/) for example) |
 | LOG_LEVEL | String | Log level |
-| GRAPHIQL_IS_ENABLE | Boolean | Flag to enable `/graphiql` path |
+| GRAPHIQL_ENABLE | Boolean | Flag to enable `/graphiql` path |
 
 ---
 
@@ -75,7 +75,8 @@ To run your application:
 - [x] Add JWT authentication for resource handler.
 - [x] Add JWT refresh token to get new access token.
 - [x] Add revoke token handler to log out user.
-- [ ] Add GraphQL handler to query resource.
+- [x] Add GraphQL handler to query resource.
+- [ ] Add health endpoint to check server status.
 
 ---
 

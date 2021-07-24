@@ -20,7 +20,7 @@ public class ApplicationConstants {
   }
 
   public enum EventMongo {
-    MONGO_CREATE, MONGO_UPDATE, MONGO_DELETE_ONE, MONGO_DELETE_MANY, MONGO_READ;
+    MONGO_CREATE, MONGO_UPDATE, MONGO_DELETE_ONE, MONGO_DELETE_MANY, MONGO_READ_ONE, MONGO_READ_MANY;
   }
 
   public enum ErrorValue {

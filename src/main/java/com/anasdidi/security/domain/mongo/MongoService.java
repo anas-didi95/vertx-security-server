@@ -1,5 +1,6 @@
 package com.anasdidi.security.domain.mongo;
 
+import java.util.List;
 import com.anasdidi.security.common.ApplicationUtils;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -39,9 +40,13 @@ class MongoService {
         .toSingle();
   }
 
-  Single<JsonObject> read(MongoVO vo) {
+  Single<JsonObject> readOne(MongoVO vo) {
     return mongoClient.rxFindOne(vo.collection, vo.query, new JsonObject())
         .defaultIfEmpty(new JsonObject());
+  }
+
+  Single<List<JsonObject>> readMany(MongoVO vo) {
+    return mongoClient.rxFind(vo.collection, vo.query);
   }
 
   private Maybe<JsonObject> checkRecordExist(MongoVO vo) {

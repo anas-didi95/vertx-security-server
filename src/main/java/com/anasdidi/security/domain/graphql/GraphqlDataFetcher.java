@@ -27,7 +27,7 @@ class GraphqlDataFetcher {
   }
 
   void ping(DataFetchingEnvironment env, Promise<Map<String, Object>> promise) {
-    String traceId = ApplicationUtils.getFormattedUUID(env.getExecutionId().toString());
+    String traceId = getTraceId(env);
     String value = env.getArgument("value");
 
     if (logger.isDebugEnabled()) {

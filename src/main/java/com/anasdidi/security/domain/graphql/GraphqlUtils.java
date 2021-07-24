@@ -20,7 +20,8 @@ class GraphqlUtils {
     RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
         .type("Query",
             builder -> builder.dataFetcher("ping", VertxDataFetcher.create(dataFetcher::ping))
-                .dataFetcher("getUserList", VertxDataFetcher.create(dataFetcher::getUserList)))
+                .dataFetcher("getUserList", VertxDataFetcher.create(dataFetcher::getUserList))
+                .dataFetcher("getUserById", VertxDataFetcher.create(dataFetcher::getUserById)))
         .build();
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();

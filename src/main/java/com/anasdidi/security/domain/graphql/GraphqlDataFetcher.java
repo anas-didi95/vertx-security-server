@@ -67,6 +67,31 @@ class GraphqlDataFetcher {
     });
   }
 
+  void getUserById(DataFetchingEnvironment env, Promise<UserDTO> promise) {
+    String traceId = getTraceId(env);
+    String userId = env.getArgument("id");
+    JsonObject query = new JsonObject().put("_id", userId);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[getUserById:{}] query{}", traceId, query.encode());
+    }
+
+    sendRequest(EventMongo.MONGO_READ_ONE, CollectionRecord.USER, query).subscribe(response -> {
+      JsonObject responseBody = getResponseBody(response);
+      UserDTO result = UserDTO.fromJson(responseBody);
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("[getUserById:{}] {}", traceId, result);
+      }
+
+      promise.complete(result);
+    }, error -> {
+      logger.error("[getUserById:{}] query{}", traceId, query.encode());
+      logger.error("[getUserById:{}] {}", traceId, error.getMessage());
+      promise.fail(error);
+    });
+  }
+
   private String getTraceId(DataFetchingEnvironment env) {
     return ApplicationUtils.getFormattedUUID(env.getExecutionId().toString());
   }

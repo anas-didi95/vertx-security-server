@@ -92,4 +92,11 @@ public class UserDTO {
   public List<String> getPermissions() {
     return permissions;
   }
+
+  @Override
+  public String toString() {
+    return "UserDTO [email=" + email + ", fullName=" + fullName + ", id=" + id + ", lastModifiedBy="
+        + lastModifiedBy + ", lastModifiedDate=" + lastModifiedDate + ", permissions=" + permissions
+        + ", telegramId=" + telegramId + ", username=" + username + ", version=" + version + "]";
+  }
 }

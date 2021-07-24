@@ -18,4 +18,5 @@ type User {
 type Query {
   ping(value: String!): Ping!
   getUserList: [User]!
+  getUserById(id: String!): User!
 }

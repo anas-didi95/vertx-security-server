@@ -20,6 +20,9 @@ public class TestGraphqlVerticle {
   // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"] } = secret
   private final String accessToken =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdfQ.GxIlBwCt3dRWrNWg3xhLSmqHJtcVEHHTKu2A9D9_wug";
+  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "typ": "TOKEN_REFRESH" }
+  private final String refreshToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJ0eXAiOiJUT0tFTl9SRUZSRVNIIn0.Wie-HReiLjlUdwxIC0di2ACQFVOB_PmjPq52zOStRmY";
 
   @BeforeEach
   void deployVerticle(Vertx vertx, VertxTestContext testContext) {
@@ -60,6 +63,35 @@ public class TestGraphqlVerticle {
             Assertions.assertEquals(true, ping.getBoolean("isSuccess"));
             Assertions.assertEquals(testValue, ping.getString("testValue"));
 
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testGraphqlAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    String testValue = "" + System.currentTimeMillis();
+    JsonObject requestBody = new JsonObject()//
+        .put("query", "query($value: String!) { ping(value: $value) { isSuccess testValue } }")//
+        .put("variables", new JsonObject()//
+            .put("value", testValue));
+
+    TestUtils.doPostRequest(vertx, requestURI, refreshToken).rxSendJsonObject(requestBody)
+        .subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 401);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
             checkpoint.flag();
           });
         }, error -> testContext.failNow(error));

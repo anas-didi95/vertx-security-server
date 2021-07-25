@@ -17,10 +17,11 @@ import io.vertx.rxjava3.core.Vertx;
 public class TestGraphqlVerticle {
 
   private String requestURI = ApplicationConstants.CONTEXT_PATH + GraphqlConstants.CONTEXT_PATH;
-  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"] } = secret
+  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"], "typ": "TOKEN_ACCESS" } =
+  // secret
   private final String accessToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdfQ.GxIlBwCt3dRWrNWg3xhLSmqHJtcVEHHTKu2A9D9_wug";
-  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "typ": "TOKEN_REFRESH" }
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdLCJ0eXAiOiJUT0tFTl9BQ0NFU1MifQ.Vrehyb_erdUw_ziFUE15zg-Aiefp7fmpDWB9n69Ms3k";
+  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "typ": "TOKEN_REFRESH" } = secret
   private final String refreshToken =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJ0eXAiOiJUT0tFTl9SRUZSRVNIIn0.Wie-HReiLjlUdwxIC0di2ACQFVOB_PmjPq52zOStRmY";
 

@@ -4,6 +4,7 @@ import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import com.anasdidi.security.common.ApplicationConstants.ErrorValue;
 import com.anasdidi.security.common.ApplicationConstants.EventMongo;
+import com.anasdidi.security.common.ApplicationConstants.TokenType;
 import com.anasdidi.security.common.ApplicationException;
 import com.anasdidi.security.common.ApplicationUtils;
 import com.anasdidi.security.common.BaseService;
@@ -143,7 +144,7 @@ class AuthService extends BaseService {
     return Single.fromCallable(() -> {
       ApplicationConfig config = ApplicationConfig.instance();
       return jwtAuth.generateToken(
-          new JsonObject().put("typ", "accessToken").put(config.getJwtPermissionsKey(),
+          new JsonObject().put("typ", TokenType.TOKEN_ACCESS).put(config.getJwtPermissionsKey(),
               user.getJsonArray("permissions")),
           new JWTOptions().setSubject(user.getString("_id")).setIssuer(config.getJwtIssuer())
               .setExpiresInMinutes(config.getJwtAccessTokenExpireInMinutes()));
@@ -157,7 +158,7 @@ class AuthService extends BaseService {
         .map(response -> {
           JsonObject responseBody = getResponseBody(response);
           ApplicationConfig config = ApplicationConfig.instance();
-          return jwtAuth.generateToken(new JsonObject().put("typ", "refreshToken"),
+          return jwtAuth.generateToken(new JsonObject().put("typ", TokenType.TOKEN_REFRESH),
               new JWTOptions().setSubject(responseBody.getString("id"))
                   .setIssuer(config.getJwtIssuer())
                   .setExpiresInMinutes(config.getJwtRefreshTokenExpireInMinutes()));

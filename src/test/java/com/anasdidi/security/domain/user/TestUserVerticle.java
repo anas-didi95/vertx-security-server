@@ -4,6 +4,7 @@ import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationUtils;
+import com.anasdidi.security.common.TestConstants;
 import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -23,14 +24,6 @@ import io.vertx.rxjava3.ext.mongo.MongoClient;
 public class TestUserVerticle {
 
   private final String baseURI = ApplicationConstants.CONTEXT_PATH + UserConstants.CONTEXT_PATH;
-  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"], "typ": "TOKEN_ACCESS" } =
-  // secret
-  private final String accessToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdLCJ0eXAiOiJUT0tFTl9BQ0NFU1MifQ.Vrehyb_erdUw_ziFUE15zg-Aiefp7fmpDWB9n69Ms3k";
-  private final String accessTokenNoPermission =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJ0eXAiOiJUT0tFTl9BQ0NFU1MifQ.nh_hBp9L0WlRi2nseuDooDdSkqK4zLDY_ImrYJCvBng";
-  private final String invalidAccessToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.hxbVCLgVWkOTtGMj1OnfzGcDA_6pvaPczBQFebn2PPI";
 
   @BeforeEach
   void deployVerticle(Vertx vertx, VertxTestContext testContext) {
@@ -60,7 +53,7 @@ public class TestUserVerticle {
     MongoClient mongoClient = TestUtils.getMongoClient(vertx);
     JsonObject requestBody = TestUtils.generateUserJson();
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken)
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), TestConstants.ACCESS_TOKEN)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 201);
@@ -105,8 +98,8 @@ public class TestUserVerticle {
   void testUserCreateRequestBodyEmptyError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken).rxSend()
-        .subscribe(response -> {
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), TestConstants.ACCESS_TOKEN)
+        .rxSend().subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
             checkpoint.flag();
@@ -131,7 +124,7 @@ public class TestUserVerticle {
     Checkpoint checkpoint = testContext.checkpoint(2);
     JsonObject requestBody = new JsonObject().put("a", "a");
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken)
+    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), TestConstants.ACCESS_TOKEN)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -152,7 +145,8 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).flatMapSingle(id -> {
-      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessToken)
+      return TestUtils
+          .doPostRequest(vertx, TestUtils.getRequestURI(baseURI), TestConstants.ACCESS_TOKEN)
           .rxSendJsonObject(requestBody);
     }).subscribe(response -> {
       testContext.verify(() -> {
@@ -172,7 +166,9 @@ public class TestUserVerticle {
     Checkpoint checkpoint = testContext.checkpoint(3);
     JsonObject requestBody = TestUtils.generateUserJson();
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), invalidAccessToken)
+    TestUtils
+        .doPostRequest(vertx, TestUtils.getRequestURI(baseURI),
+            TestConstants.ACCESS_TOKEN_INVALID_SIGNATURE)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 401);
@@ -197,7 +193,9 @@ public class TestUserVerticle {
     Checkpoint checkpoint = testContext.checkpoint(3);
     JsonObject requestBody = TestUtils.generateUserJson();
 
-    TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI), accessTokenNoPermission)
+    TestUtils
+        .doPostRequest(vertx, TestUtils.getRequestURI(baseURI),
+            TestConstants.ACCESS_TOKEN_NO_PERMISSION)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 403);
@@ -230,7 +228,8 @@ public class TestUserVerticle {
       requestBody.put("permissions",
           new JsonArray().add("updatePermission1").add("updatePermission2"));
 
-      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+      return TestUtils
+          .doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), TestConstants.ACCESS_TOKEN)
           .rxSendJsonObject(requestBody);
     }).subscribe(response -> {
       testContext.verify(() -> {
@@ -278,7 +277,8 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).flatMapSingle(id -> {
-      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+      return TestUtils
+          .doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), TestConstants.ACCESS_TOKEN)
           .rxSend();
     }).subscribe(response -> {
       testContext.verify(() -> {
@@ -308,7 +308,8 @@ public class TestUserVerticle {
     mongoClient.rxSave(CollectionRecord.USER.name, requestBody).flatMapSingle(id -> {
       requestBody.clear().put("a", "a");
 
-      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+      return TestUtils
+          .doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), TestConstants.ACCESS_TOKEN)
           .rxSendJsonObject(requestBody);
     }).subscribe(response -> {
       testContext.verify(() -> {
@@ -329,7 +330,8 @@ public class TestUserVerticle {
     JsonObject requestBody = TestUtils.generateUserJson().put("version", 0);
     String userId = "" + System.currentTimeMillis();
 
-    TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, userId), accessToken)
+    TestUtils
+        .doPutRequest(vertx, TestUtils.getRequestURI(baseURI, userId), TestConstants.ACCESS_TOKEN)
         .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
@@ -363,7 +365,8 @@ public class TestUserVerticle {
       requestBody.put("telegramId", "testUserUpdateVersionMismatch3");
       requestBody.put("version", version);
 
-      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+      return TestUtils
+          .doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), TestConstants.ACCESS_TOKEN)
           .rxSendJsonObject(requestBody);
     }).subscribe(response -> {
       testContext.verify(() -> {
@@ -392,8 +395,8 @@ public class TestUserVerticle {
     JsonObject user = TestUtils.generateUserJson("password");
 
     mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
-      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), invalidAccessToken)
-          .rxSendJsonObject(user);
+      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id),
+          TestConstants.ACCESS_TOKEN_INVALID_SIGNATURE).rxSendJsonObject(user);
     }).subscribe(response -> {
       testContext.verify(() -> {
         TestUtils.testResponseHeader(response, 401);
@@ -420,9 +423,8 @@ public class TestUserVerticle {
     JsonObject user = TestUtils.generateUserJson("password");
 
     mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
-      return TestUtils
-          .doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessTokenNoPermission)
-          .rxSendJsonObject(user);
+      return TestUtils.doPutRequest(vertx, TestUtils.getRequestURI(baseURI, id),
+          TestConstants.ACCESS_TOKEN_NO_PERMISSION).rxSendJsonObject(user);
     }).subscribe(response -> {
       testContext.verify(() -> {
         TestUtils.testResponseHeader(response, 403);
@@ -451,7 +453,8 @@ public class TestUserVerticle {
     mongoClient.rxSave(CollectionRecord.USER.name, userJson).flatMapSingle(id -> {
       JsonObject requestBody = new JsonObject().put("version", userJson.getLong("version"));
 
-      return TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+      return TestUtils
+          .doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), TestConstants.ACCESS_TOKEN)
           .rxSendJsonObject(requestBody);
     }).subscribe(response -> {
       testContext.verify(() -> {
@@ -483,7 +486,8 @@ public class TestUserVerticle {
     JsonObject userJson = TestUtils.generateUserJson();
 
     mongoClient.rxSave(CollectionRecord.USER.name, userJson).flatMapSingle(id -> {
-      return TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+      return TestUtils
+          .doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), TestConstants.ACCESS_TOKEN)
           .rxSend();
     }).subscribe(response -> {
       testContext.verify(() -> {
@@ -513,7 +517,8 @@ public class TestUserVerticle {
     mongoClient.rxSave(CollectionRecord.USER.name, userJson).flatMapSingle(id -> {
       JsonObject requestBody = new JsonObject().put("key", "value");
 
-      return TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+      return TestUtils
+          .doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), TestConstants.ACCESS_TOKEN)
           .rxSendJsonObject(requestBody);
     }).subscribe(response -> {
       testContext.verify(() -> {
@@ -534,8 +539,8 @@ public class TestUserVerticle {
     String userId = "" + System.currentTimeMillis();
     JsonObject requestBody = new JsonObject().put("version", 0);
 
-    TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, userId), accessToken)
-        .rxSendJsonObject(requestBody).subscribe(response -> {
+    TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, userId),
+        TestConstants.ACCESS_TOKEN).rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
             checkpoint.flag();
@@ -565,7 +570,8 @@ public class TestUserVerticle {
     mongoClient.rxSave(CollectionRecord.USER.name, userJson).flatMapSingle(id -> {
       JsonObject requestBody = new JsonObject().put("version", version);
 
-      return TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessToken)
+      return TestUtils
+          .doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), TestConstants.ACCESS_TOKEN)
           .rxSendJsonObject(requestBody);
     }).subscribe(response -> {
       testContext.verify(() -> {
@@ -594,9 +600,8 @@ public class TestUserVerticle {
     JsonObject user = TestUtils.generateUserJson("password");
 
     mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
-      return TestUtils
-          .doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), invalidAccessToken)
-          .rxSendJsonObject(user);
+      return TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id),
+          TestConstants.ACCESS_TOKEN_INVALID_SIGNATURE).rxSendJsonObject(user);
     }).subscribe(response -> {
       testContext.verify(() -> {
         TestUtils.testResponseHeader(response, 401);
@@ -623,9 +628,8 @@ public class TestUserVerticle {
     JsonObject user = TestUtils.generateUserJson("password");
 
     mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
-      return TestUtils
-          .doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id), accessTokenNoPermission)
-          .rxSendJsonObject(user);
+      return TestUtils.doDeleteRequest(vertx, TestUtils.getRequestURI(baseURI, id),
+          TestConstants.ACCESS_TOKEN_NO_PERMISSION).rxSendJsonObject(user);
     }).subscribe(response -> {
       testContext.verify(() -> {
         TestUtils.testResponseHeader(response, 403);

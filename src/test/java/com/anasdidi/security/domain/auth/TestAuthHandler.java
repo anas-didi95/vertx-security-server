@@ -4,6 +4,7 @@ import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import com.anasdidi.security.common.ApplicationUtils;
+import com.anasdidi.security.common.TestConstants;
 import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -22,14 +23,6 @@ import io.vertx.rxjava3.ext.mongo.MongoClient;
 public class TestAuthHandler {
 
   private final String baseURI = ApplicationConstants.CONTEXT_PATH + AuthConstants.CONTEXT_PATH;
-  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"], "typ": "TOKEN_ACCESS" } =
-  // secret
-  private final String accessToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdLCJ0eXAiOiJUT0tFTl9BQ0NFU1MifQ.Vrehyb_erdUw_ziFUE15zg-Aiefp7fmpDWB9n69Ms3k";
-  private final String accessTokenNoClaims =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbmFzZGlkaS5kZXYiLCJ0eXAiOiJUT0tFTl9BQ0NFU1MifQ.AhovN0SfzkgBlzhNYb5BLZlyoSlwDWETt4BOw6Hrr50";
-  private final String invalidAccessToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYifQ.hxbVCLgVWkOTtGMj1OnfzGcDA_6pvaPczBQFebn2PPI";
 
   @BeforeEach
   void deployVerticle(Vertx vertx, VertxTestContext testContext) {
@@ -233,8 +226,8 @@ public class TestAuthHandler {
   void testAuthCheckAuthenticationError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
-    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), invalidAccessToken)
-        .rxSend().subscribe(response -> {
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"),
+        TestConstants.ACCESS_TOKEN_INVALID_SIGNATURE).rxSend().subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 401);
             checkpoint.flag();
@@ -257,8 +250,8 @@ public class TestAuthHandler {
   void testAuthCheckValidationError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
-    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), accessTokenNoClaims)
-        .rxSend().subscribe(response -> {
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"),
+        TestConstants.ACCESS_TOKEN_NO_CLAIMS).rxSend().subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
             checkpoint.flag();
@@ -275,8 +268,9 @@ public class TestAuthHandler {
   void testAuthCheckRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
-    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), accessToken).rxSend()
-        .subscribe(response -> {
+    TestUtils
+        .doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "check"), TestConstants.ACCESS_TOKEN)
+        .rxSend().subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
             checkpoint.flag();
@@ -352,8 +346,8 @@ public class TestAuthHandler {
   void testAuthRefreshAuthenticationError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
-    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), invalidAccessToken)
-        .rxSend().subscribe(response -> {
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"),
+        TestConstants.ACCESS_TOKEN_INVALID_SIGNATURE).rxSend().subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 401);
             checkpoint.flag();
@@ -376,8 +370,8 @@ public class TestAuthHandler {
   void testAuthRefreshValidationError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
-    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), accessTokenNoClaims)
-        .rxSend().subscribe(response -> {
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"),
+        TestConstants.ACCESS_TOKEN_NO_CLAIMS).rxSend().subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
             checkpoint.flag();
@@ -394,8 +388,8 @@ public class TestAuthHandler {
   void testAuthRefreshRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
-    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), accessToken).rxSend()
-        .subscribe(response -> {
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"),
+        TestConstants.ACCESS_TOKEN).rxSend().subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
             checkpoint.flag();
@@ -459,8 +453,8 @@ public class TestAuthHandler {
   void testAuthLogoutValidationError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(2);
 
-    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "logout"), accessTokenNoClaims)
-        .rxSend().subscribe(response -> {
+    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "logout"),
+        TestConstants.ACCESS_TOKEN_NO_CLAIMS).rxSend().subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
             checkpoint.flag();
@@ -477,8 +471,9 @@ public class TestAuthHandler {
   void testAuthLogoutRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
-    TestUtils.doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "logout"), accessToken).rxSend()
-        .subscribe(response -> {
+    TestUtils
+        .doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "logout"), TestConstants.ACCESS_TOKEN)
+        .rxSend().subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 400);
             checkpoint.flag();

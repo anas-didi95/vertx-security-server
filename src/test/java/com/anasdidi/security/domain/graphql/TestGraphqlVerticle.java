@@ -2,6 +2,7 @@ package com.anasdidi.security.domain.graphql;
 
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants;
+import com.anasdidi.security.common.TestConstants;
 import com.anasdidi.security.common.TestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,13 +18,6 @@ import io.vertx.rxjava3.core.Vertx;
 public class TestGraphqlVerticle {
 
   private String requestURI = ApplicationConstants.CONTEXT_PATH + GraphqlConstants.CONTEXT_PATH;
-  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"], "typ": "TOKEN_ACCESS" } =
-  // secret
-  private final String accessToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdLCJ0eXAiOiJUT0tFTl9BQ0NFU1MifQ.Vrehyb_erdUw_ziFUE15zg-Aiefp7fmpDWB9n69Ms3k";
-  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "typ": "TOKEN_REFRESH" } = secret
-  private final String refreshToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJ0eXAiOiJUT0tFTl9SRUZSRVNIIn0.Wie-HReiLjlUdwxIC0di2ACQFVOB_PmjPq52zOStRmY";
 
   @BeforeEach
   void deployVerticle(Vertx vertx, VertxTestContext testContext) {
@@ -44,8 +38,8 @@ public class TestGraphqlVerticle {
         .put("variables", new JsonObject()//
             .put("value", testValue));
 
-    TestUtils.doPostRequest(vertx, requestURI, accessToken).rxSendJsonObject(requestBody)
-        .subscribe(response -> {
+    TestUtils.doPostRequest(vertx, requestURI, TestConstants.ACCESS_TOKEN)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             Assertions.assertEquals(200, response.statusCode());
             Assertions.assertEquals("application/json", response.getHeader("Content-Type"));
@@ -78,8 +72,8 @@ public class TestGraphqlVerticle {
         .put("variables", new JsonObject()//
             .put("value", testValue));
 
-    TestUtils.doPostRequest(vertx, requestURI, refreshToken).rxSendJsonObject(requestBody)
-        .subscribe(response -> {
+    TestUtils.doPostRequest(vertx, requestURI, TestConstants.REFRESH_TOKEN)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
           testContext.verify(() -> {
             TestUtils.testResponseHeader(response, 401);
             checkpoint.flag();

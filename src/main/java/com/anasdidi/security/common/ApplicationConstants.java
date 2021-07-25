@@ -3,7 +3,7 @@ package com.anasdidi.security.common;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ApplicationConstants {
+public final class ApplicationConstants {
 
   public static final String CONTEXT_PATH = "/security";
   public static final Map<String, String> HEADERS;
@@ -64,5 +64,9 @@ public class ApplicationConstants {
     private HttpStatus(int code) {
       this.code = code;
     }
+  }
+
+  public enum TokenType {
+    TOKEN_ACCESS, TOKEN_REFRESH
   }
 }

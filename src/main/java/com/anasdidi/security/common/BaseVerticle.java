@@ -1,5 +1,6 @@
 package com.anasdidi.security.common;
 
+import com.anasdidi.security.common.ApplicationConstants.TokenType;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.ext.auth.JWTOptions;
@@ -58,15 +59,23 @@ public abstract class BaseVerticle extends AbstractVerticle {
 
   private Handler<RoutingContext> getJwtAuthzHandler() {
     return routingContext -> {
-      if (getPermission() == null || getPermission().isBlank()) {
+      String tokenType = routingContext.user().principal().getString("typ");
+
+      if (!TokenType.TOKEN_ACCESS.toString().equals(tokenType)) {
+        routingContext.fail(401);
+        return;
+      } else if (getPermission() == null || getPermission().isBlank()) {
         routingContext.next();
+        return;
       }
 
       getJwtAuthzProvider().rxGetAuthorizations(routingContext.user()).subscribe(() -> {
         if (PermissionBasedAuthorization.create(getPermission()).match(routingContext.user())) {
           routingContext.next();
+          return;
         } else {
           routingContext.fail(403);
+          return;
         }
       });
     };

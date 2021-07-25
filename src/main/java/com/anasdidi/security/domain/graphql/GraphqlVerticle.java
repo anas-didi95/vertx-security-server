@@ -42,6 +42,7 @@ public class GraphqlVerticle extends BaseVerticle {
   protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler,
       Handler<RoutingContext> jwtAuthzHandler) {
     router.route().handler(jwtAuthHandler).failureHandler(graphqlHandler::sendResponseFailure);
+    router.route().handler(jwtAuthzHandler).failureHandler(graphqlHandler::sendResponseFailure);
     router.post("/").handler(GraphQLHandler.create(GraphqlUtils.createGraphQL(vertx)));
   }
 }

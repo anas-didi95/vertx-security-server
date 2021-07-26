@@ -94,6 +94,10 @@ public class TestUtils {
     return sendRequest(vertx, HttpMethod.DELETE, requestURI, accessToken);
   }
 
+  public static HttpRequest<Buffer> doGetRequest(Vertx vertx, String requestURI) {
+    return sendRequest(vertx, HttpMethod.GET, requestURI, null);
+  }
+
   public static HttpRequest<Buffer> doGetRequest(Vertx vertx, String requestURI,
       String accessToken) {
     return sendRequest(vertx, HttpMethod.GET, requestURI, accessToken);

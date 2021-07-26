@@ -24,6 +24,7 @@ import io.vertx.core.logging.Log4j2LogDelegateFactory;
 import io.vertx.ext.healthchecks.Status;
 import io.vertx.rxjava3.config.ConfigRetriever;
 import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.core.shareddata.LocalMap;
 import io.vertx.rxjava3.ext.healthchecks.HealthCheckHandler;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.handler.BodyHandler;
@@ -53,6 +54,10 @@ public class MainVerticle extends AbstractVerticle {
 
       Single.mergeDelayError(deployer).toList().subscribe(verticleList -> {
         logger.info("[start] Total deployed verticle: {}", verticleList.size());
+
+        LocalMap<Object, Object> localMap = vertx.sharedData().getLocalMap("serverStatus");
+        localMap.put("verticles", verticleList.size());
+        localMap.put("startTime", System.currentTimeMillis());
 
         Router contextPath = Router.router(vertx);
         contextPath.mountSubRouter(ApplicationConstants.CONTEXT_PATH, router);
@@ -91,8 +96,24 @@ public class MainVerticle extends AbstractVerticle {
     Router router = Router.router(vertx);
     HealthCheckHandler handler = HealthCheckHandler.create(vertx);
 
-    handler.register("test", promise -> {
-      promise.complete(Status.OK(new JsonObject().put("value", "hello world")));
+    handler.register("server-status", promise -> {
+      LocalMap<Object, Object> localMap = vertx.sharedData().getLocalMap("serverStatus");
+      int verticles = (int) localMap.get("verticles");
+      long uptime = System.currentTimeMillis() - (long) localMap.get("startTime");
+      String uptimeTemplate = "%dd %dh %dm %ds %dms";
+
+      long minsec = uptime % 1000;
+      uptime /= 1000;
+      long sec = uptime % 60;
+      uptime /= 60;
+      long min = uptime % 60;
+      uptime /= 60;
+      long hour = uptime % 60;
+      uptime /= 60;
+
+      JsonObject responseBody = new JsonObject().put("verticles", verticles).put("uptime",
+          String.format(uptimeTemplate, uptime, hour, min, sec, minsec));
+      promise.complete(Status.OK(responseBody));
     });
 
     router.get("/health").handler(handler);

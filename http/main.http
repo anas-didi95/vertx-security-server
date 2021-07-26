@@ -1,8 +1,6 @@
-@host = localhost
-@port = 5000
-@hostname = {{host}}:{{port}}
+@baseUrl = http://{{$processEnv APP_HOST}}:{{$processEnv APP_PORT}}/security
 
-### Health check
-GET http://{{hostname}}/security/ping
+// @name health
+GET {{baseUrl}}/health
 Accept: application/json
 Content-Type: application/json

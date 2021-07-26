@@ -76,7 +76,8 @@ To run your application:
 - [x] Add JWT refresh token to get new access token.
 - [x] Add revoke token handler to log out user.
 - [x] Add GraphQL handler to query resource.
-- [ ] Add health endpoint to check server status.
+- [x] Add health endpoint to check server status.
+- [ ] Add CORS handler to allow request from another domain.
 
 ---
 

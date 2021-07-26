@@ -21,8 +21,10 @@ import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Log4j2LogDelegateFactory;
+import io.vertx.ext.healthchecks.Status;
 import io.vertx.rxjava3.config.ConfigRetriever;
 import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.ext.healthchecks.HealthCheckHandler;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.handler.BodyHandler;
 
@@ -54,6 +56,7 @@ public class MainVerticle extends AbstractVerticle {
 
         Router contextPath = Router.router(vertx);
         contextPath.mountSubRouter(ApplicationConstants.CONTEXT_PATH, router);
+        contextPath.mountSubRouter(ApplicationConstants.CONTEXT_PATH, getHealthRouter());
         logger.info("[start] Set context path: {}", ApplicationConstants.CONTEXT_PATH);
 
         vertx.createHttpServer().requestHandler(contextPath)
@@ -81,6 +84,18 @@ public class MainVerticle extends AbstractVerticle {
         routingContext -> routingContext.put("traceId", ApplicationUtils.getFormattedUUID())
             .put("startTime", System.currentTimeMillis()).next());
 
+    return router;
+  }
+
+  private Router getHealthRouter() {
+    Router router = Router.router(vertx);
+    HealthCheckHandler handler = HealthCheckHandler.create(vertx);
+
+    handler.register("test", promise -> {
+      promise.complete(Status.OK(new JsonObject().put("value", "hello world")));
+    });
+
+    router.get("/health").handler(handler);
     return router;
   }
 

@@ -1,6 +1,5 @@
 package com.anasdidi.security.domain.graphql;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,15 +120,29 @@ class GraphqlDataFetcher {
 
   void getPermissionList(DataFetchingEnvironment env, Promise<List<PermissionDTO>> promise) {
     String traceId = getTraceId(env);
-    List<PermissionDTO> resultList =
-        Arrays.asList("user:write").stream().map(s -> new JsonObject().put("id", s))
-            .map(json -> PermissionDTO.fromJson(json)).collect(Collectors.toList());
+    JsonObject query = new JsonObject();
 
     if (logger.isDebugEnabled()) {
-      logger.debug("[getPermissionList:{}] resultList.size", traceId, resultList.size());
+      logger.debug("[getPermissionList:{}] query{}", traceId, query.encode());
     }
 
-    promise.complete(resultList);
+    sendRequest(EventMongo.MONGO_READ_MANY, CollectionRecord.PERMISSION, query)
+        .subscribe(response -> {
+          JsonObject responseBody = (JsonObject) response.body();
+          List<PermissionDTO> resultList =
+              responseBody.getJsonArray("resultList").stream().map(o -> (JsonObject) o)
+                  .map(json -> PermissionDTO.fromJson(json)).collect(Collectors.toList());
+
+          if (logger.isDebugEnabled()) {
+            logger.debug("[getPermissionList:{}] resultList.size={}", traceId, resultList.size());
+          }
+
+          promise.complete(resultList);
+        }, error -> {
+          logger.error("[getPermissionList:{}] query{}", traceId, query.encode());
+          logger.error("[getPermissionList:{}] {}", traceId, error.getMessage());
+          promise.fail(error);
+        });
   }
 
   private String getTraceId(DataFetchingEnvironment env) {

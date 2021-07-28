@@ -11,7 +11,7 @@ public class PermissionDTO {
   }
 
   public static PermissionDTO fromJson(JsonObject json) {
-    String id = json.getString("id");
+    String id = json.getString("id", json.getString("_id"));
     return new PermissionDTO(id);
   }
 

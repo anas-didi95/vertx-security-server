@@ -17,13 +17,14 @@ class GraphqlUtils {
     TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
     GraphqlDataFetcher dataFetcher = new GraphqlDataFetcher(vertx.eventBus());
 
-    RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
-        .type("Query",
-            builder -> builder.dataFetcher("ping", VertxDataFetcher.create(dataFetcher::ping))
-                .dataFetcher("getUserList", VertxDataFetcher.create(dataFetcher::getUserList))
-                .dataFetcher("getUserById", VertxDataFetcher.create(dataFetcher::getUserById))
-                .dataFetcher("getUserByUsername",
-                    VertxDataFetcher.create(dataFetcher::getUserByUsername)))
+    RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring().type("Query",
+        builder -> builder.dataFetcher("ping", VertxDataFetcher.create(dataFetcher::ping))
+            .dataFetcher("getUserList", VertxDataFetcher.create(dataFetcher::getUserList))
+            .dataFetcher("getUserById", VertxDataFetcher.create(dataFetcher::getUserById))
+            .dataFetcher("getUserByUsername",
+                VertxDataFetcher.create(dataFetcher::getUserByUsername))
+            .dataFetcher("getPermissionList",
+                VertxDataFetcher.create(dataFetcher::getPermissionList)))
         .build();
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();

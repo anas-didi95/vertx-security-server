@@ -1,5 +1,6 @@
 package com.anasdidi.security.domain.graphql;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import com.anasdidi.security.common.ApplicationConstants.EventMongo;
 import com.anasdidi.security.common.ApplicationUtils;
+import com.anasdidi.security.domain.graphql.dto.PermissionDTO;
 import com.anasdidi.security.domain.graphql.dto.UserDTO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -115,6 +117,19 @@ class GraphqlDataFetcher {
       logger.error("[getUserByUsername:{}] {}", traceId, error.getMessage());
       promise.fail(error);
     });
+  }
+
+  void getPermissionList(DataFetchingEnvironment env, Promise<List<PermissionDTO>> promise) {
+    String traceId = getTraceId(env);
+    List<PermissionDTO> resultList =
+        Arrays.asList("user:write").stream().map(s -> new JsonObject().put("id", s))
+            .map(json -> PermissionDTO.fromJson(json)).collect(Collectors.toList());
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[getPermissionList:{}] resultList.size", traceId, resultList.size());
+    }
+
+    promise.complete(resultList);
   }
 
   private String getTraceId(DataFetchingEnvironment env) {

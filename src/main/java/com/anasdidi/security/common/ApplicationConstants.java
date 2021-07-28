@@ -47,7 +47,7 @@ public final class ApplicationConstants {
   }
 
   public enum CollectionRecord {
-    USER("users"), TOKEN("tokens");
+    USER("users"), TOKEN("tokens"), PERMISSION("permissions");
 
     public final String name;
 

@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
 import com.anasdidi.security.common.ApplicationConstants.EventMongo;
 import com.anasdidi.security.common.ApplicationUtils;
+import com.anasdidi.security.domain.graphql.dto.PermissionDTO;
 import com.anasdidi.security.domain.graphql.dto.UserDTO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -115,6 +116,33 @@ class GraphqlDataFetcher {
       logger.error("[getUserByUsername:{}] {}", traceId, error.getMessage());
       promise.fail(error);
     });
+  }
+
+  void getPermissionList(DataFetchingEnvironment env, Promise<List<PermissionDTO>> promise) {
+    String traceId = getTraceId(env);
+    JsonObject query = new JsonObject();
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[getPermissionList:{}] query{}", traceId, query.encode());
+    }
+
+    sendRequest(EventMongo.MONGO_READ_MANY, CollectionRecord.PERMISSION, query)
+        .subscribe(response -> {
+          JsonObject responseBody = (JsonObject) response.body();
+          List<PermissionDTO> resultList =
+              responseBody.getJsonArray("resultList").stream().map(o -> (JsonObject) o)
+                  .map(json -> PermissionDTO.fromJson(json)).collect(Collectors.toList());
+
+          if (logger.isDebugEnabled()) {
+            logger.debug("[getPermissionList:{}] resultList.size={}", traceId, resultList.size());
+          }
+
+          promise.complete(resultList);
+        }, error -> {
+          logger.error("[getPermissionList:{}] query{}", traceId, query.encode());
+          logger.error("[getPermissionList:{}] {}", traceId, error.getMessage());
+          promise.fail(error);
+        });
   }
 
   private String getTraceId(DataFetchingEnvironment env) {

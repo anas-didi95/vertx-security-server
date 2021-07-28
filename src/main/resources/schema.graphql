@@ -15,9 +15,14 @@ type User {
   permissions: [String]
 }
 
+type Permission {
+  id: String
+}
+
 type Query {
   ping(value: String!): Ping!
   getUserList: [User]!
   getUserById(id: String!): User!
   getUserByUsername(username: String!): User!
+  getPermissionList: [Permission]!
 }

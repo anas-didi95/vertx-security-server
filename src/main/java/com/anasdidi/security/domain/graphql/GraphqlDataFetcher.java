@@ -145,6 +145,35 @@ class GraphqlDataFetcher {
         });
   }
 
+  void getLastModifiedBy(DataFetchingEnvironment env, Promise<UserDTO> promise) {
+    String traceId = getTraceId(env);
+    UserDTO source = env.getSource();
+    String lastModifiedBy = source.getLastModifiedBy();
+    JsonObject query = new JsonObject().put("_id", lastModifiedBy);
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[getLastModifiedBy:{}] query{}", traceId, query);
+    }
+
+    sendRequest(EventMongo.MONGO_READ_ONE, CollectionRecord.USER, query).subscribe(response -> {
+      JsonObject responseBody = (JsonObject) response.body();
+      if (responseBody.isEmpty()) {
+        responseBody.put("id", lastModifiedBy);
+      }
+
+      UserDTO result = UserDTO.fromJson(responseBody);
+      if (logger.isDebugEnabled()) {
+        logger.debug("[getLastModifiedBy:{}] {}", traceId, result);
+      }
+
+      promise.complete(result);
+    }, error -> {
+      logger.error("[getLastModifiedBy:{}] query{}", traceId, query);
+      logger.error("[getLastModifiedBy:{}] {}", traceId, error.getMessage());
+      promise.fail(error);
+    });
+  }
+
   private String getTraceId(DataFetchingEnvironment env) {
     return ApplicationUtils.getFormattedUUID(env.getExecutionId().toString());
   }

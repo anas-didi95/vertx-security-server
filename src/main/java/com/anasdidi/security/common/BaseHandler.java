@@ -9,6 +9,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.eventbus.Message;
+import io.vertx.rxjava3.ext.auth.User;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 public abstract class BaseHandler {
@@ -104,6 +105,7 @@ public abstract class BaseHandler {
     return Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
       String traceId = routingContext.get("traceId");
+      User user = routingContext.user();
 
       if (requestBody == null || requestBody.isEmpty()) {
         if (jsonKeys.length > 0) {
@@ -114,6 +116,10 @@ public abstract class BaseHandler {
         }
       }
       requestBody.put("traceId", traceId);
+
+      if (user != null) {
+        requestBody.put("lastModifiedBy", user.principal().getString("sub"));
+      }
 
       if (logger.isDebugEnabled()) {
         JsonObject copy = requestBody.copy();

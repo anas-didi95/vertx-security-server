@@ -88,6 +88,7 @@ public class TestUserVerticle {
                   Assertions.assertEquals(0, result.getLong("version"));
                   Assertions
                       .assertNotNull(ApplicationUtils.getRecordDate(result, "lastModifiedDate"));
+                  Assertions.assertEquals("SYSTEM", result.getString("lastModifiedBy"));
                   checkpoint.flag();
                 });
               }, error -> testContext.failNow(error));
@@ -264,6 +265,7 @@ public class TestUserVerticle {
               Assertions.assertEquals(requestBody.getLong("version") + 1,
                   result.getLong("version"));
               Assertions.assertNotNull(ApplicationUtils.getRecordDate(result, "lastModifiedDate"));
+              Assertions.assertEquals("SYSTEM", result.getString("lastModifiedBy"));
               checkpoint.flag();
             });
           }, error -> testContext.failNow(error));

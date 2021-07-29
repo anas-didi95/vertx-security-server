@@ -25,6 +25,8 @@ class GraphqlUtils {
                 VertxDataFetcher.create(dataFetcher::getUserByUsername))
             .dataFetcher("getPermissionList",
                 VertxDataFetcher.create(dataFetcher::getPermissionList)))
+        .type("User", builder -> builder.dataFetcher("lastModifiedBy",
+            VertxDataFetcher.create(dataFetcher::getLastModifiedBy)))
         .build();
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();

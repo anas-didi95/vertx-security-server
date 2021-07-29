@@ -101,6 +101,7 @@ public abstract class BaseHandler {
 
   protected final Single<JsonObject> getRequestBody(RoutingContext routingContext,
       String... jsonKeys) {
+    String userId = routingContext.user().principal().getString("sub");
     return Single.fromCallable(() -> {
       JsonObject requestBody = routingContext.getBodyAsJson();
       String traceId = routingContext.get("traceId");
@@ -114,6 +115,7 @@ public abstract class BaseHandler {
         }
       }
       requestBody.put("traceId", traceId);
+      requestBody.put("lastModifiedBy", userId);
 
       if (logger.isDebugEnabled()) {
         JsonObject copy = requestBody.copy();

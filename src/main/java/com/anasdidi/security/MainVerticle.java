@@ -3,6 +3,7 @@ package com.anasdidi.security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationConstants;
@@ -19,6 +20,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.Promise;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Log4j2LogDelegateFactory;
 import io.vertx.ext.healthchecks.Status;
@@ -28,6 +30,7 @@ import io.vertx.rxjava3.core.shareddata.LocalMap;
 import io.vertx.rxjava3.ext.healthchecks.HealthCheckHandler;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.handler.BodyHandler;
+import io.vertx.rxjava3.ext.web.handler.CorsHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -82,8 +85,21 @@ public class MainVerticle extends AbstractVerticle {
     return ConfigRetriever.create(vertx, new ConfigRetrieverOptions().setStores(storeList));
   }
 
+  private CorsHandler getCorsHandler() {
+    ApplicationConfig config = ApplicationConfig.instance();
+    CorsHandler handler = CorsHandler.create(config.getCorsOrigin());
+
+    Set<HttpMethod> methods =
+        Arrays.asList(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE).stream()
+            .collect(Collectors.toSet());
+    handler.allowedMethods(methods);
+
+    return handler;
+  }
+
   private Router getRouter() {
     Router router = Router.router(vertx);
+    router.route().handler(getCorsHandler());
     router.route().handler(BodyHandler.create());
     router.route().handler(
         routingContext -> routingContext.put("traceId", ApplicationUtils.getFormattedUUID())

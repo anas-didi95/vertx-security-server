@@ -17,6 +17,7 @@ public class ApplicationConfig {
   private static String KEY_JWT_REFRESH_TOKEN_EXPIRE_IN_MINUTES =
       "JWT_REFRESH_TOKEN_EXPIRE_IN_MINUTES";
   private static String KEY_GRAPHIQL_ENABLE = "GRAPHIQL_ENABLE";
+  private static String KEY_CORS_ORIGIN = "CORS_ORIGIN";
 
   private final JsonObject json;
 
@@ -40,7 +41,7 @@ public class ApplicationConfig {
     return new JsonArray().add(KEY_APP_HOST).add(KEY_APP_PORT).add(KEY_MONGO_CONNECTION_STRING)
         .add(KEY_JWT_SECRET).add(KEY_JWT_ISSUER).add(KEY_JWT_PERMISSIONS_KEY)
         .add(KEY_JWT_ACCESS_TOKEN_EXPIRE_IN_MINUTES).add(KEY_JWT_REFRESH_TOKEN_EXPIRE_IN_MINUTES)
-        .add(KEY_GRAPHIQL_ENABLE);
+        .add(KEY_GRAPHIQL_ENABLE).add(KEY_CORS_ORIGIN);
   }
 
   @Override
@@ -86,5 +87,9 @@ public class ApplicationConfig {
 
   public Boolean getGraphiqlEnable() {
     return json.getBoolean(KEY_GRAPHIQL_ENABLE);
+  }
+
+  public String getCorsOrigin() {
+    return json.getString(KEY_CORS_ORIGIN);
   }
 }

@@ -49,6 +49,7 @@ Following table is a **mandatory** environment variables used in this project.
 | MONGO_CONNECTION_STRING | String | Mongo connection string (refer [doc](https://docs.mongodb.com/manual/reference/connection-string/) for example) |
 | LOG_LEVEL | String | Log level |
 | GRAPHIQL_ENABLE | Boolean | Flag to enable `/graphiql` path |
+| CORS_ORIGINS | String | Comma-delimited of list of origins for CORS request |
 
 ---
 
@@ -77,7 +78,7 @@ To run your application:
 - [x] Add revoke token handler to log out user.
 - [x] Add GraphQL handler to query resource.
 - [x] Add health endpoint to check server status.
-- [ ] Add CORS handler to allow request from another domain.
+- [x] Add CORS handler to allow request from another domain.
 
 ---
 

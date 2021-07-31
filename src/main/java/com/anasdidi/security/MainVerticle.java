@@ -19,6 +19,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.Promise;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Log4j2LogDelegateFactory;
 import io.vertx.ext.healthchecks.Status;
@@ -28,6 +29,7 @@ import io.vertx.rxjava3.core.shareddata.LocalMap;
 import io.vertx.rxjava3.ext.healthchecks.HealthCheckHandler;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.handler.BodyHandler;
+import io.vertx.rxjava3.ext.web.handler.CorsHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -82,8 +84,21 @@ public class MainVerticle extends AbstractVerticle {
     return ConfigRetriever.create(vertx, new ConfigRetrieverOptions().setStores(storeList));
   }
 
+  private CorsHandler getCorsHandler() {
+    ApplicationConfig config = ApplicationConfig.instance();
+    CorsHandler handler = CorsHandler.create();
+
+    Arrays.asList(config.getCorsOrigins().split(",")).forEach(handler::addOrigin);
+    Arrays.asList("Accept", "Content-Type", "Authorization").forEach(handler::allowedHeader);
+    Arrays.asList(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE)
+        .forEach(handler::allowedMethod);
+
+    return handler;
+  }
+
   private Router getRouter() {
     Router router = Router.router(vertx);
+    router.route().handler(getCorsHandler());
     router.route().handler(BodyHandler.create());
     router.route().handler(
         routingContext -> routingContext.put("traceId", ApplicationUtils.getFormattedUUID())

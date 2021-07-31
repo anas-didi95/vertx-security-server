@@ -60,6 +60,7 @@ public class TestMainVerticle {
     Assertions.assertNotNull(config.getJwtAccessTokenExpireInMinutes());
     Assertions.assertNotNull(config.getJwtRefreshTokenExpireInMinutes());
     Assertions.assertNotNull(config.getGraphiqlEnable());
+    Assertions.assertNotNull(config.getCorsOrigins());
     testContext.completeNow();
   }
 

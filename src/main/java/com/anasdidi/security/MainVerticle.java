@@ -87,7 +87,9 @@ public class MainVerticle extends AbstractVerticle {
 
   private CorsHandler getCorsHandler() {
     ApplicationConfig config = ApplicationConfig.instance();
-    CorsHandler handler = CorsHandler.create(config.getCorsOrigin());
+    CorsHandler handler = CorsHandler.create();
+
+    Arrays.asList(config.getCorsOrigins().split(",")).forEach(handler::addOrigin);
 
     Set<HttpMethod> methods =
         Arrays.asList(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE).stream()

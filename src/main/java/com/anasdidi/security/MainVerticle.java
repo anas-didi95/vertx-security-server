@@ -3,7 +3,6 @@ package com.anasdidi.security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import com.anasdidi.security.common.ApplicationConfig;
 import com.anasdidi.security.common.ApplicationConstants;
@@ -90,11 +89,9 @@ public class MainVerticle extends AbstractVerticle {
     CorsHandler handler = CorsHandler.create();
 
     Arrays.asList(config.getCorsOrigins().split(",")).forEach(handler::addOrigin);
-
-    Set<HttpMethod> methods =
-        Arrays.asList(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE).stream()
-            .collect(Collectors.toSet());
-    handler.allowedMethods(methods);
+    Arrays.asList("Accept", "Content-Type", "Authorization").forEach(handler::allowedHeader);
+    Arrays.asList(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE)
+        .forEach(handler::allowedMethod);
 
     return handler;
   }

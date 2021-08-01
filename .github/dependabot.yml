@@ -12,3 +12,10 @@ updates:
     # Check the maven registry for updates every day (weekdays)
     schedule:
       interval: "daily"
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    # For GitHub Actions, set the directory to / to check for workflow files in .github/workflows.
+    directory: "/"
+    schedule:
+      interval: "daily"

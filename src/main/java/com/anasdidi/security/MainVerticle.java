@@ -123,8 +123,8 @@ public class MainVerticle extends AbstractVerticle {
       uptime /= 60;
       long min = uptime % 60;
       uptime /= 60;
-      long hour = uptime % 60;
-      uptime /= 60;
+      long hour = uptime % 24;
+      uptime /= 24;
 
       JsonObject responseBody = new JsonObject().put("verticles", verticles).put("uptime",
           String.format(uptimeTemplate, uptime, hour, min, sec, minsec));

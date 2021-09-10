@@ -88,7 +88,12 @@ class UserService extends BaseService {
     }
 
     return sendRequest(EventMongo.MONGO_UPDATE, CollectionRecord.USER, query, document, vo.version)
-        .map(response -> {
+        .onErrorResumeNext(error -> {
+          logger.error("[changePassword:{}] query{}", vo.traceId, query.encode());
+          logger.error("[changePassword:{}] document{}", vo.traceId, document.encode());
+          return Single.error(new ApplicationException(ErrorValue.USER_CHANGE_PASSWORD, vo.traceId,
+              error.getMessage()));
+        }).map(response -> {
           JsonObject responseBody = getResponseBody(response);
           return responseBody.getString("id");
         });

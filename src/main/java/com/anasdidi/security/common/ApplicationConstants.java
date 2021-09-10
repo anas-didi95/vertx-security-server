@@ -32,6 +32,7 @@ public final class ApplicationConstants {
     USER_CREATE("E101", "Create user failed!"), //
     USER_UPDATE("E102", "Update user failed!"), //
     USER_DELETE("E103", "Delete user failed!"), //
+    USER_CHANGE_PASSWORD("E104", "Change password failed!"), //
     AUTH_LOGIN("E201", "Invalid credentials!"), //
     AUTH_CHECK("E202", "Incorrect credentials data!"), //
     AUTH_REFRESH("E203", "Refresh token failed!"), //

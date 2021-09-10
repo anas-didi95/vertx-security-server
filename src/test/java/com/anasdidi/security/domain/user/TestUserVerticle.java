@@ -847,4 +847,68 @@ public class TestUserVerticle {
       });
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserChangePasswordAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String oldPassword = "oldPassword:" + System.currentTimeMillis();
+    String newPassword = "newPassword:" + System.currentTimeMillis();
+    JsonObject user = TestUtils.generateUserJson(oldPassword);
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("version", user.getLong("version"))
+          .put("oldPassword", oldPassword).put("newPassword", newPassword);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN_INVALID_SIGNATURE).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 401);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserChangePasswordAuthorizationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String oldPassword = "oldPassword:" + System.currentTimeMillis();
+    String newPassword = "newPassword:" + System.currentTimeMillis();
+    JsonObject user = TestUtils.generateUserJson(oldPassword);
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("version", user.getLong("version"))
+          .put("oldPassword", oldPassword).put("newPassword", newPassword);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN_NO_PERMISSION).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 403);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E004", "Forbidden!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Insufficient permissions for resource", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
 }

@@ -813,4 +813,38 @@ public class TestUserVerticle {
       });
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserChangePasswordOldPasswordMismatchError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint();
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String oldPassword = "oldPassword:" + System.currentTimeMillis();
+    String newPassword = "newPassword:" + System.currentTimeMillis();
+    JsonObject user = TestUtils.generateUserJson(oldPassword);
+    String password = "" + System.currentTimeMillis();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("version", user.getLong("version"))
+          .put("oldPassword", password).put("newPassword", newPassword);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E104", "Change password failed!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Current record has old password mismatch with requested value",
+            error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
 }

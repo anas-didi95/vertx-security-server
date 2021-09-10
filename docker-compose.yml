@@ -14,12 +14,14 @@ services:
         INSTALL_NODE: "false"
         NODE_VERSION": "lts/*"
     command: sleep infinity
-    env_file: .env
+    env_file:
+      - .env
     ports:
       - "${APP_PORT}:${APP_PORT}"
     volumes:
       - ./:/workspace
       - ./m2-docker:/home/vscode/.m2
+      - ./.vscode-server:/home/vscode/.vscode-server
 
   mongo:
     image: mongo:4.2.8

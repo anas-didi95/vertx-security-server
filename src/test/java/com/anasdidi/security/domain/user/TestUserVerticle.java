@@ -650,4 +650,265 @@ public class TestUserVerticle {
       });
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserChangePasswordSuccess(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String oldPassword = "oldPassword:" + System.currentTimeMillis();
+    String newPassword = "newPassword:" + System.currentTimeMillis();
+    JsonObject user = TestUtils.generateUserJson(oldPassword);
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("version", user.getLong("version"))
+          .put("oldPassword", oldPassword).put("newPassword", newPassword);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 200);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        JsonObject responseBody = response.bodyAsJsonObject();
+        Assertions.assertNotNull(responseBody);
+        Assertions.assertNotNull(responseBody.getString("id"));
+        checkpoint.flag();
+      });
+
+      String userId = response.bodyAsJsonObject().getString("id");
+      JsonObject query = new JsonObject().put("_id", userId);
+      JsonObject fields = new JsonObject();
+      mongoClient.rxFindOne(CollectionRecord.USER.name, query, fields).subscribe(result -> {
+        testContext.verify(() -> {
+          Assertions.assertEquals(result.getString("username"), user.getString("username"));
+          Assertions.assertEquals(result.getLong("version"), user.getLong("version") + 1);
+          Assertions.assertNotEquals(user.getString("password"), result.getString("password"));
+          Assertions.assertTrue(BCrypt.checkpw(newPassword, result.getString("password")));
+          checkpoint.flag();
+        });
+      }, error -> testContext.failNow(error), () -> testContext.failNow("User not found!"));
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserChangePasswordRequestBodyError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject();
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Required keys: version,oldPassword,newPassword", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserChangePasswordValidationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(2);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String oldPassword = "oldPassword:" + System.currentTimeMillis();
+    JsonObject user = TestUtils.generateUserJson(oldPassword);
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("key", "value");
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E002", "Validation error!");
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserChangePasswordRecordNotFoundError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String oldPassword = "oldPassword:" + System.currentTimeMillis();
+    String newPassword = "newPassword:" + System.currentTimeMillis();
+    JsonObject user = TestUtils.generateUserJson(oldPassword);
+    String userId = "" + System.currentTimeMillis();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("version", user.getLong("version"))
+          .put("oldPassword", oldPassword).put("newPassword", newPassword);
+      return TestUtils.doPostRequest(vertx,
+          TestUtils.getRequestURI(baseURI, userId, "change-password"), TestConstants.ACCESS_TOKEN)
+          .rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E104", "Change password failed!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        JsonObject query = new JsonObject().put("_id", userId);
+        Assertions.assertEquals("Record not found with query: " + query.encode(), error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserChangePasswordVersionMismatchError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String oldPassword = "oldPassword:" + System.currentTimeMillis();
+    String newPassword = "newPassword:" + System.currentTimeMillis();
+    JsonObject user = TestUtils.generateUserJson(oldPassword);
+    int version = -1;
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("version", version)
+          .put("oldPassword", oldPassword).put("newPassword", newPassword);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E104", "Change password failed!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals(
+            "Current record has version mismatch with requested value: " + version, error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserChangePasswordOldPasswordMismatchError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint();
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String oldPassword = "oldPassword:" + System.currentTimeMillis();
+    String newPassword = "newPassword:" + System.currentTimeMillis();
+    JsonObject user = TestUtils.generateUserJson(oldPassword);
+    String password = "" + System.currentTimeMillis();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("version", user.getLong("version"))
+          .put("oldPassword", password).put("newPassword", newPassword);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E104", "Change password failed!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Current record has old password mismatch with requested value",
+            error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserChangePasswordAuthenticationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String oldPassword = "oldPassword:" + System.currentTimeMillis();
+    String newPassword = "newPassword:" + System.currentTimeMillis();
+    JsonObject user = TestUtils.generateUserJson(oldPassword);
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("version", user.getLong("version"))
+          .put("oldPassword", oldPassword).put("newPassword", newPassword);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN_INVALID_SIGNATURE).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 401);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E003", "Unauthorized!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Lacks valid authentication credentials for resource", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
+
+  @Test
+  void testUserChangePasswordAuthorizationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    String oldPassword = "oldPassword:" + System.currentTimeMillis();
+    String newPassword = "newPassword:" + System.currentTimeMillis();
+    JsonObject user = TestUtils.generateUserJson(oldPassword);
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject().put("version", user.getLong("version"))
+          .put("oldPassword", oldPassword).put("newPassword", newPassword);
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN_NO_PERMISSION).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 403);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E004", "Forbidden!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Insufficient permissions for resource", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
 }

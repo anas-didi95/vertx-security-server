@@ -1,5 +1,6 @@
 package com.anasdidi.security.domain.auth;
 
+import java.util.concurrent.TimeUnit;
 import com.anasdidi.security.MainVerticle;
 import com.anasdidi.security.common.ApplicationConstants;
 import com.anasdidi.security.common.ApplicationConstants.CollectionRecord;
@@ -302,7 +303,7 @@ public class TestAuthHandler {
           new JsonObject().put("username", user.getString("username")).put("password", password);
       return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, "login"))
           .rxSendJsonObject(requestBody);
-    }).flatMapSingle(response -> {
+    }).delay(1, TimeUnit.SECONDS).flatMapSingle(response -> {
       String refreshToken = response.bodyAsJsonObject().getString("refreshToken");
       return TestUtils
           .doGetRequest(vertx, TestUtils.getRequestURI(baseURI, "refresh"), refreshToken).rxSend();

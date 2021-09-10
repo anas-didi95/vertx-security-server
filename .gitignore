@@ -3,6 +3,7 @@ m2-docker/
 mongo-data/
 log/
 mongodump/
+.vscode-server/
 
 ### Vert.x ###
 .vertx/

@@ -76,4 +76,49 @@ class UserService extends BaseService {
           return responseBody.getString("id");
         });
   }
+
+  Single<String> changePassword(UserVO vo) {
+    JsonObject query = new JsonObject().put("_id", vo.id);
+    JsonObject document =
+        new JsonObject().put("password", BCrypt.hashpw(vo.newPassword, BCrypt.gensalt()));
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[changePassword:{}] query{}", vo.traceId, query.encode());
+      logger.debug("[changePassword:{}] document{}", vo.traceId, document.encode());
+    }
+
+    Single<String> checkOldPassword =
+        sendRequest(EventMongo.MONGO_READ_ONE, CollectionRecord.USER, query, null, null)
+            .onErrorResumeNext(error -> {
+              logger.error("[changePassword:{}] query{}", vo.traceId, query.encode());
+              return Single.error(new ApplicationException(ErrorValue.USER_CHANGE_PASSWORD,
+                  vo.traceId, error.getMessage()));
+            }).flatMap(response -> {
+              JsonObject responseBody = getResponseBody(response);
+              String hashed = responseBody.getString("password", "");
+              if (hashed.isBlank()) {
+                return Single.error(new ApplicationException(ErrorValue.USER_CHANGE_PASSWORD,
+                    vo.traceId, "Record not found with query: " + query.encode()));
+              } else if (!BCrypt.checkpw(vo.oldPassword, hashed)) {
+                return Single.error(new ApplicationException(ErrorValue.USER_CHANGE_PASSWORD,
+                    vo.traceId, "Current record has old password mismatch with requested value"));
+              } else {
+                return Single.just(hashed);
+              }
+            });
+
+    Single<String> updatePassword =
+        sendRequest(EventMongo.MONGO_UPDATE, CollectionRecord.USER, query, document, vo.version)
+            .onErrorResumeNext(error -> {
+              logger.error("[changePassword:{}] query{}", vo.traceId, query.encode());
+              logger.error("[changePassword:{}] document{}", vo.traceId, document.encode());
+              return Single.error(new ApplicationException(ErrorValue.USER_CHANGE_PASSWORD,
+                  vo.traceId, error.getMessage()));
+            }).map(response -> {
+              JsonObject responseBody = getResponseBody(response);
+              return responseBody.getString("id");
+            });
+
+    return Single.concat(checkOldPassword, updatePassword).lastOrError();
+  }
 }

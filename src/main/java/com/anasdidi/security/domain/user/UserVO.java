@@ -20,10 +20,12 @@ class UserVO extends BaseVO {
   final Long version;
   final Instant lastModifiedDate;
   final String lastModifiedBy;
+  final String oldPassword;
+  final String newPassword;
 
   private UserVO(String traceId, String id, String username, String password, String fullName,
       String email, String telegramId, List<String> permissions, Long version,
-      Instant lastModifiedDate, String lastModifiedBy) {
+      Instant lastModifiedDate, String lastModifiedBy, String oldPassword, String newPassword) {
     super(traceId);
     this.id = id;
     this.username = username;
@@ -35,6 +37,8 @@ class UserVO extends BaseVO {
     this.version = version;
     this.lastModifiedDate = lastModifiedDate;
     this.lastModifiedBy = lastModifiedBy;
+    this.oldPassword = oldPassword;
+    this.newPassword = newPassword;
   }
 
   static UserVO fromJson(JsonObject json) {
@@ -54,16 +58,19 @@ class UserVO extends BaseVO {
     Long version = json.getLong("version");
     Instant lastModifiedDate = ApplicationUtils.getRecordDate(json, "lastModifiedDate");
     String lastModifiedBy = json.getString("lastModifiedBy");
+    String oldPassword = json.getString("oldPassword");
+    String newPassword = json.getString("newPassword");
 
     return new UserVO(traceId, id, username, password, fullName, email, telegramId, permissions,
-        version, lastModifiedDate, lastModifiedBy);
+        version, lastModifiedDate, lastModifiedBy, oldPassword, newPassword);
   }
 
   JsonObject toJson() {
     return new JsonObject().put("username", username).put("password", password)
         .put("fullName", fullName).put("email", email).put("telegramId", telegramId)
         .put("permissions", permissions).put("version", version)
-        .put("lastModifiedDate", lastModifiedDate).put("lastModifiedBy", lastModifiedBy);
+        .put("lastModifiedDate", lastModifiedDate).put("lastModifiedBy", lastModifiedBy)
+        .put("oldPassword", oldPassword).put("newPassword", newPassword);
   }
 
   @Override

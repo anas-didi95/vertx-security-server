@@ -50,3 +50,17 @@ Authorization: Bearer {{accessToken}}
 {
   "version": 1
 }
+
+###
+
+// @name changePassword
+POST {{baseUrl}}/{{userId}}/change-password
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "version": 0,
+  "oldPassword": "password",
+  "newPassword": "newPassword"
+}

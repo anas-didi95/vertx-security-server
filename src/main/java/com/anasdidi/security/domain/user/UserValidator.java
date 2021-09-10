@@ -37,4 +37,15 @@ class UserValidator extends BaseValidator<UserVO> {
 
     return errorList;
   }
+
+  @Override
+  protected List<String> validateChangePassword(UserVO vo) {
+    List<String> errorList = new ArrayList<>();
+
+    isMandatory(errorList, vo.version, "Version");
+    isMandatory(errorList, vo.oldPassword, "Old Password");
+    isMandatory(errorList, vo.newPassword, "New Password");
+
+    return errorList;
+  }
 }

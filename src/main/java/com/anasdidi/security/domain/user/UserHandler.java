@@ -56,6 +56,7 @@ class UserHandler extends BaseHandler {
     Single<JsonObject> subscriber =
         getRequestBody(routingContext, "version", "oldPassword", "newPassword")
             .map(json -> UserVO.fromJson(json, userId))
+            .flatMap(vo -> userValidator.validate(vo, ValidateAction.CHANGE_PASSWORD))
             .flatMap(vo -> userService.changePassword(vo))
             .map(id -> new JsonObject().put("id", id));
 

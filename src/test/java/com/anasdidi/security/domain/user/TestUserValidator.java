@@ -69,4 +69,20 @@ public class TestUserValidator {
       testContext.completeNow();
     });
   }
+
+  @Test
+  void testValidateChangePassword(Vertx vertx, VertxTestContext testContext) {
+    List<String> actualList =
+        new UserValidator().validateChangePassword(UserVO.fromJson(new JsonObject()));
+    List<String> expectedList = Arrays.asList("Version is mandatory field!",
+        "Old Password is mandatory field!", "New Password is mandatory field!");
+
+    testContext.verify(() -> {
+      Assertions.assertEquals(expectedList.size(), actualList.size());
+      expectedList.stream().forEach(error -> {
+        Assertions.assertTrue(actualList.contains(error), "Expected error not found! " + error);
+      });
+      testContext.completeNow();
+    });
+  }
 }

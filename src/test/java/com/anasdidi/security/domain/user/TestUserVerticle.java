@@ -691,4 +691,33 @@ public class TestUserVerticle {
       }, error -> testContext.failNow(error), () -> testContext.failNow("User not found!"));
     }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testUserChangePasswordRequestBodyError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    MongoClient mongoClient = TestUtils.getMongoClient(vertx);
+    JsonObject user = TestUtils.generateUserJson();
+
+    mongoClient.rxSave(CollectionRecord.USER.name, user).flatMapSingle(id -> {
+      JsonObject requestBody = new JsonObject();
+      return TestUtils.doPostRequest(vertx, TestUtils.getRequestURI(baseURI, id, "change-password"),
+          TestConstants.ACCESS_TOKEN).rxSendJsonObject(requestBody);
+    }).subscribe(response -> {
+      testContext.verify(() -> {
+        TestUtils.testResponseHeader(response, 400);
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        TestUtils.testResponseBodyError(response, "E001", "Request body is empty!");
+        checkpoint.flag();
+      });
+
+      testContext.verify(() -> {
+        String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+        Assertions.assertEquals("Required keys: version,oldPassword,newPassword", error);
+        checkpoint.flag();
+      });
+    }, error -> testContext.failNow(error));
+  }
 }

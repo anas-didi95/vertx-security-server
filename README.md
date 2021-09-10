@@ -72,7 +72,7 @@ To run your application:
 ---
 
 ## Features
-- [x] Can create, update, delete user resource.
+- [x] Can create, update, delete, change password user resource.
 - [x] Add JWT authentication for resource handler.
 - [x] Add JWT refresh token to get new access token.
 - [x] Add revoke token handler to log out user.

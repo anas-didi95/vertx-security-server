@@ -50,5 +50,6 @@ public class UserVerticle extends BaseVerticle {
     router.post("/").handler(userHandler::create);
     router.put("/:userId").handler(userHandler::update);
     router.delete("/:userId").handler(userHandler::delete);
+    router.post("/:userId/change-password").handler(userHandler::changePassword);
   }
 }

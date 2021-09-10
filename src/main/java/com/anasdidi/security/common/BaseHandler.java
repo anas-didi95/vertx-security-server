@@ -123,7 +123,7 @@ public abstract class BaseHandler {
 
       if (logger.isDebugEnabled()) {
         JsonObject copy = requestBody.copy();
-        Arrays.asList("password").stream().forEach(key -> {
+        Arrays.asList("password", "oldPassword", "newPassword").stream().forEach(key -> {
           if (copy.containsKey(key)) {
             copy.put(key, ApplicationUtils.hideValue(copy.getString(key)));
           }

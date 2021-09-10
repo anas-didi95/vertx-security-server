@@ -76,4 +76,21 @@ class UserService extends BaseService {
           return responseBody.getString("id");
         });
   }
+
+  Single<String> changePassword(UserVO vo) {
+    JsonObject query = new JsonObject().put("_id", vo.id);
+    JsonObject document =
+        new JsonObject().put("password", BCrypt.hashpw(vo.newPassword, BCrypt.gensalt()));
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("[changePassword:{}] query{}", vo.traceId, query.encode());
+      logger.debug("[changePassword:{}] document{}", vo.traceId, document.encode());
+    }
+
+    return sendRequest(EventMongo.MONGO_UPDATE, CollectionRecord.USER, query, document, vo.version)
+        .map(response -> {
+          JsonObject responseBody = getResponseBody(response);
+          return responseBody.getString("id");
+        });
+  }
 }

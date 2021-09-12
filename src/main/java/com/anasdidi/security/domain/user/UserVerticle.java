@@ -39,7 +39,7 @@ public class UserVerticle extends BaseVerticle {
 
   @Override
   protected String getPermission() {
-    return "user:write";
+    return "security:user";
   }
 
   @Override

@@ -2,10 +2,10 @@ package com.anasdidi.security.common;
 
 public final class TestConstants {
 
-  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": ["user:write"], "typ": "TOKEN_ACCESS" } =
-  // secret
+  // { "sub": "SYSTEM", "iss": "anasdidi.dev", "pms": [ "security:user", "security:graphql" ],
+  // "typ": "TOKEN_ACCESS" } = secret
   public static final String ACCESS_TOKEN =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsidXNlcjp3cml0ZSJdLCJ0eXAiOiJUT0tFTl9BQ0NFU1MifQ.Vrehyb_erdUw_ziFUE15zg-Aiefp7fmpDWB9n69Ms3k";
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTWVNURU0iLCJpc3MiOiJhbmFzZGlkaS5kZXYiLCJwbXMiOlsic2VjdXJpdHk6dXNlciIsInNlY3VyaXR5OmdyYXBocWwiXSwidHlwIjoiVE9LRU5fQUNDRVNTIn0.wf4aY4LVqN7YeTR8dVN2GLSelW84WQwVJ1Hd6D2bYIY";
 
   // { "sub": "SYSTEM", "iss": "anasdidi.dev", "typ": "TOKEN_ACCESS" } = secret
   public static final String ACCESS_TOKEN_NO_PERMISSION =

@@ -35,7 +35,7 @@ public class GraphqlVerticle extends BaseVerticle {
 
   @Override
   protected String getPermission() {
-    return null;
+    return "security:graphql";
   }
 
   @Override

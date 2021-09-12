@@ -91,4 +91,33 @@ public class TestGraphqlVerticle {
           });
         }, error -> testContext.failNow(error));
   }
+
+  @Test
+  void testGraphqlAuthorizationError(Vertx vertx, VertxTestContext testContext) {
+    Checkpoint checkpoint = testContext.checkpoint(3);
+    String testValue = "" + System.currentTimeMillis();
+    JsonObject requestBody = new JsonObject()//
+        .put("query", "query($value: String!) { ping(value: $value) { isSuccess testValue } }")//
+        .put("variables", new JsonObject()//
+            .put("value", testValue));
+
+    TestUtils.doPostRequest(vertx, requestURI, TestConstants.ACCESS_TOKEN_NO_PERMISSION)
+        .rxSendJsonObject(requestBody).subscribe(response -> {
+          testContext.verify(() -> {
+            TestUtils.testResponseHeader(response, 403);
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            TestUtils.testResponseBodyError(response, "E004", "Forbidden!");
+            checkpoint.flag();
+          });
+
+          testContext.verify(() -> {
+            String error = response.bodyAsJsonObject().getJsonArray("errors").getString(0);
+            Assertions.assertEquals("Insufficient permissions for resource", error);
+            checkpoint.flag();
+          });
+        }, error -> testContext.failNow(error));
+  }
 }

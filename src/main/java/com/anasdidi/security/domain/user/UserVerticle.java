@@ -46,10 +46,11 @@ public class UserVerticle extends BaseVerticle {
   protected void setHandler(Router router, EventBus eventBus, JWTAuthHandler jwtAuthHandler,
       Handler<RoutingContext> jwtAuthzHandler) {
     router.route().handler(jwtAuthHandler).failureHandler(userHandler::sendResponseFailure);
+    router.post("/:userId/change-password").handler(userHandler::changePassword);
+
     router.route().handler(jwtAuthzHandler).failureHandler(userHandler::sendResponseFailure);
     router.post("/").handler(userHandler::create);
     router.put("/:userId").handler(userHandler::update);
     router.delete("/:userId").handler(userHandler::delete);
-    router.post("/:userId/change-password").handler(userHandler::changePassword);
   }
 }

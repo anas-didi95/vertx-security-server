@@ -80,7 +80,8 @@ class UserService extends BaseService {
   Single<String> changePassword(UserVO vo) {
     JsonObject query = new JsonObject().put("_id", vo.id);
     JsonObject document =
-        new JsonObject().put("password", BCrypt.hashpw(vo.newPassword, BCrypt.gensalt()));
+        new JsonObject().put("password", BCrypt.hashpw(vo.newPassword, BCrypt.gensalt()))
+            .put("lastModifiedBy", vo.lastModifiedBy);
 
     if (logger.isDebugEnabled()) {
       logger.debug("[changePassword:{}] query{}", vo.traceId, query.encode());
